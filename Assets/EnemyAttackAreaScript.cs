@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class EnemyAttackAreaScript : MonoBehaviour
 {
+    public int enemyType;
     int startFrame;
     int deathFrame;
     int lifespan = 60; // 60 frames = 1 second
