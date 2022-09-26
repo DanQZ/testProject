@@ -10,13 +10,13 @@ public class PlayerScript : MonoBehaviour
     void Start()
     {
         hp = 100;
-        Application.targetFrameRate = 60;
+        Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
         speed = 3f / 60f; // x units per 60 frames
     }
 
     // Update is called once per frame
     void Update()
-    { 
+    {
         if (Input.GetKey("w"))
         {
             if(transform.position.y < 1f){
