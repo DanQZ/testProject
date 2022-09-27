@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 853157815649759983}
   - component: {fileID: 853157815649759980}
   m_Layer: 0
-  m_Name: EnemyAttackCircle
+  m_Name: Object2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -94,8 +94,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6061490844486511560}
   - component: {fileID: 6061490844486511567}
+  - component: {fileID: 952551955925397102}
   m_Layer: 0
-  m_Name: WarningSprite
+  m_Name: Object1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -158,7 +159,7 @@ SpriteRenderer:
   m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: f95f697d66d238446b1ab717def09945, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.4745098}
+  m_Color: {r: 0.26781267, g: 0.8018868, b: 0.19290671, a: 0.4745098}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -168,6 +169,20 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &952551955925397102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6061490844486511566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc3aca1173e5048409560618b145a1cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stopSign1: {fileID: 6061490844486511566}
+  stopSign2: {fileID: 0}
 --- !u!1 &6061490844802025200
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,6 +231,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be267f64e4decd643b557cadda7fbc74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyType: 0
   incomingCircle: {fileID: 853157815649759981}
   warning: {fileID: 6061490844486511566}
 --- !u!50 &-5783061206361316457
