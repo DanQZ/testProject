@@ -17,7 +17,7 @@ public class EnemyAttackControllerScript : MonoBehaviour
     void Update()
     {
         if(Time.frameCount > nextTry){
-            if(Random.Range(0f, 1f) < 0.25f){
+            if(Random.Range(0f, 1f) < .75f){
                 SpawnEnemyAttack();
             }
             nextTry = Time.frameCount + 6;
@@ -25,10 +25,10 @@ public class EnemyAttackControllerScript : MonoBehaviour
     }
 
     void SpawnEnemyAttack(){
-        GameObject newAttack = Instantiate(
+        GameObject newEnemyAttack = Instantiate(
             enemyAttackPrefab, 
             player.transform.position + new Vector3(
-                Random.Range(-1.5f, 1.5f),
+                Random.Range(-3f, 3f),
                 Random.Range(-1.5f, 1.5f),
                 0
             ), 

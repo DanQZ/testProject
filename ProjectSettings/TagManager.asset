@@ -11,7 +11,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - EnemyAttack
   - 
   - 
   - 
@@ -46,6 +46,12 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 3923879017
+    locked: 0
+  - name: Enemy
+    uniqueID: 2034740843
+    locked: 0
+  - name: EnemyGhost
+    uniqueID: 1430904439
     locked: 0
   - name: EnemyAttackArea
     uniqueID: 4245127299

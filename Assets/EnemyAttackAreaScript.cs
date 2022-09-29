@@ -68,7 +68,6 @@ public class EnemyAttackAreaScript : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player" && despawnNextFrame)
         {
-            Debug.Log("collision");
             collision.gameObject.GetComponent<PlayerScript>().hp -= 5;
         }
     }
