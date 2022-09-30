@@ -7,28 +7,29 @@ public class EnemySpawnerScript : MonoBehaviour
     // Start is called before the first frame update
     [SerializeField]
     private GameObject enemyPrefab;
+    
+    private bool start = false;
 
     void Start()
     {
 
     }
 
-    float time = 0;
+    public void turnOn() {start = true;}
+    public void turnOff() {start = false;}
+    
 
-     Vector3 RandomVec(float min, float max)
-     {
-         return new Vector3(UnityEngine.Random.Range(min, max),
-          UnityEngine.Random.Range(min, max), 
-          UnityEngine.Random.Range(min, max));
-     }
+    float time = 0;
 
     // Update is called once per frame
     void Update()
     {
-        time += Time.deltaTime;
-        if (time > 1){
-            time -= 1;
-            Instantiate(enemyPrefab, RandomVec(-7.5f, 7.5f), Quaternion.identity);
+        if (start){
+            time += Time.deltaTime;
+            if (time > 1){
+                time -= 1;
+                Instantiate(enemyPrefab, gameObject.transform.position, Quaternion.identity);
+            }
         }
     }
 }
