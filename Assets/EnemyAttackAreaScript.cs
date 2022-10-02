@@ -4,20 +4,21 @@ using UnityEngine;
 
 public class EnemyAttackAreaScript : MonoBehaviour
 {
-    public int enemyType;
     int startFrame;
     int deathFrame;
     int lifespan = 60; // 60 frames = 1 second
-    float scale = 3f;
-    float transparency = 0f;
     public GameObject incomingCircle; // declaring a public GameObject allows you to make a reference to any other GameObject
     SpriteRenderer incomingCircleSprite; // SpriteRenderer is a component, which means it is part of another GameObject
     public GameObject warning;
     SpriteRenderer warningSprite;
     bool despawnNextFrame;
 
+    CircleCollider2D myCollider;
+
     void Start()
     {
+        myCollider = this.gameObject.GetComponent<CircleCollider2D>();
+        myCollider.enabled = false;
         despawnNextFrame = false;
         
             // using [GameObjectName].GetComponent<[ComponentName]>() lets you access the component's attributes. 
@@ -37,7 +38,7 @@ public class EnemyAttackAreaScript : MonoBehaviour
             
             it is easier to change the rotation of someGameObject by creating a newGameObject at a new Vector3(x,y,z) and then using someGameObject.transform.LookAt(newGameObject.transform.position)
         */
-        incomingCircle.transform.localScale = new Vector3(scale, scale, scale);
+        StartCoroutine(CircleShrink());
     }
 
     // Update is called once per frame
@@ -45,16 +46,25 @@ public class EnemyAttackAreaScript : MonoBehaviour
     {
         if (despawnNextFrame)
         {
-            Destroy(this.gameObject);
+            Destroy(this.gameObject, 2f/60f);
         }
         if (Time.frameCount > deathFrame)
         {
+            myCollider.enabled = true;
             despawnNextFrame = true;
         }
-        scale -= 2f / lifespan;
-        transparency += 0.5f / lifespan;
-        incomingCircle.transform.localScale = new Vector3(scale, scale, scale);
-        incomingCircleSprite.color = new Color(255f, 0f, 0f, transparency);
+    }
+
+    IEnumerator CircleShrink(){
+        float scale  = 0f;
+        float transparency = 0f;
+        for(int time = 0; time < lifespan; time++){
+            scale -= 1f / lifespan;
+            transparency += 0.5f / lifespan;
+            incomingCircle.transform.localScale = new Vector3(scale, scale, scale);
+            incomingCircleSprite.color = new Color(255f, 0f, 0f, transparency);
+            yield return null;
+        }
     }
 
     /* 
@@ -66,9 +76,10 @@ public class EnemyAttackAreaScript : MonoBehaviour
     */
     void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Player" && despawnNextFrame)
+        if (collision.gameObject.tag == "Player")
         {
-            collision.gameObject.GetComponent<PlayerScript>().hp -= 5;
+            collision.gameObject.transform.parent.GetComponent<PlayerScript>().hp -= 5;
+            Destroy(this.gameObject);
         }
     }
 }
