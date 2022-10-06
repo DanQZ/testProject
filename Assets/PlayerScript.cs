@@ -9,6 +9,7 @@ public class PlayerScript : MonoBehaviour
     public int nextAttackAvailableFrame;
     public int attackInterval; //frames between each attack
     bool facingRight;
+    public GameObject playerAttackArea;
     public GameObject playerHead;
     public GameObject spriteObject;
     SpriteRenderer playerSprite;
@@ -119,7 +120,7 @@ public class PlayerScript : MonoBehaviour
         string[] attacks = {
         "bottom left", "bottom", "bottom right", 
         "center left", "true center", "center right", 
-        "bottom right", "top", "top right"
+        "top right", "top", "top right"
         };
 
         int xSector = 1;
@@ -143,11 +144,16 @@ public class PlayerScript : MonoBehaviour
         }
 
         int sector = ySector * 3 + xSector;
-
-        Debug.Log(attacks[sector]);
+        FrontAttack();
+        Debug.Log(attacks[sector] + " attack");
+        controlsEnabled = true;
     }
 
     void FrontAttack(){
-
+        GameObject newPlayerAttack = Instantiate(
+            playerAttackArea,
+            playerHead.transform.position,
+            playerHead.transform.rotation
+        );
     }
 }
