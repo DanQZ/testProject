@@ -9,13 +9,21 @@ public class PlayerScript : MonoBehaviour
     public int nextAttackAvailableFrame;
     public int attackInterval; //frames between each attack
     bool facingRight;
+    public GameObject playerAttackArea;
+    public GameObject playerHead;
     public GameObject spriteObject;
     SpriteRenderer playerSprite;
-    public List<string> movementQueue = new List<string>();
+
+    // public List<string> movementQueue = new List<string>();
+
+    public float reach;
+
+    bool controlsEnabled;
 
     // Start is called before the first frame update
     void Start()
     {
+        controlsEnabled = true;
         playerSprite = spriteObject.gameObject.GetComponent<SpriteRenderer>();
         facingRight = true;
         hp = 100;
@@ -23,66 +31,129 @@ public class PlayerScript : MonoBehaviour
         speed = 3f / 60f; // x units per 60 frames
         nextAttackAvailableFrame = Time.frameCount;
         attackInterval = 60; //once per x frames
+        reach = 1f;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(!controlsEnabled){
+            return;
+        }
+        float playerX = transform.position.x;
+        float playerY = transform.position.y;
+        float playerHeadX = playerHead.transform.position.x;
+        float playerHeadY = playerHead.transform.position.y;
+
         if (Input.GetKey("w"))
         {
-            if(transform.position.y < 1f){
-                transform.position += Vector3.up * speed;
+            if(playerHeadY < playerY + reach){
+                playerHead.transform.position += Vector3.up * speed;
             }
         }
         if (Input.GetKey("s"))
         {
-            if(transform.position.y > -1f){
-                transform.position += Vector3.down * speed;
+            if(playerHeadY > playerY - reach){
+                playerHead.transform.position += Vector3.down * speed;
             }
         }
         if (Input.GetKey("a"))
         {
+            /* 
             if(facingRight){
                 facingRight = false;
                 playerSprite.flipX = true;
             }
-            if(transform.position.x > -10f){
-                transform.position += Vector3.left * speed;
+            */
+            if(playerHeadX > playerX - reach){
+                playerHead.transform.position += Vector3.left * speed;
             }
         }
         if (Input.GetKey("d"))
         {
+            /*
             if(!facingRight){
                 facingRight = true;
                 playerSprite.flipX = false;
             }
-            if(transform.position.x < 10f){
-                transform.position += Vector3.right * speed;
+            */
+            if(playerHeadX < playerX + reach){
+                playerHead.transform.position += Vector3.right * speed;
             }
         }
         if (Input.GetKey("space"))
         {
             if(Time.frameCount > nextAttackAvailableFrame){
-                Debug.Log("attacking");
                 nextAttackAvailableFrame += attackInterval;
                 Attack();
             }
         }
+        /*
+        //move to the center if no direction pressed
         if(!Input.GetKey("w") && !Input.GetKey("s")){
-            if(transform.position.y != 0f){
-                if(transform.position.y > 0f){
-                    transform.position += Vector3.down * speed;
+            if(playerHeadY != playerY){
+                if(playerHeadY > playerY){
+                    playerHead.transform.position += Vector3.down * speed;
                 }
                 else{
-                    transform.position += Vector3.up * speed;
+                    playerHead.transform.position += Vector3.up * speed;
                 }
             }
         }
+        if(!Input.GetKey("a") && !Input.GetKey("d")){
+            if(playerHeadX != playerX){
+                if(playerHeadX > playerX){
+                    playerHead.transform.position += Vector3.left * speed;
+                }
+                else{
+                    playerHead.transform.position += Vector3.right * speed;
+                }
+            }
+        }
+        */
     }
 
     void Attack(){
-        for(int i = 0; i < 60; i++){
-            movementQueue.Add("");
+
+        controlsEnabled = false;
+
+        string[] attacks = {
+        "bottom left", "bottom", "bottom right", 
+        "center left", "true center", "center right", 
+        "top right", "top", "top right"
+        };
+
+        int xSector = 1;
+        float playerHeadX = playerHead.transform.position.x;
+        float playerX = transform.position.x; 
+        if(playerHeadX < playerX - reach/3){
+            xSector = 0;
         }
+        if(playerHeadX > reach/3){
+            xSector = 2;
+        }
+
+        int ySector = 1;
+        float playerHeadY = playerHead.transform.position.y; 
+        float playerY = transform.position.y; 
+        if(playerHeadY < playerY - reach/3){
+            ySector = 0;
+        }
+        if(playerHeadY > playerY + reach/3){
+            ySector = 2;
+        }
+
+        int sector = ySector * 3 + xSector;
+        FrontAttack();
+        Debug.Log(attacks[sector] + " attack");
+        controlsEnabled = true;
+    }
+
+    void FrontAttack(){
+        GameObject newPlayerAttack = Instantiate(
+            playerAttackArea,
+            playerHead.transform.position,
+            playerHead.transform.rotation
+        );
     }
 }

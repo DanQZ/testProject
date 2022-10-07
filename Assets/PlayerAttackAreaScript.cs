@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyAttackAreaScript : MonoBehaviour
+public class PlayerAttackAreaScript : MonoBehaviour
 {
     int startFrame;
     int deathFrame;
@@ -62,7 +62,7 @@ public class EnemyAttackAreaScript : MonoBehaviour
             scale -= 1f / lifespan;
             transparency += 0.5f / lifespan;
             incomingCircle.transform.localScale = new Vector3(scale, scale, scale);
-            incomingCircleSprite.color = new Color(255f, 0f, 0f, transparency);
+            incomingCircleSprite.color = new Color(0f, 255f, 0f, transparency);
             yield return null;
         }
     }
@@ -76,7 +76,7 @@ public class EnemyAttackAreaScript : MonoBehaviour
     */
     void OnTriggerStay2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Player")
+        if (collision.gameObject.tag == "Enemy")
         {
             collision.gameObject.transform.parent.GetComponent<PlayerScript>().hp -= 5;
             Destroy(this.gameObject);
