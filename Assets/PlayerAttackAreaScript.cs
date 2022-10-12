@@ -6,7 +6,7 @@ public class PlayerAttackAreaScript : MonoBehaviour
 {
     int startFrame;
     int deathFrame;
-    int lifespan = 60; // 60 frames = 1 second
+    public float lifespan = 60f; // 60 frames = 1 second
     public GameObject incomingCircle; // declaring a public GameObject allows you to make a reference to any other GameObject
     SpriteRenderer incomingCircleSprite; // SpriteRenderer is a component, which means it is part of another GameObject
     public GameObject warning;
@@ -26,7 +26,7 @@ public class PlayerAttackAreaScript : MonoBehaviour
         incomingCircleSprite = incomingCircle.GetComponent<SpriteRenderer>();
 
         startFrame = Time.frameCount; // sets startFrame to the current frame of the game
-        deathFrame = startFrame + lifespan;
+        deathFrame = startFrame + (int)lifespan;
 
             // [GameObjectName].transform.position is the xyz position
         incomingCircle.transform.position = transform.position;
