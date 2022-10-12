@@ -12,20 +12,26 @@ public class PlayerScript : MonoBehaviour
     public GameObject playerAttackArea;
 
     public GameObject playerHead;
+    public GameObject NeckPosition;
+    private Transform NeckPositionTran;
     public GameObject playerTorsoTop;
-    public GameObject playerTorsoBottom;
-    public GameObject playerArmTop1;
-    public GameObject playerArmBottom1;
-    private Transform playerArmBottom1Tran;
-    public GameObject playerArmTop2;
-    public GameObject playerArmBottom2;
-    private Transform playerArmBottom2Tran;
-    public GameObject playerThigh1;
-    public GameObject playerCalf1;
-    private Transform playerCalf1Tran;
-    public GameObject playerThigh2;
-    public GameObject playerCalf2;
-    private Transform playerCalf2Tran;
+    public GameObject torsoBottom;
+    public GameObject upperArm1;
+    private Transform upperArm1Tran;
+    public GameObject lowerArm1;
+    private Transform lowerArm1Tran;
+    public GameObject upperArm2;
+    private Transform upperArm2Tran;
+    public GameObject lowerArm2;
+    private Transform lowerArm2Tran;
+    public GameObject thigh1;
+    private Transform thigh1Tran;
+    public GameObject calf1;
+    private Transform calf1Tran;
+    public GameObject thigh2;
+    private Transform thigh2Tran;
+    public GameObject calf2;
+    private Transform calf2Tran;
 
     public GameObject stanceHand1;
     private Transform stanceHand1Tran;
@@ -35,6 +41,10 @@ public class PlayerScript : MonoBehaviour
     private Transform stanceFoot1Tran;
     public GameObject stanceFoot2;
     private Transform stanceFoot2Tran;
+    public GameObject stanceElbow1;
+    private Transform stanceElbow1Tran;
+    public GameObject stanceElbow2;
+    private Transform stanceElbow2Tran;
 
     public GameObject spriteObject;
     SpriteRenderer playerSprite;
@@ -47,14 +57,18 @@ public class PlayerScript : MonoBehaviour
 
     void InitTransforms()
     {
-        playerArmBottom1Tran = playerArmBottom1.transform;
-        playerArmBottom2Tran = playerArmBottom2.transform;
-        playerCalf1Tran = playerCalf1.transform;
-        playerCalf2Tran = playerCalf2.transform;
+        upperArm1Tran = upperArm1.transform;
+        upperArm2Tran = upperArm2.transform;
+        lowerArm1Tran = lowerArm1.transform;
+        lowerArm2Tran = lowerArm2.transform;
+        calf1Tran = calf1.transform;
+        calf2Tran = calf2.transform;
         stanceHand1Tran = stanceHand1.transform;
         stanceHand2Tran = stanceHand2.transform;
         stanceFoot1Tran = stanceFoot1.transform;
         stanceFoot2Tran = stanceFoot2.transform;
+        stanceElbow1Tran = stanceElbow1.transform;
+        stanceElbow2Tran = stanceElbow2.transform;
     }
     // Start is called before the first frame update
     void Start()
@@ -73,24 +87,40 @@ public class PlayerScript : MonoBehaviour
 
     void MoveTowardsDefaultStance()
     {
-        stanceHand1Tran.position = playerHead.transform.position + Vector3.right * 0.25f + Vector3.down * 1f;
-        stanceHand2Tran.position = playerHead.transform.position + Vector3.right * 1.5f + Vector3.down * 0.5f;
+        float hand1Dist = Vector3.Distance(stanceHand1Tran.position, playerHead.transform.position + Vector3.right * 0.25f + Vector3.down * 1f);
+        if (hand1Dist > 0.1f)
+        {
+            stanceHand1Tran.LookAt(playerHead.transform.position + Vector3.right * 0.25f + Vector3.down * 1f);
+            stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(speed * hand1Dist, speed);
+            upperArm1Tran.position = stanceElbow1Tran.position;
+        }
 
-        playerCalf1Tran.position = transform.position + Vector3.down * 4f - Vector3.right * 1f;
-        playerCalf2Tran.position = transform.position + Vector3.down * 4f + Vector3.right * 1f;
+        float hand2Dist = Vector3.Distance(stanceHand2Tran.position, playerHead.transform.position + Vector3.right * 1.5f + Vector3.down * 0.5f);
+        if (hand2Dist > 0.1f)
+        {
+            stanceHand2Tran.LookAt(playerHead.transform.position + Vector3.right * 1.5f + Vector3.down * 0.5f);
+            stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(speed * hand2Dist, speed);
+            upperArm2Tran.position = stanceElbow2Tran.position;
+        }
+        GroundedFeet();
+    }
+
+    void GroundedFeet(){
+        calf1Tran.position = transform.position + Vector3.down * 4f - Vector3.right * 1f;
+        calf2Tran.position = transform.position + Vector3.down * 4f + Vector3.right * 1f;
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        playerArmBottom1Tran.position = new Vector3(
+        lowerArm1Tran.position = new Vector3(
             stanceHand1Tran.position.x,
             stanceHand1Tran.position.y,
             0
         );
 
-        playerArmBottom2Tran.position = new Vector3(
+        lowerArm2Tran.position = new Vector3(
             stanceHand2Tran.position.x,
             stanceHand2Tran.position.y,
             0
@@ -270,8 +300,8 @@ public class PlayerScript : MonoBehaviour
 
     IEnumerator Hook()
     {
-        float punchDistance = 4f;
-        float timeTaken = 0.25f; //seconds
+        float punchDistance = 3.5f;
+        float timeTaken = 1f; //seconds
         int framesTaken = (int)(timeTaken * 60);
         float distancePerFrame = punchDistance / framesTaken;
 
@@ -296,6 +326,8 @@ public class PlayerScript : MonoBehaviour
                 stanceHand1Tran.position.x + distancePerFrame * 1f,
                 stanceHand1Tran.position.y + distancePerFrame * 0.2f,
                 0);
+            upperArm1Tran.position = stanceElbow1Tran.position;
+            GroundedFeet();
             yield return null;
         }
 
