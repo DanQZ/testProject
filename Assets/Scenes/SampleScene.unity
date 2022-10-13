@@ -701,6 +701,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 4349897008942504386, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
+      propertyPath: m_SortingLayer
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4349897008942504386, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -592042991
+      objectReference: {fileID: 0}
+    - target: {fileID: 8963365542576325828, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
+      propertyPath: m_SortingLayer
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8963365542576325828, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -592042991
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
 --- !u!1 &1242278592 stripped
