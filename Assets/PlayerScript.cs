@@ -12,8 +12,8 @@ public class PlayerScript : MonoBehaviour
     public GameObject playerAttackArea;
 
     public GameObject playerHead;
-    public GameObject NeckPosition;
-    private Transform NeckPositionTran;
+    public GameObject neckPosition;
+    private Transform neckPositionTran;
     public GameObject playerTorsoTop;
     public GameObject torsoBottom;
     public GameObject upperArm1;
@@ -55,8 +55,12 @@ public class PlayerScript : MonoBehaviour
 
     bool controlsEnabled;
 
+    float expectedElbowDistanceToNeck1;
+    float expectedElbowDistanceToNeck2;
+
     void InitTransforms()
     {
+        neckPositionTran = neckPosition.transform;
         upperArm1Tran = upperArm1.transform;
         upperArm2Tran = upperArm2.transform;
         lowerArm1Tran = lowerArm1.transform;
@@ -74,6 +78,10 @@ public class PlayerScript : MonoBehaviour
     void Start()
     {
         InitTransforms();
+
+        expectedElbowDistanceToNeck1 = Vector3.Distance(stanceElbow1Tran.position, neckPositionTran.position);
+        expectedElbowDistanceToNeck2 = Vector3.Distance(stanceElbow2Tran.position, neckPositionTran.position);
+
         controlsEnabled = true;
         playerSprite = spriteObject.gameObject.GetComponent<SpriteRenderer>();
         facingRight = true;
@@ -91,21 +99,34 @@ public class PlayerScript : MonoBehaviour
         if (hand1Dist > 0.1f)
         {
             stanceHand1Tran.LookAt(playerHead.transform.position + Vector3.right * 0.25f + Vector3.down * 1f);
-            stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(speed * hand1Dist, speed);
-            upperArm1Tran.position = stanceElbow1Tran.position;
+            stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(speed * hand1Dist * 2, speed);
         }
 
         float hand2Dist = Vector3.Distance(stanceHand2Tran.position, playerHead.transform.position + Vector3.right * 1.5f + Vector3.down * 0.5f);
         if (hand2Dist > 0.1f)
         {
             stanceHand2Tran.LookAt(playerHead.transform.position + Vector3.right * 1.5f + Vector3.down * 0.5f);
-            stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(speed * hand2Dist, speed);
-            upperArm2Tran.position = stanceElbow2Tran.position;
+            stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(speed * hand2Dist * 2, speed);
         }
+/*
+        // moves elbows to correct distance (currently broken)
+        if (Vector3.Distance(stanceElbow1Tran.position, neckPositionTran.position) > expectedElbowDistanceToNeck1)
+        {
+            stanceElbow1Tran.LookAt(neckPositionTran.position);
+            stanceElbow1Tran.position += stanceElbow1Tran.forward * speed;
+                   }
+        if (Vector3.Distance(stanceElbow2Tran.position, neckPositionTran.position) > expectedElbowDistanceToNeck2)
+        {
+            stanceElbow2Tran.LookAt(neckPositionTran.position);
+            stanceElbow2Tran.position += stanceElbow2Tran.forward * speed;
+        }
+*/
         GroundedFeet();
     }
 
-    void GroundedFeet(){
+    //keeps feet on the ground 
+    void GroundedFeet()
+    {
         calf1Tran.position = transform.position + Vector3.down * 4f - Vector3.right * 1f;
         calf2Tran.position = transform.position + Vector3.down * 4f + Vector3.right * 1f;
     }
@@ -114,17 +135,11 @@ public class PlayerScript : MonoBehaviour
     void Update()
     {
 
-        lowerArm1Tran.position = new Vector3(
-            stanceHand1Tran.position.x,
-            stanceHand1Tran.position.y,
-            0
-        );
+        lowerArm1Tran.position = stanceHand1Tran.position;
+        lowerArm2Tran.position = stanceHand2Tran.position;
+        upperArm1Tran.position = stanceElbow1Tran.position;
+        upperArm2Tran.position = stanceElbow2Tran.position;
 
-        lowerArm2Tran.position = new Vector3(
-            stanceHand2Tran.position.x,
-            stanceHand2Tran.position.y,
-            0
-        );
 
         if (!controlsEnabled)
         {
@@ -300,8 +315,8 @@ public class PlayerScript : MonoBehaviour
 
     IEnumerator Hook()
     {
-        float punchDistance = 3.5f;
-        float timeTaken = 1f; //seconds
+        float punchDistance = 4f;
+        float timeTaken = .2f; //seconds
         int framesTaken = (int)(timeTaken * 60);
         float distancePerFrame = punchDistance / framesTaken;
 
@@ -322,10 +337,11 @@ public class PlayerScript : MonoBehaviour
                 playerHead.transform.position.x + distancePerFrame * .5f,
                 playerHead.transform.position.y,
                 0);
-            stanceHand1Tran.position = new Vector3(
-                stanceHand1Tran.position.x + distancePerFrame * 1f,
-                stanceHand1Tran.position.y + distancePerFrame * 0.2f,
-                0);
+            stanceHand1Tran.LookAt(newPlayerAttack.transform.position);
+            stanceHand1Tran.position = stanceHand1Tran.position + stanceHand1Tran.forward * distancePerFrame;
+
+            stanceHand2Tran.LookAt(playerHead.transform.position + Vector3.right * 1f);
+            stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame * 0.5f;
             upperArm1Tran.position = stanceElbow1Tran.position;
             GroundedFeet();
             yield return null;
