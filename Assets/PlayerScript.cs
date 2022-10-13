@@ -198,13 +198,16 @@ public class PlayerScript : MonoBehaviour
     }
 
     void UpdateDefaultStancePositions()
-    { // used within MoveTowardsDefaultStance
+    // used within MoveTowardsDefaultStance()
+    { 
         hand1DefaultVector = playerHead.transform.position + Vector3.right * 0.25f + Vector3.down * 1f;
         hand2DefaultVector = playerHead.transform.position + Vector3.right * 1.5f + Vector3.down * 0.5f;
         foot1DefaultVector = transform.position - Vector3.up * 4f - Vector3.right * 1f;
         foot2DefaultVector = transform.position - Vector3.up * 4f + Vector3.right * 1f;
     }
+
     void MoveTowardsDefaultStance()
+    //moves at speed towards default positions of hands and feet
     {
 
         float playerX = transform.position.x;
@@ -261,13 +264,14 @@ public class PlayerScript : MonoBehaviour
             stanceFoot2Tran.position += stanceFoot2Tran.forward * Mathf.Max(speed * distance * 2, speed);
         }
     }
-
-    //keeps feet on the ground 
+   
     void GroundedFeet()
+    //keeps feet on the ground 
     {
         calf1Tran.position = transform.position + Vector3.down * 4f - Vector3.right * 1f;
         calf2Tran.position = transform.position + Vector3.down * 4f + Vector3.right * 1f;
     }
+  
     void MoveAndDrawBody() //moves limbs to desired location, then positions the LineRenderers to where the joints are
     {
         lowerArm1Tran.position = stanceHand1Tran.position;
@@ -318,8 +322,8 @@ public class PlayerScript : MonoBehaviour
         TorsoRenderer.SetPositions(torsoPoints);
     }
 
-    //on WASD move head
     void MoveHeadIfInput()
+    //WASD moves head within allowed boundaries of size range
     {
 
         float playerX = transform.position.x;
@@ -356,7 +360,7 @@ public class PlayerScript : MonoBehaviour
             }
         }
     }
-    bool IsHeadWithinSectors()
+    bool IsHeadWithinSectors() // checks if head is within boundaries
     {
         if (playerHead.transform.position.x >= 1 || playerHead.transform.position.y >= 1)
         {
@@ -368,11 +372,11 @@ public class PlayerScript : MonoBehaviour
         }
         return true;
     }
-    // Update is called once per frame
+    
+
     void Update()
     {
-        MoveAndDrawBody();
-
+        MoveAndDrawBody(); // important this is called first
         if (!controlsEnabled)
         {
             return;
@@ -510,26 +514,27 @@ public class PlayerScript : MonoBehaviour
 
     IEnumerator Hook()
     {
-        float punchDistance = 3f;
+        float sideRange = 4f;
         float timeTaken = .2f; //seconds
         int framesTaken = (int)(timeTaken * 60);
-        float distancePerFrame = punchDistance / framesTaken;
 
         GameObject newPlayerAttack = Instantiate(
             playerAttackArea,
             new Vector3(
-                stanceHand1Tran.position.x + punchDistance * 1f,
-                stanceHand1Tran.position.y + punchDistance * 0.33f,
+                jointShoulder1Tran.position.x + sideRange * 1f,
+                jointShoulder1Tran.position.y + .25f,
                 0),
             playerHead.transform.rotation
         );
+        float distance = Vector3.Distance(newPlayerAttack.transform.position, stanceHand1Tran.position);
+        float distancePerFrame = distance / framesTaken;
 
         newPlayerAttack.GetComponent<PlayerAttackAreaScript>().lifespan = timeTaken * 60f;
 
         for (int i = 0; i < framesTaken; i++)
         {
             playerHead.transform.position = new Vector3(
-                playerHead.transform.position.x + distancePerFrame * .25f,
+                playerHead.transform.position.x + distancePerFrame * .4f,
                 playerHead.transform.position.y,
                 0);
             stanceHand1Tran.LookAt(newPlayerAttack.transform.position);
@@ -552,7 +557,7 @@ public class PlayerScript : MonoBehaviour
 
     IEnumerator Jab()
     {
-        float punchDistance = 1.5f;
+        float punchDistance = 1.2f;
         float timeTaken = .12f; //seconds
         int framesTaken = (int)(timeTaken * 60);
         float distancePerFrame = punchDistance / framesTaken;
@@ -570,13 +575,16 @@ public class PlayerScript : MonoBehaviour
 
         for (int i = 0; i < framesTaken; i++)
         {
-            playerHead.transform.position = new Vector3(
-                playerHead.transform.position.x + distancePerFrame * .1f,
+            playerHead.transform.position = new Vector3( // moves head slightly left
+                playerHead.transform.position.x - distancePerFrame * .2f,
                 playerHead.transform.position.y,
                 0);
+
+            //moves jabbing hand right
             stanceHand2Tran.LookAt(newPlayerAttack.transform.position);
             stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame;
 
+            // moves nonjab hand to guard
             stanceHand1Tran.LookAt(playerHead.transform.position + Vector3.right * 1f);
             stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
             upperArm1Tran.position = jointElbow1Tran.position;
