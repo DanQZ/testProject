@@ -12,8 +12,6 @@ public class PlayerScript : MonoBehaviour
     public GameObject playerAttackArea;
 
     public GameObject playerHead;
-    public GameObject neckPosition;
-    private Transform neckPositionTran;
     public GameObject playerTorsoTop;
     public GameObject torsoBottom;
     public GameObject upperArm1;
@@ -33,18 +31,43 @@ public class PlayerScript : MonoBehaviour
     public GameObject calf2;
     private Transform calf2Tran;
 
+    public GameObject jointNeck;
+    private Transform jointNeckTran;
+    public GameObject jointShoulder1;
+    private Transform jointShoulder1Tran;
+    public GameObject jointShoulder2;
+    private Transform jointShoulder2Tran;
+
+    public GameObject jointRib1;
+    private Transform jointRib1Tran;
+    public GameObject jointRib2;
+    private Transform jointRib2Tran;
+
+    public GameObject jointElbow1;
+    private Transform jointElbow1Tran;
+    public GameObject jointElbow2;
+    private Transform jointElbow2Tran;
+
+    public GameObject jointPelvis1;
+    private Transform jointPelvis1Tran;
+    public GameObject jointPelvis2;
+    private Transform jointPelvis2Tran;
+
+
+    public GameObject jointKnee1;
+    private Transform jointKnee1Tran;
+    public GameObject jointKnee2;
+    private Transform jointKnee2Tran;
+
     public GameObject stanceHand1;
     private Transform stanceHand1Tran;
     public GameObject stanceHand2;
     private Transform stanceHand2Tran;
+
     public GameObject stanceFoot1;
     private Transform stanceFoot1Tran;
     public GameObject stanceFoot2;
     private Transform stanceFoot2Tran;
-    public GameObject stanceElbow1;
-    private Transform stanceElbow1Tran;
-    public GameObject stanceElbow2;
-    private Transform stanceElbow2Tran;
 
     public GameObject spriteObject;
     SpriteRenderer playerSprite;
@@ -58,29 +81,94 @@ public class PlayerScript : MonoBehaviour
     float expectedElbowDistanceToNeck1;
     float expectedElbowDistanceToNeck2;
 
+    private LineRenderer arm1Renderer;
+    private LineRenderer arm2Renderer;
+    private LineRenderer leg1Renderer;
+    private LineRenderer leg2Renderer;
+    private LineRenderer TorsoRenderer;
+
+    private Vector3[] arm1PointArray = new Vector3[3];
+    private Vector3[] arm2PointArray = new Vector3[3];
+    private Vector3[] leg1PointArray = new Vector3[3];
+    private Vector3[] leg2PointArray = new Vector3[3];
+    private Vector3[] torsoPointArray = new Vector3[7];
+
     void InitTransforms()
-    {
-        neckPositionTran = neckPosition.transform;
+    {   
         upperArm1Tran = upperArm1.transform;
         upperArm2Tran = upperArm2.transform;
         lowerArm1Tran = lowerArm1.transform;
         lowerArm2Tran = lowerArm2.transform;
+
+        thigh1Tran = thigh1.transform;
+        thigh2Tran = thigh2.transform;
         calf1Tran = calf1.transform;
         calf2Tran = calf2.transform;
+
         stanceHand1Tran = stanceHand1.transform;
         stanceHand2Tran = stanceHand2.transform;
         stanceFoot1Tran = stanceFoot1.transform;
         stanceFoot2Tran = stanceFoot2.transform;
-        stanceElbow1Tran = stanceElbow1.transform;
-        stanceElbow2Tran = stanceElbow2.transform;
+
+        jointNeckTran = jointNeck.transform;
+        jointShoulder1Tran = jointShoulder1.transform;
+        jointShoulder2Tran = jointShoulder2.transform;
+        jointRib1Tran = jointRib1.transform;
+        jointRib2Tran = jointRib2.transform;
+
+        jointElbow1Tran = jointElbow1.transform;
+        jointElbow2Tran = jointElbow2.transform;
+
+        jointPelvis1Tran = jointPelvis1.transform;
+        jointPelvis2Tran = jointPelvis2.transform;
+
+        jointKnee1Tran = jointKnee1.transform;
+        jointKnee2Tran = jointKnee2.transform;
+    }
+
+    void InitLineRenderers()
+    {
+        float armThickness = .25f;
+        Color armColor = Color.black;
+        int armPositionCount = 3;
+        int vertices = 2;
+
+        List<LineRenderer> allLineRenderers = new List<LineRenderer>();
+
+        arm1Renderer = jointShoulder1.GetComponent<LineRenderer>();
+        allLineRenderers.Add(arm1Renderer);
+        arm2Renderer = jointShoulder2.GetComponent<LineRenderer>();
+        allLineRenderers.Add(arm2Renderer);
+        leg1Renderer = jointPelvis1.GetComponent<LineRenderer>();
+        allLineRenderers.Add(leg1Renderer);
+        leg2Renderer = jointPelvis2.GetComponent<LineRenderer>();
+        allLineRenderers.Add(leg2Renderer);
+        TorsoRenderer = jointNeck.GetComponent<LineRenderer>();
+        allLineRenderers.Add(TorsoRenderer);
+
+        foreach (LineRenderer element in allLineRenderers)
+        {
+            element.startColor = armColor;
+            element.endColor = armColor;
+            element.startWidth = armThickness;
+            element.endWidth = armThickness;
+            element.positionCount = armPositionCount;
+            element.useWorldSpace = true;
+            element.numCornerVertices = vertices;
+        }
+        TorsoRenderer.positionCount = 7;
+        TorsoRenderer.startColor = Color.gray;
+        TorsoRenderer.endColor = Color.gray;
+
     }
     // Start is called before the first frame update
     void Start()
     {
+        InitLineRenderers();
         InitTransforms();
 
-        expectedElbowDistanceToNeck1 = Vector3.Distance(stanceElbow1Tran.position, neckPositionTran.position);
-        expectedElbowDistanceToNeck2 = Vector3.Distance(stanceElbow2Tran.position, neckPositionTran.position);
+        expectedElbowDistanceToNeck1 = Vector3.Distance(jointElbow1Tran.position, jointShoulder1Tran.position);
+        expectedElbowDistanceToNeck2 = Vector3.Distance(jointElbow2Tran.position, jointShoulder2Tran.position);
 
         controlsEnabled = true;
         playerSprite = spriteObject.gameObject.GetComponent<SpriteRenderer>();
@@ -108,19 +196,6 @@ public class PlayerScript : MonoBehaviour
             stanceHand2Tran.LookAt(playerHead.transform.position + Vector3.right * 1.5f + Vector3.down * 0.5f);
             stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(speed * hand2Dist * 2, speed);
         }
-/*
-        // moves elbows to correct distance (currently broken)
-        if (Vector3.Distance(stanceElbow1Tran.position, neckPositionTran.position) > expectedElbowDistanceToNeck1)
-        {
-            stanceElbow1Tran.LookAt(neckPositionTran.position);
-            stanceElbow1Tran.position += stanceElbow1Tran.forward * speed;
-                   }
-        if (Vector3.Distance(stanceElbow2Tran.position, neckPositionTran.position) > expectedElbowDistanceToNeck2)
-        {
-            stanceElbow2Tran.LookAt(neckPositionTran.position);
-            stanceElbow2Tran.position += stanceElbow2Tran.forward * speed;
-        }
-*/
         GroundedFeet();
     }
 
@@ -130,16 +205,56 @@ public class PlayerScript : MonoBehaviour
         calf1Tran.position = transform.position + Vector3.down * 4f - Vector3.right * 1f;
         calf2Tran.position = transform.position + Vector3.down * 4f + Vector3.right * 1f;
     }
+    void MoveBody()
+    {
+        lowerArm1Tran.position = stanceHand1Tran.position;
+        lowerArm2Tran.position = stanceHand2Tran.position;
+        upperArm1Tran.position = jointElbow1Tran.position;
+        upperArm2Tran.position = jointElbow2Tran.position;
 
+        Vector3[] arm1points = {
+            jointShoulder1Tran.position,
+            upperArm1Tran.position,
+            lowerArm1Tran.position
+            };
+        arm1Renderer.SetPositions(arm1points);
+
+        Vector3[] arm2points = {
+            jointShoulder2Tran.position,
+            upperArm2Tran.position,
+            lowerArm2Tran.position
+            };
+        arm2Renderer.SetPositions(arm2points);
+
+        Vector3[] leg1points = {
+            jointPelvis1Tran.position,
+            jointKnee1Tran.position,
+            stanceFoot1Tran.position
+            };
+        leg1Renderer.SetPositions(leg1points);
+
+        Vector3[] leg2points = {
+            jointPelvis2Tran.position,
+            jointKnee2Tran.position,
+            stanceFoot2Tran.position
+            };
+        leg2Renderer.SetPositions(leg2points);
+
+        Vector3[] torsoPoints = {
+            jointNeckTran.position,
+            jointShoulder1Tran.position,
+            jointRib1Tran.position,
+            jointPelvis1Tran.position,
+            jointPelvis2Tran.position,
+            jointRib2Tran.position,
+            jointShoulder2Tran.position,
+            };
+        TorsoRenderer.SetPositions(torsoPoints);
+    }
     // Update is called once per frame
     void Update()
     {
-
-        lowerArm1Tran.position = stanceHand1Tran.position;
-        lowerArm2Tran.position = stanceHand2Tran.position;
-        upperArm1Tran.position = stanceElbow1Tran.position;
-        upperArm2Tran.position = stanceElbow2Tran.position;
-
+        MoveBody();
 
         if (!controlsEnabled)
         {
@@ -214,8 +329,15 @@ public class PlayerScript : MonoBehaviour
             if (Time.frameCount > nextAttackAvailableFrame)
             {
                 nextAttackAvailableFrame += attackInterval;
-                controlsEnabled = false;
-                Attack();
+                Attack("arms");
+            }
+        }
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            if (Time.frameCount > nextAttackAvailableFrame)
+            {
+                nextAttackAvailableFrame += attackInterval;
+                Attack("legs");
             }
         }
         /*
@@ -243,15 +365,14 @@ public class PlayerScript : MonoBehaviour
         */
     }
 
-    void Attack()
+    void Attack(string attackType)
     {
-
         controlsEnabled = false;
 
         string[] attacks = {
         "bottom left", "bottom", "bottom right",
         "center left", "true center", "center right",
-        "top right", "top", "top right"
+        "top left", "top", "top right"
         };
 
         int xSector = 1;
@@ -279,34 +400,73 @@ public class PlayerScript : MonoBehaviour
         }
 
         int sector = ySector * 3 + xSector;
-        switch (sector)
+
+        switch (attackType)
         {
-            case 0:
-                StartCoroutine(Hook());
+            case "arms":
+                switch (sector)
+                {
+                    case 0: // bottom left
+                        StartCoroutine(Hook());
+                        break;
+                    case 1: // bottom 
+                        StartCoroutine(Hook());
+                        break;
+                    case 2: // bottom right
+                        StartCoroutine(Hook());
+                        break;
+                    case 3: // center left
+                        StartCoroutine(Hook());
+                        break;
+                    case 4: // center 
+                        StartCoroutine(Hook());
+                        break;
+                    case 5: // center right
+                        StartCoroutine(Jab());
+                        break;
+                    case 6: // top left
+                        StartCoroutine(Hook());
+                        break;
+                    case 7:  // top middle
+                        StartCoroutine(Hook());
+                        break;
+                    case 8: // top right
+                        StartCoroutine(Hook());
+                        break;
+                }
                 break;
-            case 1:
-                StartCoroutine(Hook());
-                break;
-            case 2:
-                StartCoroutine(Hook());
-                break;
-            case 3:
-                StartCoroutine(Hook());
-                break;
-            case 4:
-                StartCoroutine(Hook());
-                break;
-            case 5:
-                StartCoroutine(Hook());
-                break;
-            case 6:
-                StartCoroutine(Hook());
-                break;
-            case 7:
-                StartCoroutine(Hook());
-                break;
-            case 8:
-                StartCoroutine(Hook());
+            case "legs":
+
+                switch (sector)
+                {
+                    case 0: // bottom left
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 1: // bottom 
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 2: // bottom right
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 3: // center left
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 4: // center 
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 5: // center right
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 6: // top left
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 7:  // top middle
+                        StartCoroutine(FrontKick());
+                        break;
+                    case 8: // top right
+                        StartCoroutine(FrontKick());
+                        break;
+                }
                 break;
         }
         Debug.Log(attacks[sector] + " attack");
@@ -316,7 +476,7 @@ public class PlayerScript : MonoBehaviour
     IEnumerator Hook()
     {
         float punchDistance = 4f;
-        float timeTaken = .2f; //seconds
+        float timeTaken = 1f; //seconds
         int framesTaken = (int)(timeTaken * 60);
         float distancePerFrame = punchDistance / framesTaken;
 
@@ -342,7 +502,82 @@ public class PlayerScript : MonoBehaviour
 
             stanceHand2Tran.LookAt(playerHead.transform.position + Vector3.right * 1f);
             stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame * 0.5f;
-            upperArm1Tran.position = stanceElbow1Tran.position;
+            upperArm1Tran.position = jointElbow1Tran.position;
+            GroundedFeet();
+            yield return null;
+        }
+
+        controlsEnabled = true;
+    }
+
+
+    IEnumerator Jab()
+    {
+        float punchDistance = 1.5f;
+        float timeTaken = .1f; //seconds
+        int framesTaken = (int)(timeTaken * 60);
+        float distancePerFrame = punchDistance / framesTaken;
+
+        GameObject newPlayerAttack = Instantiate(
+            playerAttackArea,
+            new Vector3(
+                stanceHand2Tran.position.x + punchDistance * 1f,
+                stanceHand2Tran.position.y,
+                0),
+            playerHead.transform.rotation
+        );
+
+        newPlayerAttack.GetComponent<PlayerAttackAreaScript>().lifespan = timeTaken * 60f;
+
+        for (int i = 0; i < framesTaken; i++)
+        {
+            playerHead.transform.position = new Vector3(
+                playerHead.transform.position.x + distancePerFrame * .1f,
+                playerHead.transform.position.y,
+                0);
+            stanceHand2Tran.LookAt(newPlayerAttack.transform.position);
+            stanceHand2Tran.position = stanceHand2Tran.position + stanceHand2Tran.forward * distancePerFrame;
+
+            stanceHand1Tran.LookAt(playerHead.transform.position + Vector3.right * 1f);
+            stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
+            upperArm1Tran.position = jointElbow1Tran.position;
+            GroundedFeet();
+            yield return null;
+        }
+
+        controlsEnabled = true;
+    }
+
+    IEnumerator FrontKick()
+    {
+        float kickDistance = 4f;
+        float timeTaken = .33f; //seconds
+        int framesTaken = (int)(timeTaken * 60);
+        float distancePerFrame = kickDistance / framesTaken;
+
+        GameObject newPlayerAttack = Instantiate(
+            playerAttackArea,
+            new Vector3(
+                stanceHand2Tran.position.x + kickDistance * 1f,
+                stanceHand2Tran.position.y,
+                0),
+            playerHead.transform.rotation
+        );
+
+        newPlayerAttack.GetComponent<PlayerAttackAreaScript>().lifespan = timeTaken * 60f;
+
+        for (int i = 0; i < framesTaken; i++)
+        {
+            playerHead.transform.position = new Vector3(
+                playerHead.transform.position.x + distancePerFrame * .1f,
+                playerHead.transform.position.y,
+                0);
+            stanceHand2Tran.LookAt(newPlayerAttack.transform.position);
+            stanceHand2Tran.position = stanceHand2Tran.position + stanceHand2Tran.forward * distancePerFrame;
+
+            stanceHand1Tran.LookAt(playerHead.transform.position + Vector3.right * 1f);
+            stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
+            upperArm1Tran.position = jointElbow1Tran.position;
             GroundedFeet();
             yield return null;
         }
