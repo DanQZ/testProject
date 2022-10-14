@@ -71,17 +71,19 @@ public class PlayerScript : MonoBehaviour
 
     void AttackIfInput()
     {
-        if (PCScript.controlsEnabled && PCScript.IsHeadWithinSectors())
+        if (PCScript.IsHeadWithinSectors())
         {
             if (Input.GetKey("space"))
             {
                 PCScript.controlsEnabled = false;
                 PCScript.Attack("arms");
+                return;
             }
             if (Input.GetKey(KeyCode.LeftShift))
             {
                 PCScript.controlsEnabled = false;
                 PCScript.Attack("legs");
+                return;
             }
         }
     }
@@ -89,7 +91,9 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        MoveHeadIfInput();
-        AttackIfInput();
+        if(PCScript.controlsEnabled){
+            MoveHeadIfInput();
+            AttackIfInput();
+        }
     }
 }

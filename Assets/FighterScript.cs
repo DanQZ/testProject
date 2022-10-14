@@ -75,6 +75,9 @@ public class FighterScript : MonoBehaviour
     public GameObject stanceFoot2;
     private Transform stanceFoot2Tran;
     bool stanceFoot2Active = true;
+    public GameObject stanceRibs;
+    private Transform stanceRibsTran;
+    bool stanceRibsActive = false;
 
     public GameObject stancePelvis;
     private Transform stancePelvisTran;
@@ -112,7 +115,40 @@ public class FighterScript : MonoBehaviour
     private Vector3 foot1DefaultVector;
     private Vector3 foot2DefaultVector;
 
-    private HingeJoint2D upperTorsoHinge;
+    private HingeJoint2D torsoTopHinge;
+    private HingeJoint2D torsoBottomHinge;
+    private HingeJoint2D upperArm1Hinge;
+    private HingeJoint2D lowerArm1Hinge;
+    private HingeJoint2D upperArm2Hinge;
+    private HingeJoint2D lowerArm2Hinge;
+    private HingeJoint2D thigh1Hinge;
+    private HingeJoint2D calf1Hinge;
+    private HingeJoint2D thigh2Hinge;
+    private HingeJoint2D calf2Hinge;
+    private HingeJoint2D[] allHinges = new HingeJoint2D[10];
+    void InitHinges()
+    {
+        torsoTopHinge = torsoTop.GetComponent<HingeJoint2D>();
+        torsoBottomHinge = torsoBottom.GetComponent<HingeJoint2D>();
+        upperArm1Hinge = upperArm1.GetComponent<HingeJoint2D>();
+        lowerArm1Hinge = lowerArm1.GetComponent<HingeJoint2D>();
+        upperArm2Hinge = upperArm2.GetComponent<HingeJoint2D>();
+        lowerArm2Hinge = lowerArm2.GetComponent<HingeJoint2D>();
+        thigh1Hinge = thigh1.GetComponent<HingeJoint2D>();
+        calf1Hinge = calf1.GetComponent<HingeJoint2D>();
+        thigh2Hinge = thigh2.GetComponent<HingeJoint2D>();
+        calf2Hinge = calf2.GetComponent<HingeJoint2D>();
+        allHinges[0] = (torsoTopHinge);
+        allHinges[1] = (torsoBottomHinge);
+        allHinges[2] = (upperArm1Hinge);
+        allHinges[3] = (upperArm2Hinge);
+        allHinges[4] = (lowerArm1Hinge);
+        allHinges[5] = (lowerArm2Hinge);
+        allHinges[6] = (thigh1Hinge);
+        allHinges[7] = (thigh2Hinge);
+        allHinges[8] = (calf1Hinge);
+        allHinges[9] = (calf2Hinge);
+    }
 
     void InitTransforms()
     {
@@ -126,11 +162,13 @@ public class FighterScript : MonoBehaviour
         calf1Tran = calf1.transform;
         calf2Tran = calf2.transform;
 
+        stanceRibsTran = stanceRibs.transform;
+        stancePelvisTran = stancePelvis.transform;
+
         stanceHand1Tran = stanceHand1.transform;
         stanceHand2Tran = stanceHand2.transform;
         stanceFoot1Tran = stanceFoot1.transform;
         stanceFoot2Tran = stanceFoot2.transform;
-        stancePelvisTran = stancePelvis.transform;
 
         jointNeckTran = jointNeck.transform;
         jointShoulder1Tran = jointShoulder1.transform;
@@ -192,6 +230,7 @@ public class FighterScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        InitHinges();
         InitLineRenderers();
         InitTransforms();
 
@@ -219,7 +258,6 @@ public class FighterScript : MonoBehaviour
     void MoveTowardsDefaultStance()
     //moves at speed towards default positions of hands and feet
     {
-
         float fighterX = transform.position.x;
         float fighterY = transform.position.y;
         float fighterHeadX = fighterHead.transform.position.x;
@@ -370,32 +408,73 @@ public class FighterScript : MonoBehaviour
         return true;
     }
 
+    void FixHinges(){
+        float change = 180f;
+        if (facingRight)
+        {
+            change = -180f;
+        }
+        foreach (var hinge in allHinges)
+        {
+            JointAngleLimits2D newLimits = hinge.limits;
+            newLimits.min += change;
+            newLimits.max += change;
+            hinge.limits = newLimits;
+        }
+
+        torsoTopHinge.anchor = jointNeck.transform.position;
+        torsoTopHinge.connectedAnchor = jointNeck.transform.position;
+        torsoBottomHinge.anchor = stanceRibs.transform.position;
+        torsoBottomHinge.connectedAnchor = stanceRibs.transform.position;
+
+        upperArm1Hinge.anchor = jointShoulder1Tran.position;
+        upperArm1Hinge.connectedAnchor = jointShoulder1Tran.position;
+        lowerArm1Hinge.anchor = jointElbow1Tran.position;
+        lowerArm1Hinge.connectedAnchor =  jointElbow1Tran.position;
+        upperArm2Hinge.anchor = jointShoulder2Tran.position;
+        upperArm2Hinge.connectedAnchor = jointShoulder2Tran.position;
+        lowerArm2Hinge.anchor = jointElbow2Tran.position;
+        lowerArm2Hinge.connectedAnchor =  jointElbow2Tran.position;
+
+        thigh1Hinge.anchor = jointPelvis1Tran.position;
+        thigh1Hinge.connectedAnchor = jointPelvis1Tran.position;
+        calf1Hinge.anchor = jointKnee1Tran.position;
+        calf1Hinge.connectedAnchor = jointKnee1Tran.position;
+        thigh2Hinge.anchor = jointPelvis2Tran.position;
+        thigh2Hinge.connectedAnchor = jointPelvis2Tran.position;
+        calf2Hinge.anchor = jointKnee2Tran.position;
+        calf2Hinge.connectedAnchor = jointKnee2Tran.position;
+    }
     public void TurnTo(string direction)
     {
         Vector3 orienter = transform.position;
         switch (direction)
         {
             case "left":
-                orienter -= Vector3.right;
+                orienter -= Vector3.forward;
                 facingRight = false;
                 break;
             case "right":
-                orienter += Vector3.right;
+                orienter += Vector3.forward;
                 facingRight = true;
                 break;
             default:
                 return;
         }
         transform.LookAt(orienter);
+
+
+        FixHinges();
+        MoveAndDrawBody();
+        Debug.Break();
     }
     void Update()
     {
         MoveAndDrawBody(); // important this is called first
-        if (!controlsEnabled)
+        if (controlsEnabled)
         {
-            return;
+            MoveTowardsDefaultStance();
         }
-        MoveTowardsDefaultStance();
     }
 
     // finds what sector the head is in, in order to do a
@@ -522,8 +601,7 @@ public class FighterScript : MonoBehaviour
             fighterAttackArea,
             new Vector3(
                 jointShoulder1Tran.position.x + sideRange * 1f,
-                jointShoulder1Tran.position.y + .25f,
-                0),
+                jointShoulder1Tran.position.y + .25f),
             fighterHead.transform.rotation
         );
         float distance = Vector3.Distance(newfighterAttack.transform.position, stanceHand1Tran.position);
@@ -535,8 +613,7 @@ public class FighterScript : MonoBehaviour
         {
             fighterHead.transform.position = new Vector3(
                 fighterHead.transform.position.x + distancePerFrame * .4f,
-                fighterHead.transform.position.y,
-                0);
+                fighterHead.transform.position.y);
             stanceHand1Tran.LookAt(newfighterAttack.transform.position);
             stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
 
@@ -553,7 +630,6 @@ public class FighterScript : MonoBehaviour
         }
         controlsEnabled = true;
     }
-
 
     IEnumerator Jab(string type)
     {
@@ -575,8 +651,7 @@ public class FighterScript : MonoBehaviour
             fighterAttackArea,
             new Vector3(
                 stanceHand2Tran.position.x + punchDistance * 1f,
-                stanceHand2Tran.position.y,
-                0),
+                stanceHand2Tran.position.y),
             fighterHead.transform.rotation
         );
 
@@ -610,6 +685,7 @@ public class FighterScript : MonoBehaviour
             yield return null;
         }
         controlsEnabled = true;
+        Debug.Log("controls re-enabled");
     }
 
     IEnumerator FrontKick()
@@ -626,8 +702,7 @@ public class FighterScript : MonoBehaviour
             fighterAttackArea,
             new Vector3(
                 jointPelvis1Tran.position.x + range * 1f,
-                jointPelvis1Tran.position.y,
-                0),
+                jointPelvis1Tran.position.y),
             fighterHead.transform.rotation
         );
 
@@ -641,7 +716,6 @@ public class FighterScript : MonoBehaviour
 
         for (int i = 0; i < framesTaken; i++)
         {
-            controlsEnabled = false;
             fighterHead.transform.position += torsoMoveDistance * .5f;
             stancePelvisTran.position += torsoMoveDistance;
 
@@ -663,5 +737,6 @@ public class FighterScript : MonoBehaviour
             yield return null;
         }
         controlsEnabled = true;
+        Debug.Log("controls re-enabled");
     }
 }
