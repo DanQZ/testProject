@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerAttackAreaScript : MonoBehaviour
+public class FighterAttackAreaScript : MonoBehaviour
 {
     int startFrame;
     int deathFrame;
@@ -78,7 +78,7 @@ public class PlayerAttackAreaScript : MonoBehaviour
     {
         if (collision.gameObject.tag == "Enemy")
         {
-            collision.gameObject.transform.parent.GetComponent<PlayerScript>().hp -= 5;
+            collision.gameObject.transform.parent.GetComponent<FighterScript>().hp -= 5;
             Destroy(this.gameObject);
         }
     }

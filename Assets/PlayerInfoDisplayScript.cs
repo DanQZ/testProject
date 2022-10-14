@@ -8,10 +8,10 @@ public class PlayerInfoDisplayScript : MonoBehaviour
     // Start is called before the first frame update
     public Text playerInfoText;
     public GameObject player;
-    PlayerScript playerScript;
+    FighterScript playerScript;
     void Start()
     {
-        playerScript = player.GetComponent<PlayerScript>();
+        playerScript = player.GetComponent<FighterScript>();
         playerInfoText.text = "HP ";
     }
 
