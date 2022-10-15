@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class FighterScript : MonoBehaviour
 {
+    public GameObject fighterOrienter;
+    private Transform orientedTran;
     public float speed;
     public int hp;
     public bool facingRight;
@@ -152,6 +154,7 @@ public class FighterScript : MonoBehaviour
 
     void InitTransforms()
     {
+        orientedTran = fighterOrienter.transform;
         upperArm1Tran = upperArm1.transform;
         upperArm2Tran = upperArm2.transform;
         lowerArm1Tran = lowerArm1.transform;
@@ -249,35 +252,35 @@ public class FighterScript : MonoBehaviour
     void UpdateDefaultStancePositions()
     // used within MoveTowardsDefaultStance()
     {
-        hand1DefaultVector = fighterHead.transform.position + transform.right * 0.25f + Vector3.down * 1f;
-        hand2DefaultVector = fighterHead.transform.position + transform.right * 1.5f + Vector3.down * 0.5f;
-        foot1DefaultVector = transform.position - Vector3.up * 4f - transform.right * 1f;
-        foot2DefaultVector = transform.position - Vector3.up * 4f + transform.right * 1f;
+        hand1DefaultVector = fighterHead.transform.position + orientedTran.right * 0.25f - orientedTran.up * 1f;
+        hand2DefaultVector = fighterHead.transform.position + orientedTran.right * 1.5f - orientedTran.up * 0.5f;
+        foot1DefaultVector = orientedTran.position - orientedTran.up * 4f - orientedTran.right * 1f;
+        foot2DefaultVector = orientedTran.position - orientedTran.up * 4f + orientedTran.right * 1f;
     }
 
     void MoveTowardsDefaultStance()
     //moves at speed towards default positions of hands and feet
     {
-        float fighterX = transform.position.x;
-        float fighterY = transform.position.y;
+        float fighterX = orientedTran.position.x;
+        float fighterY = orientedTran.position.y;
         float fighterHeadX = fighterHead.transform.position.x;
         float fighterHeadY = fighterHead.transform.position.y;
 
         if (fighterHead.transform.position.x > fighterX + reach)
         {
-            fighterHead.transform.position -= transform.right * speed;
+            fighterHead.transform.position -= orientedTran.right * speed;
         }
         if (fighterHead.transform.position.x < fighterX - reach)
         {
-            fighterHead.transform.position += transform.right * speed;
+            fighterHead.transform.position += orientedTran.right * speed;
         }
         if (fighterHead.transform.position.y < fighterX - reach)
         {
-            fighterHead.transform.position += Vector3.up * speed;
+            fighterHead.transform.position += orientedTran.up * speed;
         }
         if (fighterHead.transform.position.y > fighterX + reach)
         {
-            fighterHead.transform.position -= Vector3.up * speed;
+            fighterHead.transform.position -= orientedTran.up * speed;
         }
 
         UpdateDefaultStancePositions();
@@ -316,8 +319,8 @@ public class FighterScript : MonoBehaviour
     void GroundedFeet()
     //keeps feet on the ground 
     {
-        calf1Tran.position = transform.position + Vector3.down * 4f - transform.right * 1f;
-        calf2Tran.position = transform.position + Vector3.down * 4f + transform.right * 1f;
+        calf1Tran.position = orientedTran.position + Vector3.down * 4f - orientedTran.right * 1f;
+        calf2Tran.position = orientedTran.position + Vector3.down * 4f + orientedTran.right * 1f;
     }
 
     void MoveAndDrawBody() //moves limbs to desired location, then positions the LineRenderers to where the joints are
@@ -408,42 +411,65 @@ public class FighterScript : MonoBehaviour
         return true;
     }
 
-    void FixHinges(){
-        float change = 180f;
+    void FixHinges()
+    {
+        float change = 1f;
         if (facingRight)
         {
-            change = -180f;
+            change = -1f;
         }
         foreach (var hinge in allHinges)
         {
             JointAngleLimits2D newLimits = hinge.limits;
-            newLimits.min += change;
-            newLimits.max += change;
+            newLimits.min = 0 - hinge.limits.min;
+            newLimits.max = 0 - hinge.limits.max;
             hinge.limits = newLimits;
         }
+        /*
+        JointAngleLimits2D newLimits = torsoBottomHinge.limits;
+        newLimits.min += 0 - torsoBottomHinge.limits.min;
+        newLimits.max -= torsoBottomHinge.limits.min;
+        torsoBottomHinge.limits = newLimits;
 
-        torsoTopHinge.anchor = jointNeck.transform.position;
-        torsoTopHinge.connectedAnchor = jointNeck.transform.position;
-        torsoBottomHinge.anchor = stanceRibs.transform.position;
-        torsoBottomHinge.connectedAnchor = stanceRibs.transform.position;
+        newLimits = calf1Hinge.limits;
+        newLimits.min *= -1f;
+        newLimits.max *= -1f;
+        calf1Hinge.limits = newLimits;
+        JointAngleLimits2D newLimits2 = calf2Hinge.limits;
+        newLimits.min += -1f;
+        newLimits.max += -1f;
+        calf2Hinge.limits = newLimits;
+        */
+        /*
+        //        torsoTopHinge.anchor = jointNeckTran.position;
+                torsoTopHinge.connectedAnchor = torsoTopHinge.anchor;
+        //        torsoTop.transform.position = jointNeckTran.position;
+        //        torsoBottomHinge.anchor = stanceRibs.transform.position;
+                torsoBottomHinge.connectedAnchor = torsoBottomHinge.anchor;
+                torsoBottom.transform.position = stanceRibsTran.position;
 
-        upperArm1Hinge.anchor = jointShoulder1Tran.position;
-        upperArm1Hinge.connectedAnchor = jointShoulder1Tran.position;
-        lowerArm1Hinge.anchor = jointElbow1Tran.position;
-        lowerArm1Hinge.connectedAnchor =  jointElbow1Tran.position;
-        upperArm2Hinge.anchor = jointShoulder2Tran.position;
-        upperArm2Hinge.connectedAnchor = jointShoulder2Tran.position;
-        lowerArm2Hinge.anchor = jointElbow2Tran.position;
-        lowerArm2Hinge.connectedAnchor =  jointElbow2Tran.position;
+          //      upperArm1Hinge.anchor = jointShoulder1Tran.position;
+                upperArm1Hinge.connectedAnchor = upperArm1Hinge.anchor;
+                upperArm1Tran.position = jointShoulder1Tran.position;
+        //        lowerArm1Hinge.anchor = upperArm1Tran.position;
+                lowerArm1Hinge.connectedAnchor =  jointElbow1Tran.position;
+                lowerArm1Tran.position = upperArm1Tran.position;
+        //        upperArm2Hinge.anchor = jointShoulder2Tran.position;
+                upperArm2Hinge.connectedAnchor = jointShoulder2Tran.position;
+                upperArm2Tran.position = jointShoulder2Tran.position; 
+           //     lowerArm2Hinge.anchor = upperArm2Tran.position;
+                lowerArm2Hinge.connectedAnchor =  jointElbow2Tran.position;
+                lowerArm1Tran.position = upperArm2Tran.position;
 
-        thigh1Hinge.anchor = jointPelvis1Tran.position;
-        thigh1Hinge.connectedAnchor = jointPelvis1Tran.position;
-        calf1Hinge.anchor = jointKnee1Tran.position;
-        calf1Hinge.connectedAnchor = jointKnee1Tran.position;
-        thigh2Hinge.anchor = jointPelvis2Tran.position;
-        thigh2Hinge.connectedAnchor = jointPelvis2Tran.position;
-        calf2Hinge.anchor = jointKnee2Tran.position;
-        calf2Hinge.connectedAnchor = jointKnee2Tran.position;
+           //     thigh1Hinge.anchor = jointPelvis1Tran.position;
+                thigh1Hinge.connectedAnchor = jointPelvis1Tran.position;
+         //       calf1Hinge.anchor = jointKnee1Tran.position;
+                calf1Hinge.connectedAnchor = jointKnee1Tran.position;
+           //     thigh2Hinge.anchor = jointPelvis2Tran.position;
+                thigh2Hinge.connectedAnchor = jointPelvis2Tran.position;
+          //      calf2Hinge.anchor = jointKnee2Tran.position;
+                calf2Hinge.connectedAnchor = jointKnee2Tran.position;
+          */
     }
     public void TurnTo(string direction)
     {
@@ -451,22 +477,23 @@ public class FighterScript : MonoBehaviour
         switch (direction)
         {
             case "left":
-                orienter -= Vector3.forward;
+                orienter -= transform.forward;
                 facingRight = false;
+                transform.localScale = new Vector3(-1, 1, 1);
                 break;
             case "right":
-                orienter += Vector3.forward;
+                orienter += transform.forward;
                 facingRight = true;
+                transform.localScale = new Vector3(1, 1, 1);
                 break;
             default:
                 return;
         }
-        transform.LookAt(orienter);
 
+        orientedTran.LookAt(orienter);
 
         FixHinges();
         MoveAndDrawBody();
-        Debug.Break();
     }
     void Update()
     {
@@ -489,7 +516,7 @@ public class FighterScript : MonoBehaviour
 
         int xSector = 1;
         float fighterHeadX = fighterHead.transform.position.x;
-        float fighterX = transform.position.x;
+        float fighterX = orientedTran.position.x;
         if (fighterHeadX < fighterX - reach / 3)
         {
             xSector = 0;
@@ -501,7 +528,7 @@ public class FighterScript : MonoBehaviour
 
         int ySector = 1;
         float fighterHeadY = fighterHead.transform.position.y;
-        float fighterY = transform.position.y;
+        float fighterY = orientedTran.position.y;
         if (fighterHeadY < fighterY - reach / 3)
         {
             ySector = 0;
@@ -599,9 +626,9 @@ public class FighterScript : MonoBehaviour
 
         GameObject newfighterAttack = Instantiate(
             fighterAttackArea,
-            new Vector3(
-                jointShoulder1Tran.position.x + sideRange * 1f,
-                jointShoulder1Tran.position.y + .25f),
+                jointShoulder1Tran.position
+                + orientedTran.right * sideRange
+                - orientedTran.up * .25f,
             fighterHead.transform.rotation
         );
         float distance = Vector3.Distance(newfighterAttack.transform.position, stanceHand1Tran.position);
@@ -611,13 +638,11 @@ public class FighterScript : MonoBehaviour
 
         for (int i = 0; i < framesTaken; i++)
         {
-            fighterHead.transform.position = new Vector3(
-                fighterHead.transform.position.x + distancePerFrame * .4f,
-                fighterHead.transform.position.y);
+            fighterHead.transform.position += orientedTran.right * distancePerFrame * .4f;
             stanceHand1Tran.LookAt(newfighterAttack.transform.position);
             stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
 
-            stanceHand2Tran.LookAt(fighterHead.transform.position + transform.right * 1f);
+            stanceHand2Tran.LookAt(fighterHead.transform.position + orientedTran.right * 1f);
             stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame * 0.5f;
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
@@ -656,10 +681,10 @@ public class FighterScript : MonoBehaviour
         );
 
         float headDistancePerFrame = 0.2f * distancePerFrame;
-        Vector3 headMoveVector = transform.right * headDistancePerFrame;
+        Vector3 headMoveVector = orientedTran.right * headDistancePerFrame;
         if (type == "defensive")
         {
-            headMoveVector = -1f * transform.right * headDistancePerFrame;
+            headMoveVector = -1f * orientedTran.right * headDistancePerFrame;
         }
 
         newfighterAttack.GetComponent<FighterAttackAreaScript>().lifespan = timeTaken * 60f;
@@ -673,7 +698,7 @@ public class FighterScript : MonoBehaviour
             stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame;
 
             // moves nonjab hand to guard
-            stanceHand1Tran.LookAt(fighterHead.transform.position + transform.right * 1f);
+            stanceHand1Tran.LookAt(fighterHead.transform.position + orientedTran.right * 1f);
             stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
@@ -710,7 +735,7 @@ public class FighterScript : MonoBehaviour
         float footMovingDistance = Vector3.Distance(stanceFoot1Tran.position, newfighterAttack.transform.position);
         float distancePerFrame = footMovingDistance / framesTaken;
 
-        Vector3 torsoMoveDistance = transform.right * distancePerFrame * 0.15f;
+        Vector3 torsoMoveDistance = orientedTran.right * distancePerFrame * 0.15f;
 
         newfighterAttack.GetComponent<FighterAttackAreaScript>().lifespan = timeTaken * 60f;
 
@@ -723,7 +748,7 @@ public class FighterScript : MonoBehaviour
             stanceFoot1Tran.position += stanceFoot1Tran.forward * distancePerFrame;
 
             // guarding
-            Vector3 hand1Guard = fighterHead.transform.position + transform.right * 0.75f;
+            Vector3 hand1Guard = fighterHead.transform.position + orientedTran.right * 0.75f;
             float distance = Vector3.Distance(hand1Guard, stanceHand1Tran.position);
             stanceHand1Tran.LookAt(hand1Guard);
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(distancePerFrame * distance, speed);
