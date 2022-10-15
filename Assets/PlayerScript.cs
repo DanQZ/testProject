@@ -53,6 +53,7 @@ public class PlayerScript : MonoBehaviour
                 playerHead.transform.position += Vector3.right * PCScript.speed;
             }
         }
+
         if (Input.GetKey("left"))
         {
             if (PCScript.facingRight)

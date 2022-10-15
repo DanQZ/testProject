@@ -268,19 +268,19 @@ public class FighterScript : MonoBehaviour
 
         if (fighterHead.transform.position.x > fighterX + reach)
         {
-            fighterHead.transform.position -= orientedTran.right * speed;
+            fighterHead.transform.position -= transform.right * speed;
         }
         if (fighterHead.transform.position.x < fighterX - reach)
         {
-            fighterHead.transform.position += orientedTran.right * speed;
+            fighterHead.transform.position += transform.right * speed;
         }
         if (fighterHead.transform.position.y < fighterX - reach)
         {
-            fighterHead.transform.position += orientedTran.up * speed;
+            fighterHead.transform.position += transform.up * speed;
         }
         if (fighterHead.transform.position.y > fighterX + reach)
         {
-            fighterHead.transform.position -= orientedTran.up * speed;
+            fighterHead.transform.position -= transform.up * speed;
         }
 
         UpdateDefaultStancePositions();
@@ -400,11 +400,11 @@ public class FighterScript : MonoBehaviour
 
     public bool IsHeadWithinSectors() // checks if head is within boundaries
     {
-        if (fighterHead.transform.position.x >= 1 || fighterHead.transform.position.y >= 1)
+        if (fighterHead.transform.position.x > orientedTran.position.x + reach || fighterHead.transform.position.y > orientedTran.position.y + reach)
         {
             return false;
         }
-        if (fighterHead.transform.position.x <= -1 || fighterHead.transform.position.y <= -1)
+        if (fighterHead.transform.position.x < orientedTran.position.x - reach || fighterHead.transform.position.y < orientedTran.position.y - reach)
         {
             return false;
         }
@@ -425,76 +425,39 @@ public class FighterScript : MonoBehaviour
             newLimits.max = 0 - hinge.limits.max;
             hinge.limits = newLimits;
         }
-        /*
-        JointAngleLimits2D newLimits = torsoBottomHinge.limits;
-        newLimits.min += 0 - torsoBottomHinge.limits.min;
-        newLimits.max -= torsoBottomHinge.limits.min;
-        torsoBottomHinge.limits = newLimits;
-
-        newLimits = calf1Hinge.limits;
-        newLimits.min *= -1f;
-        newLimits.max *= -1f;
-        calf1Hinge.limits = newLimits;
-        JointAngleLimits2D newLimits2 = calf2Hinge.limits;
-        newLimits.min += -1f;
-        newLimits.max += -1f;
-        calf2Hinge.limits = newLimits;
-        */
-        /*
-        //        torsoTopHinge.anchor = jointNeckTran.position;
-                torsoTopHinge.connectedAnchor = torsoTopHinge.anchor;
-        //        torsoTop.transform.position = jointNeckTran.position;
-        //        torsoBottomHinge.anchor = stanceRibs.transform.position;
-                torsoBottomHinge.connectedAnchor = torsoBottomHinge.anchor;
-                torsoBottom.transform.position = stanceRibsTran.position;
-
-          //      upperArm1Hinge.anchor = jointShoulder1Tran.position;
-                upperArm1Hinge.connectedAnchor = upperArm1Hinge.anchor;
-                upperArm1Tran.position = jointShoulder1Tran.position;
-        //        lowerArm1Hinge.anchor = upperArm1Tran.position;
-                lowerArm1Hinge.connectedAnchor =  jointElbow1Tran.position;
-                lowerArm1Tran.position = upperArm1Tran.position;
-        //        upperArm2Hinge.anchor = jointShoulder2Tran.position;
-                upperArm2Hinge.connectedAnchor = jointShoulder2Tran.position;
-                upperArm2Tran.position = jointShoulder2Tran.position; 
-           //     lowerArm2Hinge.anchor = upperArm2Tran.position;
-                lowerArm2Hinge.connectedAnchor =  jointElbow2Tran.position;
-                lowerArm1Tran.position = upperArm2Tran.position;
-
-           //     thigh1Hinge.anchor = jointPelvis1Tran.position;
-                thigh1Hinge.connectedAnchor = jointPelvis1Tran.position;
-         //       calf1Hinge.anchor = jointKnee1Tran.position;
-                calf1Hinge.connectedAnchor = jointKnee1Tran.position;
-           //     thigh2Hinge.anchor = jointPelvis2Tran.position;
-                thigh2Hinge.connectedAnchor = jointPelvis2Tran.position;
-          //      calf2Hinge.anchor = jointKnee2Tran.position;
-                calf2Hinge.connectedAnchor = jointKnee2Tran.position;
-          */
     }
-    public void TurnTo(string direction)
-    {
+    IEnumerator GoToCenterXAndTurn(){
+        controlsEnabled = false;
+        float directionMultipler = 0-transform.localScale.x;
+        while(Mathf.Abs(transform.position.x - fighterHead.transform.position.x) > 0.25f){
+            fighterHead.transform.position += Vector3.right * directionMultipler * speed; 
+            yield return null;
+        }
+        controlsEnabled = true;
         Vector3 orienter = transform.position;
-        switch (direction)
+
+        switch (transform.localScale.x)
         {
-            case "left":
+            case 1: // go from right to left
                 orienter -= transform.forward;
                 facingRight = false;
                 transform.localScale = new Vector3(-1, 1, 1);
                 break;
-            case "right":
+            case -1: // go from left to right
                 orienter += transform.forward;
                 facingRight = true;
                 transform.localScale = new Vector3(1, 1, 1);
                 break;
-            default:
-                return;
         }
-
         orientedTran.LookAt(orienter);
-
+    }
+    public void TurnTo(string direction)
+    {
+        StartCoroutine(GoToCenterXAndTurn());
         FixHinges();
         MoveAndDrawBody();
     }
+
     void Update()
     {
         MoveAndDrawBody(); // important this is called first
@@ -507,7 +470,6 @@ public class FighterScript : MonoBehaviour
     // finds what sector the head is in, in order to do a
     int GetHeadSector()
     {
-
         string[] attacks = {
         "bottom left", "bottom", "bottom right",
         "center left", "true center", "center right",
@@ -517,11 +479,12 @@ public class FighterScript : MonoBehaviour
         int xSector = 1;
         float fighterHeadX = fighterHead.transform.position.x;
         float fighterX = orientedTran.position.x;
-        if (fighterHeadX < fighterX - reach / 3)
+        float fighterHeadToCenterX = (fighterHeadX - fighterX) * transform.localScale.x;
+        if (fighterHeadToCenterX < 0 - reach / 3) // on lean back side
         {
             xSector = 0;
         }
-        if (fighterHeadX > reach / 3)
+        if (fighterHeadToCenterX > reach / 3) // on lean forward side
         {
             xSector = 2;
         }
@@ -529,11 +492,11 @@ public class FighterScript : MonoBehaviour
         int ySector = 1;
         float fighterHeadY = fighterHead.transform.position.y;
         float fighterY = orientedTran.position.y;
-        if (fighterHeadY < fighterY - reach / 3)
+        if (fighterHeadY < reach / 3) // on bottom side
         {
             ySector = 0;
         }
-        if (fighterHeadY > fighterY + reach / 3)
+        if (fighterHeadY > reach / 3) // on top side
         {
             ySector = 2;
         }
@@ -674,9 +637,7 @@ public class FighterScript : MonoBehaviour
 
         GameObject newfighterAttack = Instantiate(
             fighterAttackArea,
-            new Vector3(
-                stanceHand2Tran.position.x + punchDistance * 1f,
-                stanceHand2Tran.position.y),
+            stanceHand2Tran.position + orientedTran.right * punchDistance,
             fighterHead.transform.rotation
         );
 
@@ -725,9 +686,7 @@ public class FighterScript : MonoBehaviour
 
         GameObject newfighterAttack = Instantiate(
             fighterAttackArea,
-            new Vector3(
-                jointPelvis1Tran.position.x + range * 1f,
-                jointPelvis1Tran.position.y),
+            jointPelvis1Tran.position + orientedTran.right * range,
             fighterHead.transform.rotation
         );
 
