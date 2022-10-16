@@ -7,7 +7,6 @@ public class FighterScript : MonoBehaviour
 {
     Rigidbody2D fighterRB;
     public float groundLevel;
-    public GameObject path1;
     public GameObject fighterOrienter;
     private Transform orientedTran;
     public float speed;
@@ -480,27 +479,29 @@ public class FighterScript : MonoBehaviour
     IEnumerator GoToCenterXAndTurn()
     {
         controlsEnabled = false;
-        float directionMultipler = 0 - transform.localScale.x;
+        float directionMultipler = transform.position.x - stanceHeadTran.position.x;
         while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.25f)
         {
-            stanceHeadTran.position += Vector3.right * directionMultipler * speed;
+            stanceHeadTran.position += transform.right * directionMultipler * speed;
             yield return null;
         }
-        transform.localScale = new Vector3(directionMultipler, 1 ,1);
-
-        Vector3 orienter = transform.position;
-        orienter -= orientedTran.forward;
+        float targetScale = 0-transform.localScale.x; // can't use directionMultiplier for this!!!
+        transform.localScale = new Vector3(targetScale, 1 ,1);
         switch (transform.localScale.x)
         {
             case 1: // go from right to left
-                facingRight = false;
-                break;
-            case -1: // go from left to right
                 facingRight = true;
                 break;
+            case -1: // go from left to right
+                facingRight = false;
+                break;
         }
+
+        Vector3 orienter = transform.position;
+        orienter -= orientedTran.forward;
         orientedTran.LookAt(orienter);
         controlsEnabled = true;
+        Debug.Log("facing right: " + facingRight);
     }
     public void TurnTo(string direction)
     {
@@ -631,16 +632,6 @@ public class FighterScript : MonoBehaviour
                 break;
         }
     }
-    VertexPath GeneratePath(Vector3[] points, bool closedPath)
-    {
-        // Create a closed, 2D bezier path from the supplied points array
-        // These points are treated as anchors, which the path will pass through
-        // The control points for the path will be generated automatically
-        BezierPath bezierPath = new BezierPath(points, closedPath, PathSpace.xy);
-        // Then create a vertex path from the bezier path, to be used for movement etc
-        return new VertexPath(bezierPath, path1.transform, 0.25f);
-    }
-
     IEnumerator MoveTransToTarget(Transform transformToBeMoved, Vector3 target, float secondsTaken)
     {
         int framesTaken = (int)(secondsTaken * 60f);
