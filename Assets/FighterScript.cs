@@ -5,6 +5,7 @@ using PathCreation;
 
 public class FighterScript : MonoBehaviour
 {
+    public bool airborne = false;
     Rigidbody2D fighterRB;
     public float groundLevel;
     public GameObject fighterOrienter;
@@ -485,8 +486,8 @@ public class FighterScript : MonoBehaviour
             stanceHeadTran.position += transform.right * directionMultipler * speed;
             yield return null;
         }
-        float targetScale = 0-transform.localScale.x; // can't use directionMultiplier for this!!!
-        transform.localScale = new Vector3(targetScale, 1 ,1);
+        float targetScale = 0 - transform.localScale.x; // can't use directionMultiplier for this!!!
+        transform.localScale = new Vector3(targetScale, 1, 1);
         switch (transform.localScale.x)
         {
             case 1: // go from right to left
@@ -545,7 +546,7 @@ public class FighterScript : MonoBehaviour
         float fighterHeadY = stanceHeadTran.position.y;
         float fighterY = transform.position.y;
         float fighterHeadToCenterY = (fighterHeadY - fighterY) * transform.localScale.y;
-        if (fighterHeadToCenterY < 0-reach / 3) // on bottom side
+        if (fighterHeadToCenterY < 0 - reach / 3) // on bottom side
         {
             ySector = 0;
         }
@@ -569,31 +570,31 @@ public class FighterScript : MonoBehaviour
             case "arms":
                 switch (sector)
                 {
-                    case 0: // bottom left
+                    case 0: // bottom back
                         StartCoroutine(Hook());
                         break;
                     case 1: // bottom 
                         StartCoroutine(Hook());
                         break;
-                    case 2: // bottom right
+                    case 2: // bottom forward
                         StartCoroutine(Jab("aggressive"));
                         break;
-                    case 3: // center left
+                    case 3: // center back
                         StartCoroutine(Hook());
                         break;
                     case 4: // center 
                         StartCoroutine(Hook());
                         break;
-                    case 5: // center right
+                    case 5: // center forward
                         StartCoroutine(Jab("aggressive"));
                         break;
-                    case 6: // top left
+                    case 6: // top back
                         StartCoroutine(Hook());
                         break;
                     case 7:  // top middle
                         StartCoroutine(Hook());
                         break;
-                    case 8: // top right
+                    case 8: // top forward
                         StartCoroutine(Jab("defensive"));
                         break;
                 }
@@ -601,31 +602,31 @@ public class FighterScript : MonoBehaviour
             case "legs":
                 switch (sector)
                 {
-                    case 0: // bottom left
+                    case 0: // bottom back
                         StartCoroutine(JumpingFrontKick());
                         break;
                     case 1: // bottom 
                         StartCoroutine(JumpingFrontKick());
                         break;
-                    case 2: // bottom right
+                    case 2: // bottom forward
                         StartCoroutine(JumpingFrontKick());
                         break;
-                    case 3: // center left
+                    case 3: // center back
                         StartCoroutine(FrontKick());
                         break;
                     case 4: // center 
                         StartCoroutine(FrontKick());
                         break;
-                    case 5: // center right
+                    case 5: // center forward
                         StartCoroutine(FrontKick());
                         break;
-                    case 6: // top left
+                    case 6: // top back
                         StartCoroutine(FrontKick());
                         break;
                     case 7:  // top middle
                         StartCoroutine(FrontKick());
                         break;
-                    case 8: // top right
+                    case 8: // top forward
                         StartCoroutine(FrontKick());
                         break;
                 }
@@ -759,6 +760,8 @@ public class FighterScript : MonoBehaviour
             stanceHeadTran.rotation
         );
 
+        newfighterAttack.transform.SetParent(this.gameObject.transform);
+
 
         float footMovingDistance = Vector3.Distance(stanceFoot1Tran.position, newfighterAttack.transform.position);
         float distancePerFrame = footMovingDistance / framesTaken;
@@ -793,28 +796,32 @@ public class FighterScript : MonoBehaviour
         Debug.Log("controls re-enabled");
     }
 
-    public IEnumerator Jump(float jumpSpeed)
-    {/*
-        while(stanceHeadTran.position.y > -0.5f){
-            stanceHeadTran.position -= orientedTran.up * speed;
+    public IEnumerator JumpingFrontKickJump(float jumpSpeed)
+    {
+        controlsEnabled = false;
+        airborne = true;
+        while (stanceHeadTran.position.y <= transform.position.y + reach)
+        {
+            stanceHeadTran.position += orientedTran.up * jumpSpeed / 60f;
+            stanceFoot2Tran.position += orientedTran.up * jumpSpeed / 60f;
             yield return null;
-        }        
-        while(stanceHeadTran.position.y < 0.5f){
-            stanceHeadTran.position += orientedTran.up * jumpSpeed;
-            yield return null;
-        }*/
+        }
+
         Debug.Log("jumped into air");
         fighterRB.velocity = new Vector2(0, jumpSpeed);
-        fighterRB.gravityScale = 2f;
-        stanceFoot1Tran.position += Vector3.up * 0.01f;
-        stanceFoot2Tran.position += Vector3.up * 0.01f;
+        fighterRB.gravityScale = 3f;
+        stanceFoot1Tran.position += Vector3.up * 0.05f;
+        stanceFoot2Tran.position += Vector3.up * 0.05f;
 
-        while (stanceFoot1Tran.position.y >= groundLevel 
+        StartCoroutine(FrontKick());
+        float headMin = transform.position.y - reach / 2;
+
+        while (stanceFoot1Tran.position.y >= groundLevel
             && stanceFoot2Tran.position.y >= groundLevel)
         {
             yield return null;
         }
-        Debug.Log("landed");
+
         fighterRB.velocity = new Vector2(0, 0);
         fighterRB.gravityScale = 0f;
         transform.position = new Vector3(
@@ -822,15 +829,30 @@ public class FighterScript : MonoBehaviour
             0,
             0
         );
+        Debug.Log("landed");
+        airborne = false;
+        controlsEnabled = true;
     }
+
     IEnumerator JumpingFrontKick()
     {
-        StartCoroutine(Jump(10f));
-        /*for (int i = 0; i < 10; i++)
-        {
-            //stanceHeadTran.position -= Vector3.up * 1/10f;
+        controlsEnabled = false;
+        int sector = GetHeadSector();
+        while (sector != 2 && sector != 5 && sector != 8)
+        { // go lean forward
+            stanceHand1Tran.position += orientedTran.right * speed;
+            stanceHand2Tran.position += orientedTran.right * speed;
+            stanceHeadTran.position += orientedTran.right * speed;
+            sector = GetHeadSector();
             yield return null;
-        }*/
+        }
+        yield return StartCoroutine(JumpingFrontKickJump(10f));
+        controlsEnabled = false;
+        for (int i = 0; i < 10; i++)
+        {
+            stanceHeadTran.position -= Vector3.up * 0.5f/10f;
+            yield return null;
+        }
         controlsEnabled = true;
         yield return null;
     }

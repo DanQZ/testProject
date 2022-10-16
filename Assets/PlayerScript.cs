@@ -53,13 +53,6 @@ public class PlayerScript : MonoBehaviour
                 stanceHeadTran.position += Vector3.right * PCScript.speed;
             }
         }
-        if (Input.GetKey("up"))
-        {
-            if (PCScript.controlsEnabled)
-            {
-                StartCoroutine(PCScript.Jump(10f));
-            }
-        }
 
         if (Input.GetKey("left"))
         {

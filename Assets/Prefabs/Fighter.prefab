@@ -705,8 +705,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fdc7c5fa3ca2ec4d8343cd5920cbd1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  airborne: 0
   groundLevel: 0
-  path1: {fileID: 0}
   fighterOrienter: {fileID: 6132136372627296245}
   speed: 0
   hp: 0
@@ -813,7 +813,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 10
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
@@ -946,7 +946,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 10
   m_LinearDrag: 0
   m_AngularDrag: 0
   m_GravityScale: 0
