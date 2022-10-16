@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerCharacter: {fileID: 1807330274207174158}
-  playerHead: {fileID: 1807330275956044950}
+  stanceHead: {fileID: 231158464686811250}
 --- !u!1001 &2159187373883449195
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -116,6 +116,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
+--- !u!1 &231158464686811250 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2216831066565490457, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
+  m_PrefabInstance: {fileID: 2159187373883449195}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1807330274207174153 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 351865938992779618, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
@@ -124,10 +129,5 @@ Transform:
 --- !u!1 &1807330274207174158 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 351865938992779621, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
-  m_PrefabInstance: {fileID: 2159187373883449195}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &1807330275956044950 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 351865940733848573, guid: 61b38dcb3e76470428371132a9dc5839, type: 3}
   m_PrefabInstance: {fileID: 2159187373883449195}
   m_PrefabAsset: {fileID: 0}

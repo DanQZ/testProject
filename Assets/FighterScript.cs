@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using PathCreation;
 
 public class FighterScript : MonoBehaviour
 {
+    Rigidbody2D fighterRB;
+    public float groundLevel;
+    public GameObject path1;
     public GameObject fighterOrienter;
     private Transform orientedTran;
     public float speed;
     public int hp;
-    public bool facingRight;
+    public bool facingRight = true;
     public GameObject fighterAttackArea;
 
     // limb gameObjects are the main fighter body gameObjects
@@ -64,6 +68,10 @@ public class FighterScript : MonoBehaviour
 
     // stance gameObjects force the relevant limb to the stanceObject's position. they are like the opposite of joint gameObjects
     // can activate and deactivate if you want to the limb to move freely for a bit
+    public GameObject stanceHead;
+    private Transform stanceHeadTran;
+    bool stanceHeadActive = true;
+
     public GameObject stanceHand1;
     private Transform stanceHand1Tran;
     bool stanceHand1Active = true;
@@ -92,7 +100,7 @@ public class FighterScript : MonoBehaviour
 
     public float reach; // distance the fighterHead can move from fighter object position
 
-    public bool controlsEnabled; // enabled, fighter can move head around + limbs move to default positions. disable when in an animation
+    public bool controlsEnabled = true; // enabled, fighter can move head around + limbs move to default positions. disable when in an animation
 
     float expectedElbowDistanceToNeck1;
     float expectedElbowDistanceToNeck2;
@@ -128,6 +136,10 @@ public class FighterScript : MonoBehaviour
     private HingeJoint2D thigh2Hinge;
     private HingeJoint2D calf2Hinge;
     private HingeJoint2D[] allHinges = new HingeJoint2D[10];
+    void InitPathFollowers()
+    {
+
+    }
     void InitHinges()
     {
         torsoTopHinge = torsoTop.GetComponent<HingeJoint2D>();
@@ -151,7 +163,6 @@ public class FighterScript : MonoBehaviour
         allHinges[8] = (calf1Hinge);
         allHinges[9] = (calf2Hinge);
     }
-
     void InitTransforms()
     {
         orientedTran = fighterOrienter.transform;
@@ -165,6 +176,7 @@ public class FighterScript : MonoBehaviour
         calf1Tran = calf1.transform;
         calf2Tran = calf2.transform;
 
+        stanceHeadTran = stanceHead.transform;
         stanceRibsTran = stanceRibs.transform;
         stancePelvisTran = stancePelvis.transform;
 
@@ -188,7 +200,6 @@ public class FighterScript : MonoBehaviour
         jointKnee1Tran = jointKnee1.transform;
         jointKnee2Tran = jointKnee2.transform;
     }
-
     void InitLineRenderers()
     {
         float thickness = .25f;
@@ -233,9 +244,12 @@ public class FighterScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        fighterRB = this.gameObject.GetComponent<Rigidbody2D>();
         InitHinges();
         InitLineRenderers();
         InitTransforms();
+        UpdateDefaultStancePositions(); // need this to set up groundLevel
+        groundLevel = Mathf.Min(foot1DefaultVector.y, foot2DefaultVector.y);
 
         expectedElbowDistanceToNeck1 = Vector3.Distance(jointElbow1Tran.position, jointShoulder1Tran.position);
         expectedElbowDistanceToNeck2 = Vector3.Distance(jointElbow2Tran.position, jointShoulder2Tran.position);
@@ -245,42 +259,43 @@ public class FighterScript : MonoBehaviour
         facingRight = true;
         hp = 100;
         Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
-        speed = 3f / 60f; // x units per 60 frames
+        speed = 5f / 60f; // x units per 60 frames
         reach = 1f;
     }
 
     void UpdateDefaultStancePositions()
     // used within MoveTowardsDefaultStance()
     {
-        hand1DefaultVector = fighterHead.transform.position + orientedTran.right * 0.25f - orientedTran.up * 1f;
-        hand2DefaultVector = fighterHead.transform.position + orientedTran.right * 1.5f - orientedTran.up * 0.5f;
-        foot1DefaultVector = orientedTran.position - orientedTran.up * 4f - orientedTran.right * 1f;
-        foot2DefaultVector = orientedTran.position - orientedTran.up * 4f + orientedTran.right * 1f;
+        hand1DefaultVector = stanceHeadTran.position + orientedTran.right * 0.25f - orientedTran.up * 1f;
+        hand2DefaultVector = stanceHeadTran.position + orientedTran.right * 1.5f - orientedTran.up * 0.5f;
+        foot1DefaultVector = transform.position - orientedTran.up * 4f - orientedTran.right * 1f;
+        foot2DefaultVector = transform.position - orientedTran.up * 4f + orientedTran.right * 1f;
     }
 
     void MoveTowardsDefaultStance()
     //moves at speed towards default positions of hands and feet
     {
-        float fighterX = orientedTran.position.x;
-        float fighterY = orientedTran.position.y;
-        float fighterHeadX = fighterHead.transform.position.x;
-        float fighterHeadY = fighterHead.transform.position.y;
+        float fighterX = transform.position.x;
+        float fighterY = transform.position.y;
+        float fighterHeadX = transform.position.x + stanceHeadTran.position.x;
+        float fighterHeadY = transform.position.y + stanceHeadTran.position.y;
 
-        if (fighterHead.transform.position.x > fighterX + reach)
+        // these need to be transform.right not orientedTran.right 
+        if (stanceHeadTran.position.x > fighterX + reach)
         {
-            fighterHead.transform.position -= transform.right * speed;
+            stanceHeadTran.position -= transform.right * speed;
         }
-        if (fighterHead.transform.position.x < fighterX - reach)
+        if (stanceHeadTran.position.x < fighterX - reach)
         {
-            fighterHead.transform.position += transform.right * speed;
+            stanceHeadTran.position += transform.right * speed;
         }
-        if (fighterHead.transform.position.y < fighterX - reach)
+        if (stanceHeadTran.position.y < fighterY - reach)
         {
-            fighterHead.transform.position += transform.up * speed;
+            stanceHeadTran.position += transform.up * speed;
         }
-        if (fighterHead.transform.position.y > fighterX + reach)
+        if (stanceHeadTran.position.y > fighterY + reach)
         {
-            fighterHead.transform.position -= transform.up * speed;
+            stanceHeadTran.position -= transform.up * speed;
         }
 
         UpdateDefaultStancePositions();
@@ -319,12 +334,25 @@ public class FighterScript : MonoBehaviour
     void GroundedFeet()
     //keeps feet on the ground 
     {
-        calf1Tran.position = orientedTran.position + Vector3.down * 4f - orientedTran.right * 1f;
-        calf2Tran.position = orientedTran.position + Vector3.down * 4f + orientedTran.right * 1f;
+        calf1Tran.position = transform.position + Vector3.down * 4f - orientedTran.right * 1f;
+        calf2Tran.position = transform.position + Vector3.down * 4f + orientedTran.right * 1f;
     }
 
     void MoveAndDrawBody() //moves limbs to desired location, then positions the LineRenderers to where the joints are
     {
+        // stances are used to drag around limbs while letting the physics engine rotate the limbs
+        // if stances are active, they pull limbs around regardless of the physics engine
+        // if stances are not active, they are instead pulled around by the physics engine
+        // stances and limbs will always be in the same positions
+        if (stanceHeadActive)
+        {
+            fighterHead.transform.position = stanceHeadTran.position;
+        }
+        else
+        {
+            stanceHeadTran.position = fighterHead.transform.position;
+        }
+
         if (stanceHand1Active)
         {
             lowerArm1Tran.position = stanceHand1Tran.position;
@@ -355,8 +383,31 @@ public class FighterScript : MonoBehaviour
             stancePelvisTran.position = torsoBottom.transform.position;
         }
 
-        calf1Tran.position = stanceFoot1Tran.position;
-        calf2Tran.position = stanceFoot2Tran.position;
+        if (stanceRibsActive)
+        {
+            torsoTop.transform.position = stanceRibsTran.position;
+        }
+        else
+        {
+            stanceRibsTran.position = torsoTop.transform.position;
+        }
+
+        if (stanceFoot1Active)
+        {
+            calf1Tran.position = stanceFoot1Tran.position;
+        }
+        else
+        {
+            stanceFoot1Tran.position = calf1Tran.position;
+        }
+        if (stanceFoot2Active)
+        {
+            calf2Tran.position = stanceFoot2Tran.position;
+        }
+        else
+        {
+            stanceFoot2Tran.position = calf2Tran.position;
+        }
 
         Vector3[] arm1points = {
             jointShoulder1Tran.position,
@@ -400,11 +451,11 @@ public class FighterScript : MonoBehaviour
 
     public bool IsHeadWithinSectors() // checks if head is within boundaries
     {
-        if (fighterHead.transform.position.x > orientedTran.position.x + reach || fighterHead.transform.position.y > orientedTran.position.y + reach)
+        if (stanceHeadTran.position.x > transform.position.x + reach || stanceHeadTran.position.y > transform.position.y + reach)
         {
             return false;
         }
-        if (fighterHead.transform.position.x < orientedTran.position.x - reach || fighterHead.transform.position.y < orientedTran.position.y - reach)
+        if (stanceHeadTran.position.x < transform.position.x - reach || stanceHeadTran.position.y < transform.position.y - reach)
         {
             return false;
         }
@@ -426,30 +477,30 @@ public class FighterScript : MonoBehaviour
             hinge.limits = newLimits;
         }
     }
-    IEnumerator GoToCenterXAndTurn(){
+    IEnumerator GoToCenterXAndTurn()
+    {
         controlsEnabled = false;
-        float directionMultipler = 0-transform.localScale.x;
-        while(Mathf.Abs(transform.position.x - fighterHead.transform.position.x) > 0.25f){
-            fighterHead.transform.position += Vector3.right * directionMultipler * speed; 
+        float directionMultipler = 0 - transform.localScale.x;
+        while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.25f)
+        {
+            stanceHeadTran.position += Vector3.right * directionMultipler * speed;
             yield return null;
         }
-        controlsEnabled = true;
-        Vector3 orienter = transform.position;
+        transform.localScale = new Vector3(directionMultipler, 1 ,1);
 
+        Vector3 orienter = transform.position;
+        orienter -= orientedTran.forward;
         switch (transform.localScale.x)
         {
             case 1: // go from right to left
-                orienter -= transform.forward;
                 facingRight = false;
-                transform.localScale = new Vector3(-1, 1, 1);
                 break;
             case -1: // go from left to right
-                orienter += transform.forward;
                 facingRight = true;
-                transform.localScale = new Vector3(1, 1, 1);
                 break;
         }
         orientedTran.LookAt(orienter);
+        controlsEnabled = true;
     }
     public void TurnTo(string direction)
     {
@@ -471,14 +522,14 @@ public class FighterScript : MonoBehaviour
     int GetHeadSector()
     {
         string[] attacks = {
-        "bottom left", "bottom", "bottom right",
-        "center left", "true center", "center right",
-        "top left", "top", "top right"
+        "bottom back", "bottom", "bottom forward",
+        "center back", "true center", "center forward",
+        "top back", "top", "top forward"
         };
 
         int xSector = 1;
-        float fighterHeadX = fighterHead.transform.position.x;
-        float fighterX = orientedTran.position.x;
+        float fighterHeadX = stanceHeadTran.position.x;
+        float fighterX = transform.position.x;
         float fighterHeadToCenterX = (fighterHeadX - fighterX) * transform.localScale.x;
         if (fighterHeadToCenterX < 0 - reach / 3) // on lean back side
         {
@@ -490,13 +541,14 @@ public class FighterScript : MonoBehaviour
         }
 
         int ySector = 1;
-        float fighterHeadY = fighterHead.transform.position.y;
-        float fighterY = orientedTran.position.y;
-        if (fighterHeadY < reach / 3) // on bottom side
+        float fighterHeadY = stanceHeadTran.position.y;
+        float fighterY = transform.position.y;
+        float fighterHeadToCenterY = (fighterHeadY - fighterY) * transform.localScale.y;
+        if (fighterHeadToCenterY < 0-reach / 3) // on bottom side
         {
             ySector = 0;
         }
-        if (fighterHeadY > reach / 3) // on top side
+        if (fighterHeadToCenterY > reach / 3) // on top side
         {
             ySector = 2;
         }
@@ -549,13 +601,13 @@ public class FighterScript : MonoBehaviour
                 switch (sector)
                 {
                     case 0: // bottom left
-                        StartCoroutine(FrontKick());
+                        StartCoroutine(JumpingFrontKick());
                         break;
                     case 1: // bottom 
-                        StartCoroutine(FrontKick());
+                        StartCoroutine(JumpingFrontKick());
                         break;
                     case 2: // bottom right
-                        StartCoroutine(FrontKick());
+                        StartCoroutine(JumpingFrontKick());
                         break;
                     case 3: // center left
                         StartCoroutine(FrontKick());
@@ -579,7 +631,28 @@ public class FighterScript : MonoBehaviour
                 break;
         }
     }
+    VertexPath GeneratePath(Vector3[] points, bool closedPath)
+    {
+        // Create a closed, 2D bezier path from the supplied points array
+        // These points are treated as anchors, which the path will pass through
+        // The control points for the path will be generated automatically
+        BezierPath bezierPath = new BezierPath(points, closedPath, PathSpace.xy);
+        // Then create a vertex path from the bezier path, to be used for movement etc
+        return new VertexPath(bezierPath, path1.transform, 0.25f);
+    }
 
+    IEnumerator MoveTransToTarget(Transform transformToBeMoved, Vector3 target, float secondsTaken)
+    {
+        int framesTaken = (int)(secondsTaken * 60f);
+        float distance = Vector3.Distance(target, transformToBeMoved.position);
+        float distancePerFrame = distance / framesTaken;
+        transformToBeMoved.LookAt(target);
+        for (int i = 0; i < framesTaken; i++)
+        {
+            transformToBeMoved.position += transformToBeMoved.forward * distancePerFrame;
+            yield return null;
+        }
+    }
 
     IEnumerator Hook()
     {
@@ -591,8 +664,8 @@ public class FighterScript : MonoBehaviour
             fighterAttackArea,
                 jointShoulder1Tran.position
                 + orientedTran.right * sideRange
-                - orientedTran.up * .25f,
-            fighterHead.transform.rotation
+                - transform.up * .25f,
+            transform.rotation
         );
         float distance = Vector3.Distance(newfighterAttack.transform.position, stanceHand1Tran.position);
         float distancePerFrame = distance / framesTaken;
@@ -601,11 +674,11 @@ public class FighterScript : MonoBehaviour
 
         for (int i = 0; i < framesTaken; i++)
         {
-            fighterHead.transform.position += orientedTran.right * distancePerFrame * .4f;
+            stanceHeadTran.position += orientedTran.right * distancePerFrame * .4f;
             stanceHand1Tran.LookAt(newfighterAttack.transform.position);
             stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
 
-            stanceHand2Tran.LookAt(fighterHead.transform.position + orientedTran.right * 1f);
+            stanceHand2Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
             stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame * 0.5f;
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
@@ -641,7 +714,7 @@ public class FighterScript : MonoBehaviour
             fighterHead.transform.rotation
         );
 
-        float headDistancePerFrame = 0.2f * distancePerFrame;
+        float headDistancePerFrame = 0.3f * distancePerFrame;
         Vector3 headMoveVector = orientedTran.right * headDistancePerFrame;
         if (type == "defensive")
         {
@@ -652,14 +725,14 @@ public class FighterScript : MonoBehaviour
 
         for (int i = 0; i < framesTaken; i++)
         {
-            fighterHead.transform.position += headMoveVector;
+            stanceHeadTran.position += headMoveVector;
 
             //moves jabbing hand right
             stanceHand2Tran.LookAt(newfighterAttack.transform.position);
             stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame;
 
             // moves nonjab hand to guard
-            stanceHand1Tran.LookAt(fighterHead.transform.position + orientedTran.right * 1f);
+            stanceHand1Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
             stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
@@ -670,6 +743,11 @@ public class FighterScript : MonoBehaviour
             MoveTowardsDefaultStance();
             yield return null;
         }
+        if (type == "defensive")
+        {
+            yield return StartCoroutine(Hook());
+            yield return null;
+        }
         controlsEnabled = true;
         Debug.Log("controls re-enabled");
     }
@@ -677,17 +755,17 @@ public class FighterScript : MonoBehaviour
     IEnumerator FrontKick()
     {
         float range = 4.5f;
-        float timeTaken = .33f; //seconds
+        float timeTaken = .25f; //seconds
         int framesTaken = (int)(timeTaken * 60);
 
         stancePelvisActive = true;
-        Vector3 origHeadPosition = fighterHead.transform.position;
+        Vector3 origHeadPosition = stanceHeadTran.position;
         Vector3 origBotTorsoPosition = torsoBottom.transform.position;
 
         GameObject newfighterAttack = Instantiate(
             fighterAttackArea,
             jointPelvis1Tran.position + orientedTran.right * range,
-            fighterHead.transform.rotation
+            stanceHeadTran.rotation
         );
 
 
@@ -700,14 +778,14 @@ public class FighterScript : MonoBehaviour
 
         for (int i = 0; i < framesTaken; i++)
         {
-            fighterHead.transform.position += torsoMoveDistance * .5f;
+            stanceHeadTran.position += torsoMoveDistance * .5f;
             stancePelvisTran.position += torsoMoveDistance;
 
             stanceFoot1Tran.LookAt(newfighterAttack.transform.position);
             stanceFoot1Tran.position += stanceFoot1Tran.forward * distancePerFrame;
 
             // guarding
-            Vector3 hand1Guard = fighterHead.transform.position + orientedTran.right * 0.75f;
+            Vector3 hand1Guard = stanceHeadTran.position + orientedTran.right * 0.75f;
             float distance = Vector3.Distance(hand1Guard, stanceHand1Tran.position);
             stanceHand1Tran.LookAt(hand1Guard);
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(distancePerFrame * distance, speed);
@@ -722,5 +800,47 @@ public class FighterScript : MonoBehaviour
         }
         controlsEnabled = true;
         Debug.Log("controls re-enabled");
+    }
+
+    public IEnumerator Jump(float jumpSpeed)
+    {/*
+        while(stanceHeadTran.position.y > -0.5f){
+            stanceHeadTran.position -= orientedTran.up * speed;
+            yield return null;
+        }        
+        while(stanceHeadTran.position.y < 0.5f){
+            stanceHeadTran.position += orientedTran.up * jumpSpeed;
+            yield return null;
+        }*/
+        Debug.Log("jumped into air");
+        fighterRB.velocity = new Vector2(0, jumpSpeed);
+        fighterRB.gravityScale = 2f;
+        stanceFoot1Tran.position += Vector3.up * 0.01f;
+        stanceFoot2Tran.position += Vector3.up * 0.01f;
+
+        while (stanceFoot1Tran.position.y >= groundLevel 
+            && stanceFoot2Tran.position.y >= groundLevel)
+        {
+            yield return null;
+        }
+        Debug.Log("landed");
+        fighterRB.velocity = new Vector2(0, 0);
+        fighterRB.gravityScale = 0f;
+        transform.position = new Vector3(
+            transform.position.x,
+            0,
+            0
+        );
+    }
+    IEnumerator JumpingFrontKick()
+    {
+        StartCoroutine(Jump(10f));
+        /*for (int i = 0; i < 10; i++)
+        {
+            //stanceHeadTran.position -= Vector3.up * 1/10f;
+            yield return null;
+        }*/
+        controlsEnabled = true;
+        yield return null;
     }
 }

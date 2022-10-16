@@ -6,14 +6,14 @@ public class PlayerScript : MonoBehaviour
 {
     public GameObject playerCharacter;
     Transform PCTran;
-    public GameObject playerHead;
-    Transform playerHeadTran;
+    public GameObject stanceHead;
+    Transform stanceHeadTran;
     FighterScript PCScript;
     // Start is called before the first frame update
     void Start()
     {
         PCTran = playerCharacter.transform;
-        playerHeadTran = playerHead.transform;
+        stanceHeadTran = stanceHead.transform;
         PCScript = playerCharacter.GetComponent<FighterScript>();
     }
 
@@ -22,35 +22,42 @@ public class PlayerScript : MonoBehaviour
     {
         float playerX = PCTran.position.x;
         float playerY = PCTran.position.y;
-        float playerHeadX = playerHead.transform.position.x;
-        float playerHeadY = playerHead.transform.position.y;
+        float playerHeadX = stanceHeadTran.position.x;
+        float playerHeadY = stanceHeadTran.position.y;
 
         if (Input.GetKey("w"))
         {
             if (playerHeadY < playerY + PCScript.reach)
             {
-                playerHead.transform.position += Vector3.up * PCScript.speed;
+                stanceHeadTran.position += Vector3.up * PCScript.speed;
             }
         }
         if (Input.GetKey("s"))
         {
             if (playerHeadY > playerY - PCScript.reach)
             {
-                playerHead.transform.position += Vector3.down * PCScript.speed;
+                stanceHeadTran.position += Vector3.down * PCScript.speed;
             }
         }
         if (Input.GetKey("a"))
         {
             if (playerHeadX > playerX - PCScript.reach)
             {
-                playerHead.transform.position += Vector3.left * PCScript.speed;
+                stanceHeadTran.position += Vector3.left * PCScript.speed;
             }
         }
         if (Input.GetKey("d"))
         {
             if (playerHeadX < playerX + PCScript.reach)
             {
-                playerHead.transform.position += Vector3.right * PCScript.speed;
+                stanceHeadTran.position += Vector3.right * PCScript.speed;
+            }
+        }
+        if (Input.GetKey("up"))
+        {
+            if (PCScript.controlsEnabled)
+            {
+                StartCoroutine(PCScript.Jump(10f));
             }
         }
 
@@ -93,8 +100,8 @@ public class PlayerScript : MonoBehaviour
     void Update()
     {
         if(PCScript.controlsEnabled){
-            MoveHeadIfInput();
             AttackIfInput();
+            MoveHeadIfInput();
         }
     }
 }
