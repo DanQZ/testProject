@@ -9,12 +9,16 @@ public class PlayerScript : MonoBehaviour
     public GameObject stanceHead;
     Transform stanceHeadTran;
     FighterScript PCScript;
+    float speed;
+    public float moveSpeed;
     // Start is called before the first frame update
     void Start()
     {
         PCTran = playerCharacter.transform;
         stanceHeadTran = stanceHead.transform;
         PCScript = playerCharacter.GetComponent<FighterScript>();
+        speed = PCScript.speed;
+        moveSpeed = speed * 0.66f;
     }
 
     void MoveHeadIfInput()
@@ -25,47 +29,45 @@ public class PlayerScript : MonoBehaviour
         float playerHeadX = stanceHeadTran.position.x;
         float playerHeadY = stanceHeadTran.position.y;
 
-        if (Input.GetKey("w"))
+        if (Input.GetKey("w") || Input.GetKey("up"))
         {
-            if (playerHeadY < playerY + PCScript.reach)
-            {
-                stanceHeadTran.position += Vector3.up * PCScript.speed;
-            }
+            PCScript.MoveHead(1);
         }
-        if (Input.GetKey("s"))
+        if (Input.GetKey("s") || Input.GetKey("down"))
         {
-            if (playerHeadY > playerY - PCScript.reach)
-            {
-                stanceHeadTran.position += Vector3.down * PCScript.speed;
-            }
+            PCScript.MoveHead(2);
         }
+        if (Input.GetKey("left"))
+        {
+            PCScript.MoveHead(3);
+        }
+        if (Input.GetKey("right"))
+        {
+            PCScript.MoveHead(4);
+        }
+
         if (Input.GetKey("a"))
         {
-            if (playerHeadX > playerX - PCScript.reach)
-            {
-                stanceHeadTran.position += Vector3.left * PCScript.speed;
-            }
+            playerCharacter.transform.position -= transform.right * moveSpeed;
         }
         if (Input.GetKey("d"))
         {
-            if (playerHeadX < playerX + PCScript.reach)
-            {
-                stanceHeadTran.position += Vector3.right * PCScript.speed;
-            }
+            playerCharacter.transform.position += transform.right * moveSpeed;
         }
-
-        if (Input.GetKey("left"))
+        if (Input.GetKey("q")) // face left
         {
             if (PCScript.facingRight)
             {
                 PCScript.TurnTo("left");
+                return;
             }
         }
-        if (Input.GetKey("right"))
+        if (Input.GetKey("e")) // face right
         {
             if (!PCScript.facingRight)
             {
                 PCScript.TurnTo("right");
+                return;
             }
         }
     }
@@ -92,7 +94,8 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(PCScript.controlsEnabled){
+        if (PCScript.controlsEnabled)
+        {
             AttackIfInput();
             MoveHeadIfInput();
         }

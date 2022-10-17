@@ -9,7 +9,7 @@ public class FighterScript : MonoBehaviour
     Rigidbody2D fighterRB;
     public float groundLevel;
     public GameObject fighterOrienter;
-    private Transform orientedTran;
+    public Transform orientedTran;
     public float speed;
     public int hp;
     public bool facingRight = true;
@@ -442,6 +442,41 @@ public class FighterScript : MonoBehaviour
         TorsoRenderer.SetPositions(torsoPoints);
     }
 
+    public void MoveHead(int direction)
+    {
+        float playerX = transform.position.x;
+        float playerY = transform.position.y;
+        float playerHeadX = stanceHeadTran.position.x;
+        float playerHeadY = stanceHeadTran.position.y;
+
+        switch (direction)
+        {
+            case 1:
+                if (playerHeadY < playerY + reach)
+                {
+                    stanceHeadTran.position += Vector3.up * speed;
+                }
+                break;
+            case 2:
+                if (playerHeadY > playerY - reach)
+                {
+                    stanceHeadTran.position += Vector3.down * speed;
+                }
+                break;
+            case 3:
+                if (playerHeadX > playerX - reach)
+                {
+                    stanceHeadTran.position += Vector3.left * speed;
+                }
+                break;
+            case 4:
+            if (playerHeadX < playerX + reach)
+            {
+                stanceHeadTran.position += Vector3.right * speed;
+            }
+                break;
+        }
+    }
     public bool IsHeadWithinSectors() // checks if head is within boundaries
     {
         if (stanceHeadTran.position.x > transform.position.x + reach || stanceHeadTran.position.y > transform.position.y + reach)
@@ -473,10 +508,10 @@ public class FighterScript : MonoBehaviour
     IEnumerator GoToCenterXAndTurn()
     {
         controlsEnabled = false;
-        float directionMultipler = transform.position.x - stanceHeadTran.position.x;
-        while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.25f)
+        float directionMultiplier = orientedTran.position.x - stanceHeadTran.position.x;
+        while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.1f)
         {
-            stanceHeadTran.position += transform.right * directionMultipler * speed;
+            stanceHeadTran.position += transform.right * directionMultiplier * speed;
             yield return null;
         }
         float targetScale = 0 - transform.localScale.x; // can't use directionMultiplier for this!!!
@@ -495,12 +530,20 @@ public class FighterScript : MonoBehaviour
         orienter -= orientedTran.forward;
         orientedTran.LookAt(orienter);
         controlsEnabled = true;
+        FixHinges();
         Debug.Log("facing right: " + facingRight);
     }
     public void TurnTo(string direction)
     {
+        if (
+            (direction == "right" && facingRight)
+            || (direction == "left" && !facingRight)
+            )
+        {
+            Debug.Log("trying to turn " + direction + " but already facing that direction");
+            return;
+        }
         StartCoroutine(GoToCenterXAndTurn());
-        FixHinges();
         MoveAndDrawBody();
     }
 

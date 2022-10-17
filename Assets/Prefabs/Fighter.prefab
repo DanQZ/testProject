@@ -709,6 +709,7 @@ MonoBehaviour:
   airborne: 0
   groundLevel: 0
   fighterOrienter: {fileID: 6132136372627296245}
+  orientedTran: {fileID: 0}
   speed: 0
   hp: 0
   facingRight: 0
@@ -3072,7 +3073,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4182374574973924239}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.823, y: -0.431, z: 0}
+  m_LocalPosition: {x: -1.949, y: -0.521, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
