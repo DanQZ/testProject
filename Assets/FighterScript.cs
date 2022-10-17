@@ -553,7 +553,7 @@ public class FighterScript : MonoBehaviour
         return sector;
     }
 
-    public void Attack(string attackType)
+    public void Attack(string attackType) // attackType = "arms" or "legs"
     {
         string[] sectors = {
         "bottom back", "bottom", "bottom forward",
@@ -575,7 +575,7 @@ public class FighterScript : MonoBehaviour
                         StartCoroutine(Hook());
                         break;
                     case 2: // bottom forward
-                        StartCoroutine(Jab("aggressive"));
+                        StartCoroutine(JabCombo("aggressive"));
                         break;
                     case 3: // center back
                         StartCoroutine(Hook());
@@ -584,7 +584,7 @@ public class FighterScript : MonoBehaviour
                         StartCoroutine(Hook());
                         break;
                     case 5: // center forward
-                        StartCoroutine(Jab("aggressive"));
+                        StartCoroutine(JabCombo("aggressive"));
                         break;
                     case 6: // top back
                         StartCoroutine(Hook());
@@ -593,7 +593,7 @@ public class FighterScript : MonoBehaviour
                         StartCoroutine(Hook());
                         break;
                     case 8: // top forward
-                        StartCoroutine(Jab("defensive"));
+                        StartCoroutine(JabCombo("defensive"));
                         break;
                 }
                 break;
@@ -632,19 +632,6 @@ public class FighterScript : MonoBehaviour
         }
         Debug.Log(sectors[sector] + " attack");
     }
-    IEnumerator MoveTransToTarget(Transform transformToBeMoved, Vector3 target, float secondsTaken)
-    {
-        int framesTaken = (int)(secondsTaken * 60f);
-        float distance = Vector3.Distance(target, transformToBeMoved.position);
-        float distancePerFrame = distance / framesTaken;
-        transformToBeMoved.LookAt(target);
-        for (int i = 0; i < framesTaken; i++)
-        {
-            transformToBeMoved.position += transformToBeMoved.forward * distancePerFrame;
-            yield return null;
-        }
-    }
-
     IEnumerator Hook()
     {
         float sideRange = 4f;
@@ -682,8 +669,7 @@ public class FighterScript : MonoBehaviour
         }
         controlsEnabled = true;
     }
-
-    IEnumerator Jab(string type)
+    IEnumerator JabCombo(string type)
     {
         float punchDistance = 0f;
         switch (type)
@@ -739,10 +725,12 @@ public class FighterScript : MonoBehaviour
             yield return StartCoroutine(Hook());
             yield return null;
         }
-        controlsEnabled = true;
+        if (type == "aggressive")
+        {
+            controlsEnabled = true;
+        }
         Debug.Log("controls re-enabled");
     }
-
     IEnumerator RoundhouseKick()
     {
         float range = 4f;
@@ -780,7 +768,7 @@ public class FighterScript : MonoBehaviour
             kickingFootTran.position += kickingFootTran.forward * distancePerFrame;
 
             // guarding
-            Vector3 hand1Guard = stanceHeadTran.position + orientedTran.right * 0.75f;
+            Vector3 hand1Guard = stanceHeadTran.position + orientedTran.right * 1f;
             float distance = Vector3.Distance(hand1Guard, stanceHand1Tran.position);
             stanceHand1Tran.LookAt(hand1Guard);
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(distancePerFrame * distance, speed);
@@ -829,12 +817,12 @@ public class FighterScript : MonoBehaviour
 
         // raise front leg
         Vector3 origKickFootPos = kickingFootTran.position;
-        Vector3 raisedKickPosition = jointPelvis2Tran.position + orientedTran.right * 0.5f; 
+        Vector3 raisedKickPosition = jointPelvis2Tran.position + orientedTran.right * 0.5f;
         float timeElapsed = 0;
-        for(int i = 0; i < raiseFootFrames; i++)
+        for (int i = 0; i < raiseFootFrames; i++)
         {
             //kickingFootTran.position += orientedTran.up * kickDistancePerFrame;
-            kickingFootTran.position = Vector3.Lerp(origKickFootPos, raisedKickPosition, timeElapsed/raiseFootFrames);
+            kickingFootTran.position = Vector3.Lerp(origKickFootPos, raisedKickPosition, timeElapsed / raiseFootFrames);
             timeElapsed++;
             yield return null;
         }
@@ -842,14 +830,14 @@ public class FighterScript : MonoBehaviour
         // extend and kick
         for (int i = 0; i < kickFramesTaken; i++)
         {
-            stanceHeadTran.position += torsoMoveDistance; 
+            stanceHeadTran.position += torsoMoveDistance;
             stancePelvisTran.position += torsoMoveDistance;
 
             kickingFootTran.LookAt(newfighterAttack.transform.position);
             kickingFootTran.position += kickingFootTran.forward * kickDistancePerFrame;
 
             // guarding
-            Vector3 hand1Guard = stanceHeadTran.position + orientedTran.right * 0.75f;
+            Vector3 hand1Guard = stanceHeadTran.position + orientedTran.right * 1f;
             float distance = Vector3.Distance(hand1Guard, stanceHand1Tran.position);
             stanceHand1Tran.LookAt(hand1Guard);
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(kickDistancePerFrame * distance, speed);
@@ -865,9 +853,11 @@ public class FighterScript : MonoBehaviour
         controlsEnabled = true;
         Debug.Log("controls re-enabled");
     }
-    public IEnumerator KeepHandsInDefaultStance(){
-        while(true){
-            UpdateDefaultStancePositions();    
+    IEnumerator KeepHandsInDefaultStance()
+    {
+        while (true)
+        {
+            UpdateDefaultStancePositions();
             lowerArm1Tran.position = hand1DefaultVector;
             lowerArm2Tran.position = hand2DefaultVector;
             stanceHand1Tran.position = hand1DefaultVector;
@@ -875,10 +865,9 @@ public class FighterScript : MonoBehaviour
             yield return null;
         }
     }
-
-    public IEnumerator JumpingFrontKickJump(float jumpSpeed)
+    IEnumerator JumpingFrontKickJump(float jumpSpeed)
     {
-        IEnumerator handStanceCoroutine = KeepHandsInDefaultStance(); 
+        IEnumerator handStanceCoroutine = KeepHandsInDefaultStance();
         StartCoroutine(handStanceCoroutine);
         controlsEnabled = false;
         airborne = true;
@@ -903,10 +892,9 @@ public class FighterScript : MonoBehaviour
         // raise back leg
         Vector3 stanceFoot1Target = jointPelvis1Tran.position + orientedTran.right - orientedTran.up * 0.5f;
         float timeTaken = 15f;
-        for(int i = 0; i < 15; i++){
-            stanceFoot1Tran.position = Vector3.Lerp(stanceFoot1Tran.position, stanceFoot1Target, ((float)(i))/timeTaken);
-            UpdateDefaultStancePositions();
-            stanceHand2Tran.position = Vector3.Lerp(stanceHand2Tran.position, hand2DefaultVector, ((float)(i))/timeTaken);
+        for (int i = 0; i < 15; i++)
+        {
+            stanceFoot1Tran.position = Vector3.Lerp(stanceFoot1Tran.position, stanceFoot1Target, ((float)(i)) / timeTaken);
             yield return null;
         }
 
@@ -931,19 +919,24 @@ public class FighterScript : MonoBehaviour
         }
         airborne = false;
     }
-
     IEnumerator JumpingFrontKick()
     {
         controlsEnabled = false;
         int sector = GetHeadSector();
-        while (sector != 2 && sector != 5 && sector != 8)
-        { // go lean forward
-            stanceHand1Tran.position += orientedTran.right * speed;
-            stanceHand2Tran.position += orientedTran.right * speed;
-            stanceHeadTran.position += orientedTran.right * speed;
-            sector = GetHeadSector();
+
+        // move head to top forward section
+        Vector3 headTargetPosition = orientedTran.position + orientedTran.right + orientedTran.up;
+        Vector3 initHeadPosition = fighterHead.transform.position;
+        float headMoveTime = 20f;
+        IEnumerator keepHandsInPlace = KeepHandsInDefaultStance();
+        StartCoroutine(keepHandsInPlace);
+        for (int i = 0; i < 20; i++)
+        {
+            stanceHeadTran.position = Vector3.Lerp(initHeadPosition, headTargetPosition, ((float)(i)) / headMoveTime);
             yield return null;
         }
+        StopCoroutine(keepHandsInPlace);
+
         yield return StartCoroutine(JumpingFrontKickJump(10f));
         controlsEnabled = true;
         yield return null;

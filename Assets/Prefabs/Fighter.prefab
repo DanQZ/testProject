@@ -667,7 +667,7 @@ GameObject:
   - component: {fileID: 5158861763104197369}
   m_Layer: 0
   m_Name: Fighter
-  m_TagString: Player
+  m_TagString: Fighter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1291,7 +1291,7 @@ GameObject:
   - component: {fileID: 351865940733848326}
   m_Layer: 0
   m_Name: FighterHead
-  m_TagString: Player
+  m_TagString: Fighter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1431,7 +1431,7 @@ GameObject:
   - component: {fileID: 2469948940084308979}
   m_Layer: 0
   m_Name: fighterHeadSpriteObject
-  m_TagString: Player
+  m_TagString: Fighter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2171,7 +2171,7 @@ GameObject:
   - component: {fileID: 2101561541251121995}
   m_Layer: 0
   m_Name: NeckPosition
-  m_TagString: Player
+  m_TagString: Fighter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3641,7 +3641,7 @@ GameObject:
   - component: {fileID: 8230980851233953447}
   m_Layer: 0
   m_Name: FighterOrienter
-  m_TagString: Untagged
+  m_TagString: Fighter
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
