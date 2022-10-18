@@ -442,6 +442,10 @@ public class FighterScript : MonoBehaviour
         TorsoRenderer.SetPositions(torsoPoints);
     }
 
+    public void Move(Vector3 direction){
+        transform.position += direction;
+    }
+
     public void MoveHead(int direction)
     {
         float playerX = transform.position.x;
