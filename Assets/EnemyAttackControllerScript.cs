@@ -17,7 +17,7 @@ public class EnemyAttackControllerScript : MonoBehaviour
     void Update()
     {
         if(Time.frameCount > nextTry){
-            if(Random.Range(0f, 1f) < .75f){
+            if(Random.Range(0f, 1f) < .25f){
                 SpawnEnemyAttack();
             }
             nextTry = Time.frameCount + 6;

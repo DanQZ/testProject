@@ -4,156 +4,100 @@ using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
 {
+    public GameObject playerCharacter;
+    Transform PCTran;
+    public GameObject stanceHead;
+    Transform stanceHeadTran;
+    FighterScript PCScript;
     float speed;
-    public int hp;
-    public int nextAttackAvailableFrame;
-    public int attackInterval; //frames between each attack
-    bool facingRight;
-    public GameObject playerAttackArea;
-    public GameObject playerHead;
-    public GameObject spriteObject;
-    SpriteRenderer playerSprite;
-
-    // public List<string> movementQueue = new List<string>();
-
-    public float reach;
-
-    bool controlsEnabled;
-
+    public float moveSpeed;
     // Start is called before the first frame update
     void Start()
     {
-        controlsEnabled = true;
-        playerSprite = spriteObject.gameObject.GetComponent<SpriteRenderer>();
-        facingRight = true;
-        hp = 100;
-        Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
-        speed = 3f / 60f; // x units per 60 frames
-        nextAttackAvailableFrame = Time.frameCount;
-        attackInterval = 60; //once per x frames
-        reach = 1f;
+        PCTran = playerCharacter.transform;
+        stanceHeadTran = stanceHead.transform;
+        PCScript = playerCharacter.GetComponent<FighterScript>();
+        speed = PCScript.speed;
+        moveSpeed = speed * 0.66f;
+    }
+
+    void MoveHeadIfInput()
+    //WASD moves head within allowed boundaries of size range
+    {
+        float playerX = PCTran.position.x;
+        float playerY = PCTran.position.y;
+        float playerHeadX = stanceHeadTran.position.x;
+        float playerHeadY = stanceHeadTran.position.y;
+
+        if (Input.GetKey("w") || Input.GetKey("up"))
+        {
+            PCScript.MoveHead(1);
+        }
+        if (Input.GetKey("s") || Input.GetKey("down"))
+        {
+            PCScript.MoveHead(2);
+        }
+        if (Input.GetKey("left"))
+        {
+            PCScript.MoveHead(3);
+        }
+        if (Input.GetKey("right"))
+        {
+            PCScript.MoveHead(4);
+        }
+
+        if (Input.GetKey("a"))
+        {
+            playerCharacter.transform.position -= transform.right * moveSpeed;
+        }
+        if (Input.GetKey("d"))
+        {
+            playerCharacter.transform.position += transform.right * moveSpeed;
+        }
+        if (Input.GetKey("q")) // face left
+        {
+            if (PCScript.facingRight)
+            {
+                PCScript.TurnTo("left");
+                return;
+            }
+        }
+        if (Input.GetKey("e")) // face right
+        {
+            if (!PCScript.facingRight)
+            {
+                PCScript.TurnTo("right");
+                return;
+            }
+        }
+    }
+
+    void AttackIfInput()
+    {
+        if (PCScript.IsHeadWithinSectors())
+        {
+            if (Input.GetKey("space"))
+            {
+                PCScript.controlsEnabled = false;
+                PCScript.Attack("arms");
+                return;
+            }
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                PCScript.controlsEnabled = false;
+                PCScript.Attack("legs");
+                return;
+            }
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(!controlsEnabled){
-            return;
-        }
-        float playerX = transform.position.x;
-        float playerY = transform.position.y;
-        float playerHeadX = playerHead.transform.position.x;
-        float playerHeadY = playerHead.transform.position.y;
-
-        if (Input.GetKey("w"))
+        if (PCScript.controlsEnabled)
         {
-            if(playerHeadY < playerY + reach){
-                playerHead.transform.position += Vector3.up * speed;
-            }
+            AttackIfInput();
+            MoveHeadIfInput();
         }
-        if (Input.GetKey("s"))
-        {
-            if(playerHeadY > playerY - reach){
-                playerHead.transform.position += Vector3.down * speed;
-            }
-        }
-        if (Input.GetKey("a"))
-        {
-            /* 
-            if(facingRight){
-                facingRight = false;
-                playerSprite.flipX = true;
-            }
-            */
-            if(playerHeadX > playerX - reach){
-                playerHead.transform.position += Vector3.left * speed;
-            }
-        }
-        if (Input.GetKey("d"))
-        {
-            /*
-            if(!facingRight){
-                facingRight = true;
-                playerSprite.flipX = false;
-            }
-            */
-            if(playerHeadX < playerX + reach){
-                playerHead.transform.position += Vector3.right * speed;
-            }
-        }
-        if (Input.GetKey("space"))
-        {
-            if(Time.frameCount > nextAttackAvailableFrame){
-                nextAttackAvailableFrame += attackInterval;
-                Attack();
-            }
-        }
-        /*
-        //move to the center if no direction pressed
-        if(!Input.GetKey("w") && !Input.GetKey("s")){
-            if(playerHeadY != playerY){
-                if(playerHeadY > playerY){
-                    playerHead.transform.position += Vector3.down * speed;
-                }
-                else{
-                    playerHead.transform.position += Vector3.up * speed;
-                }
-            }
-        }
-        if(!Input.GetKey("a") && !Input.GetKey("d")){
-            if(playerHeadX != playerX){
-                if(playerHeadX > playerX){
-                    playerHead.transform.position += Vector3.left * speed;
-                }
-                else{
-                    playerHead.transform.position += Vector3.right * speed;
-                }
-            }
-        }
-        */
-    }
-
-    void Attack(){
-
-        controlsEnabled = false;
-
-        string[] attacks = {
-        "bottom left", "bottom", "bottom right", 
-        "center left", "true center", "center right", 
-        "top right", "top", "top right"
-        };
-
-        int xSector = 1;
-        float playerHeadX = playerHead.transform.position.x;
-        float playerX = transform.position.x; 
-        if(playerHeadX < playerX - reach/3){
-            xSector = 0;
-        }
-        if(playerHeadX > reach/3){
-            xSector = 2;
-        }
-
-        int ySector = 1;
-        float playerHeadY = playerHead.transform.position.y; 
-        float playerY = transform.position.y; 
-        if(playerHeadY < playerY - reach/3){
-            ySector = 0;
-        }
-        if(playerHeadY > playerY + reach/3){
-            ySector = 2;
-        }
-
-        int sector = ySector * 3 + xSector;
-        FrontAttack();
-        Debug.Log(attacks[sector] + " attack");
-        controlsEnabled = true;
-    }
-
-    void FrontAttack(){
-        GameObject newPlayerAttack = Instantiate(
-            playerAttackArea,
-            playerHead.transform.position,
-            playerHead.transform.rotation
-        );
     }
 }

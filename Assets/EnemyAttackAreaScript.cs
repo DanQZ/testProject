@@ -78,7 +78,7 @@ public class EnemyAttackAreaScript : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player")
         {
-            collision.gameObject.transform.parent.GetComponent<PlayerScript>().hp -= 5;
+            collision.gameObject.transform.parent.parent.GetComponent<FighterScript>().hp -= 5;
             Destroy(this.gameObject);
         }
     }
