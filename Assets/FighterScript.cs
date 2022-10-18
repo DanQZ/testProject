@@ -141,8 +141,8 @@ public class FighterScript : MonoBehaviour
         torsoTopHinge = torsoTop.GetComponent<HingeJoint2D>();
         torsoBottomHinge = torsoBottom.GetComponent<HingeJoint2D>();
         upperArm1Hinge = upperArm1.GetComponent<HingeJoint2D>();
-        lowerArm1Hinge = lowerArm1.GetComponent<HingeJoint2D>();
         upperArm2Hinge = upperArm2.GetComponent<HingeJoint2D>();
+        lowerArm1Hinge = lowerArm1.GetComponent<HingeJoint2D>();
         lowerArm2Hinge = lowerArm2.GetComponent<HingeJoint2D>();
         thigh1Hinge = thigh1.GetComponent<HingeJoint2D>();
         calf1Hinge = calf1.GetComponent<HingeJoint2D>();
@@ -494,13 +494,8 @@ public class FighterScript : MonoBehaviour
         return true;
     }
 
-    void FixHinges()
+    void SwapHingeAngles()
     {
-        float change = 1f;
-        if (facingRight)
-        {
-            change = -1f;
-        }
         foreach (var hinge in allHinges)
         {
             JointAngleLimits2D newLimits = hinge.limits;
@@ -512,6 +507,8 @@ public class FighterScript : MonoBehaviour
     IEnumerator GoToCenterXAndTurn()
     {
         controlsEnabled = false;
+        SwapHingeAngles();
+        
         float directionMultiplier = orientedTran.position.x - stanceHeadTran.position.x;
         while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.1f)
         {
@@ -534,7 +531,6 @@ public class FighterScript : MonoBehaviour
         orienter -= orientedTran.forward;
         orientedTran.LookAt(orienter);
         controlsEnabled = true;
-        FixHinges();
         Debug.Log("facing right: " + facingRight);
     }
     public void TurnTo(string direction)
@@ -684,23 +680,18 @@ public class FighterScript : MonoBehaviour
         float sideRange = 4f;
         float timeTaken = .2f; //seconds
         int framesTaken = (int)(timeTaken * 60);
-
-        GameObject newfighterAttack = Instantiate(
-            fighterAttackArea,
+        Vector3 attackTarget = 
                 jointShoulder1Tran.position
                 + orientedTran.right * sideRange
-                - transform.up * .25f,
-            transform.rotation
-        );
-        float distance = Vector3.Distance(newfighterAttack.transform.position, stanceHand1Tran.position);
+                - transform.up * .25f;
+        
+        float distance = Vector3.Distance(attackTarget, stanceHand1Tran.position);
         float distancePerFrame = distance / framesTaken;
-
-        newfighterAttack.GetComponent<FighterAttackAreaScript>().lifespan = timeTaken * 60f;
 
         for (int i = 0; i < framesTaken; i++)
         {
             stanceHeadTran.position += orientedTran.right * distancePerFrame * .4f;
-            stanceHand1Tran.LookAt(newfighterAttack.transform.position);
+            stanceHand1Tran.LookAt(attackTarget);
             stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
 
             stanceHand2Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
@@ -722,7 +713,7 @@ public class FighterScript : MonoBehaviour
         switch (type)
         {
             case "aggressive":
-                punchDistance = 1.6f;
+                punchDistance = 1.8f;
                 break;
             case "defensive":
                 punchDistance = 1.2f;
@@ -732,11 +723,7 @@ public class FighterScript : MonoBehaviour
         int framesTaken = (int)(timeTaken * 60);
         float distancePerFrame = punchDistance / framesTaken;
 
-        GameObject newfighterAttack = Instantiate(
-            fighterAttackArea,
-            stanceHand2Tran.position + orientedTran.right * punchDistance,
-            fighterHead.transform.rotation
-        );
+        Vector3 attackTarget = stanceHand2Tran.position + orientedTran.right * punchDistance;
 
         float headDistancePerFrame = 0.3f * distancePerFrame;
         Vector3 headMoveVector = orientedTran.right * headDistancePerFrame;
@@ -745,14 +732,12 @@ public class FighterScript : MonoBehaviour
             headMoveVector = -1f * orientedTran.right * headDistancePerFrame;
         }
 
-        newfighterAttack.GetComponent<FighterAttackAreaScript>().lifespan = timeTaken * 60f;
-
         for (int i = 0; i < framesTaken; i++)
         {
             stanceHeadTran.position += headMoveVector;
 
             //moves jabbing hand right
-            stanceHand2Tran.LookAt(newfighterAttack.transform.position);
+            stanceHand2Tran.LookAt(attackTarget);
             stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame;
 
             // moves nonjab hand to guard
@@ -790,28 +775,20 @@ public class FighterScript : MonoBehaviour
         Vector3 origHeadPosition = stanceHeadTran.position;
         Vector3 origBotTorsoPosition = torsoBottom.transform.position;
 
-        GameObject newfighterAttack = Instantiate(
-            fighterAttackArea,
-            jointPelvis2Tran.position + orientedTran.right * range,
-            stanceHeadTran.rotation
-        );
-
-        newfighterAttack.transform.SetParent(this.gameObject.transform);
+        Vector3 attackTarget = jointPelvis2Tran.position + orientedTran.right * range;
 
 
-        float footMovingDistance = Vector3.Distance(kickingFootTran.position, newfighterAttack.transform.position);
+        float footMovingDistance = Vector3.Distance(kickingFootTran.position, attackTarget);
         float distancePerFrame = footMovingDistance / framesTaken;
 
         Vector3 torsoMoveDistance = orientedTran.right * distancePerFrame * 0.15f;
-
-        newfighterAttack.GetComponent<FighterAttackAreaScript>().lifespan = timeTaken * 60f;
 
         for (int i = 0; i < framesTaken; i++)
         {
             stanceHeadTran.position += torsoMoveDistance * .5f;
             stancePelvisTran.position += torsoMoveDistance;
 
-            kickingFootTran.LookAt(newfighterAttack.transform.position);
+            kickingFootTran.LookAt(attackTarget);
             kickingFootTran.position += kickingFootTran.forward * distancePerFrame;
 
             // guarding
@@ -844,24 +821,15 @@ public class FighterScript : MonoBehaviour
         stancePelvisActive = true;
         Vector3 origHeadPosition = stanceHeadTran.position;
         Vector3 origBotTorsoPosition = torsoBottom.transform.position;
+        Vector3 attackTarget = jointPelvis2Tran.position + orientedTran.right * range;
+        
+        float raiseLegDistance = Mathf.Abs(kickingFootTran.position.y - attackTarget.y);
 
-        GameObject newfighterAttack = Instantiate(
-            fighterAttackArea,
-            jointPelvis2Tran.position + orientedTran.right * range,
-            stanceHeadTran.rotation
-        );
-
-        newfighterAttack.transform.SetParent(this.gameObject.transform);
-
-        float raiseLegDistance = Mathf.Abs(kickingFootTran.position.y - newfighterAttack.transform.position.y);
-
-        float kickDistance = Vector3.Distance(kickingFootTran.position, newfighterAttack.transform.position);
+        float kickDistance = Vector3.Distance(kickingFootTran.position, attackTarget);
         float kickDistancePerFrame = kickDistance / kickFramesTaken;
 
         Vector3 torsoMoveDistance = orientedTran.right * kickDistancePerFrame * 0.25f;
-
-        newfighterAttack.GetComponent<FighterAttackAreaScript>().lifespan = (kickTime + raiseFootTime) * 60f;
-
+      
         // raise front leg
         Vector3 origKickFootPos = kickingFootTran.position;
         Vector3 raisedKickPosition = jointPelvis2Tran.position + orientedTran.right * 0.5f;
@@ -877,10 +845,11 @@ public class FighterScript : MonoBehaviour
         // extend and kick
         for (int i = 0; i < kickFramesTaken; i++)
         {
+            attackTarget = jointPelvis2Tran.position + orientedTran.right * range;
             stanceHeadTran.position += torsoMoveDistance;
             stancePelvisTran.position += torsoMoveDistance;
 
-            kickingFootTran.LookAt(newfighterAttack.transform.position);
+            kickingFootTran.LookAt(attackTarget);
             kickingFootTran.position += kickingFootTran.forward * kickDistancePerFrame;
 
             // guarding

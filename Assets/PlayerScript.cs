@@ -37,20 +37,20 @@ public class PlayerScript : MonoBehaviour
         {
             PCScript.MoveHead(2);
         }
-        if (Input.GetKey("left"))
+        if (Input.GetKey("a"))
         {
             PCScript.MoveHead(3);
         }
-        if (Input.GetKey("right"))
+        if (Input.GetKey("d"))
         {
             PCScript.MoveHead(4);
         }
 
-        if (Input.GetKey("a"))
+        if (Input.GetKey("left"))
         {
             playerCharacter.transform.position -= transform.right * moveSpeed;
         }
-        if (Input.GetKey("d"))
+        if (Input.GetKey("right"))
         {
             playerCharacter.transform.position += transform.right * moveSpeed;
         }
