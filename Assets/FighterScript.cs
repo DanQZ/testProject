@@ -908,7 +908,7 @@ public class FighterScript : MonoBehaviour
             yield return null;
         }
     }
-    IEnumerator JumpingFrontKickJump(float jumpSpeed)
+    IEnumerator JumpingFrontKickPart2(float jumpSpeed)
     {
         IEnumerator handStanceCoroutine = KeepHandsInDefaultStance();
         StartCoroutine(handStanceCoroutine);
@@ -980,7 +980,8 @@ public class FighterScript : MonoBehaviour
         }
         StopCoroutine(keepHandsInPlace);
 
-        yield return StartCoroutine(JumpingFrontKickJump(10f));
+        // jump and kick at the same time
+        yield return StartCoroutine(JumpingFrontKickPart2(10f));
         controlsEnabled = true;
         yield return null;
     }

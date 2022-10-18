@@ -12,10 +12,12 @@ public class EnemyScript : MonoBehaviour
     public GameObject player;
     // Start is called before the first frame update
     int timer;
+    int attackInterval;
     void Start()
     {
         thisFighterScript = enemyCharacter.gameObject.GetComponent<FighterScript>();
-        timer = 0;
+        attackInterval = 180;
+        timer = Time.frameCount + attackInterval;
     }
 
     // Update is called once per frame
@@ -23,7 +25,7 @@ public class EnemyScript : MonoBehaviour
     {
         if(timer < Time.frameCount){
             thisFighterScript.Attack("arms");
-            timer += 180;
+            timer += attackInterval;
         }
     }
 }
