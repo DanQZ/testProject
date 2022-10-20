@@ -8,7 +8,7 @@ public class PlayerScript : MonoBehaviour
     Transform PCTran;
     public GameObject stanceHead;
     Transform stanceHeadTran;
-    FighterScript PCScript;
+    public FighterScript PCScript;
     float speed;
     public float moveSpeed;
     // Start is called before the first frame update

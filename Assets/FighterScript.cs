@@ -12,7 +12,7 @@ public class FighterScript : MonoBehaviour
     public Transform orientedTran;
     public float speed;
     public int hp;
-    bool facingRight = true;
+    public bool facingRight = true;
     public GameObject fighterAttackArea;
 
     // limb gameObjects are the main fighter body gameObjects
@@ -442,8 +442,9 @@ public class FighterScript : MonoBehaviour
         TorsoRenderer.SetPositions(torsoPoints);
     }
 
-    public void Move(Vector3 direction){
-        transform.position += direction * speed;
+    public void Move(Vector3 direction)
+    {
+        transform.position += Vector3.Normalize(direction) * speed;
     }
 
     public void MoveHead(int direction)
@@ -474,10 +475,10 @@ public class FighterScript : MonoBehaviour
                 }
                 break;
             case 4:
-            if (playerHeadX < playerX + reach)
-            {
-                stanceHeadTran.position += Vector3.right * speed;
-            }
+                if (playerHeadX < playerX + reach)
+                {
+                    stanceHeadTran.position += Vector3.right * speed;
+                }
                 break;
         }
     }
@@ -508,7 +509,7 @@ public class FighterScript : MonoBehaviour
     {
         controlsEnabled = false;
         SwapHingeAngles();
-        
+
         float directionMultiplier = orientedTran.position.x - stanceHeadTran.position.x;
         while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.1f)
         {
@@ -540,7 +541,6 @@ public class FighterScript : MonoBehaviour
             || (direction == "left" && !facingRight)
             )
         {
-            Debug.Log("trying to turn " + direction + " but already facing that direction");
             return;
         }
         StartCoroutine(GoToCenterXAndTurn());
@@ -680,11 +680,11 @@ public class FighterScript : MonoBehaviour
         float sideRange = 4f;
         float timeTaken = .2f; //seconds
         int framesTaken = (int)(timeTaken * 60);
-        Vector3 attackTarget = 
+        Vector3 attackTarget =
                 jointShoulder1Tran.position
                 + orientedTran.right * sideRange
                 - transform.up * .25f;
-        
+
         float distance = Vector3.Distance(attackTarget, stanceHand1Tran.position);
         float distancePerFrame = distance / framesTaken;
 
@@ -822,14 +822,14 @@ public class FighterScript : MonoBehaviour
         Vector3 origHeadPosition = stanceHeadTran.position;
         Vector3 origBotTorsoPosition = torsoBottom.transform.position;
         Vector3 attackTarget = jointPelvis2Tran.position + orientedTran.right * range;
-        
+
         float raiseLegDistance = Mathf.Abs(kickingFootTran.position.y - attackTarget.y);
 
         float kickDistance = Vector3.Distance(kickingFootTran.position, attackTarget);
         float kickDistancePerFrame = kickDistance / kickFramesTaken;
 
         Vector3 torsoMoveDistance = orientedTran.right * kickDistancePerFrame * 0.25f;
-      
+
         // raise front leg
         Vector3 origKickFootPos = kickingFootTran.position;
         Vector3 raisedKickPosition = jointPelvis2Tran.position + orientedTran.right * 0.5f;
