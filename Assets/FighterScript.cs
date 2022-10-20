@@ -598,10 +598,6 @@ public class FighterScript : MonoBehaviour
 
     public void Attack(string attackType) // attackType = "arms" or "legs"
     {
-        if (!controlsEnabled){
-            return;
-        }
-        
         string[] sectors = {
         "bottom back", "bottom", "bottom forward",
         "center back", "true center", "center forward",
