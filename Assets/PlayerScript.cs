@@ -48,11 +48,11 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKey("left"))
         {
-            PCScript.Move("left");
+            PCScript.Move(transform.right * -1f);
         }
         if (Input.GetKey("right"))
         {
-            PCScript.Move("right");
+            PCScript.Move(transform.right);
         }
         if (Input.GetKey("q")) // face left
         {

@@ -443,7 +443,7 @@ public class FighterScript : MonoBehaviour
     }
 
     public void Move(Vector3 direction){
-        transform.position += direction;
+        transform.position += direction * speed;
     }
 
     public void MoveHead(int direction)
