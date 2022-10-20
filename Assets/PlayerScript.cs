@@ -56,19 +56,13 @@ public class PlayerScript : MonoBehaviour
         }
         if (Input.GetKey("q")) // face left
         {
-            if (PCScript.facingRight)
-            {
-                PCScript.TurnTo("left");
-                return;
-            }
+            PCScript.TurnTo("left");
+            return;
         }
         if (Input.GetKey("e")) // face right
         {
-            if (!PCScript.facingRight)
-            {
-                PCScript.TurnTo("right");
-                return;
-            }
+            PCScript.TurnTo("right");
+            return;
         }
     }
 

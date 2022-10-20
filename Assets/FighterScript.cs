@@ -6,13 +6,13 @@ using PathCreation;
 public class FighterScript : MonoBehaviour
 {
     public bool airborne = false;
-    Rigidbody2D fighterRB;
+    public Rigidbody2D fighterRB;
     public float groundLevel;
     public GameObject fighterOrienter;
     public Transform orientedTran;
     public float speed;
     public int hp;
-    public bool facingRight = true;
+    bool facingRight = true;
     public GameObject fighterAttackArea;
 
     // limb gameObjects are the main fighter body gameObjects
@@ -598,6 +598,10 @@ public class FighterScript : MonoBehaviour
 
     public void Attack(string attackType) // attackType = "arms" or "legs"
     {
+        if (!controlsEnabled){
+            return;
+        }
+        
         string[] sectors = {
         "bottom back", "bottom", "bottom forward",
         "center back", "true center", "center forward",
