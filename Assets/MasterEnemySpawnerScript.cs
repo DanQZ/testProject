@@ -31,7 +31,7 @@ public class MasterEnemySpawnerScript : MonoBehaviour
             transform.rotation
             );
         EnemyScript newEnemyScript = newEnemy.GetComponent<EnemyScript>();
-        newEnemyScript.player = player;
+        newEnemyScript.playerCharacter = player;
     }
     void CanSpawnEnemyTrue()
     {
