@@ -48,11 +48,11 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKey("left"))
         {
-            playerCharacter.transform.position -= transform.right * moveSpeed;
+            PCScript.Move("left");
         }
         if (Input.GetKey("right"))
         {
-            playerCharacter.transform.position += transform.right * moveSpeed;
+            PCScript.Move("right");
         }
         if (Input.GetKey("q")) // face left
         {
