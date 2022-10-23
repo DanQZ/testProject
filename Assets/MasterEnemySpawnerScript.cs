@@ -4,11 +4,15 @@ using UnityEngine;
 
 public class MasterEnemySpawnerScript : MonoBehaviour
 {
-    public GameObject enemyPrefab; // reference to the enemy prefab
-    FighterScript EnemyCharScript; // reference to the EnemyScript inside the enemy prefab
+    public GameObject enemyWithGhostPrefab; // reference to the enemy prefab
+    EnemyWithGhostScript EGScript;
+    GameObject ghostFighter;
+    GameObject enemyFighter;
+    FighterScript ghostScript; // reference to the FighterScript inside the ghost inside enemyprefab
+    FighterScript enemyFighterScript; // reference to the FighterScript inside the ghost inside enemyprefab
     
-    public GameObject player; // reference to player prefab
-    GameObject playerCharacter; // reference to the fighter prefab inside the player prefab
+    public GameObject player; // reference to player prefab in the scene
+    GameObject playerFighter; // reference to the fighter prefab inside the player prefab
     PlayerScript PCScript; // reference to the player script
 
     bool canSpawnEnemy = true;
@@ -16,7 +20,7 @@ public class MasterEnemySpawnerScript : MonoBehaviour
     void Start()
     {
         PCScript = player.GetComponent<PlayerScript>(); // creates a reference
-        playerCharacter = PCScript.playerCharacter; // creates a reference to the fighter inside the player
+        playerFighter = PCScript.playerCharacter; // creates a reference to the fighter inside the player
     }
 
     // Update is called once per frame
@@ -33,14 +37,19 @@ public class MasterEnemySpawnerScript : MonoBehaviour
     // spawn 1 enemy 10 units to the right
     void SpawnEnemyToTheRight()
     {
-        GameObject newEnemy = Instantiate(enemyPrefab,
-            playerCharacter.transform.position + Vector3.right * 10f,
+        GameObject newEnemyWithGhost = Instantiate(enemyWithGhostPrefab,
+            playerFighter.transform.position + Vector3.right * -10f,
             transform.rotation
             );
         
         // properly references the player
-        EnemyScript newEnemyScript = newEnemy.GetComponent<EnemyScript>();
-        newEnemyScript.player = playerCharacter;
+        EnemyWithGhostScript newEGScript = newEnemyWithGhost.GetComponent<EnemyWithGhostScript>();
+        newEGScript.playerFighter = playerFighter;
+        newEGScript.playerHead = playerFighter.GetComponent<FighterScript>().stanceHead;
+
+        EnemyScript newEnemyScript = newEnemyWithGhost.GetComponent<EnemyScript>();
+        newEnemyScript.playerFighter = playerFighter;
+        newEnemyScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
     }
     void CanSpawnEnemyTrue()
     {

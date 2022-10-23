@@ -33,5 +33,6 @@ public class EnemyAttackControllerScript : MonoBehaviour
                 0
             ), 
             transform.rotation);
+            newEnemyAttack.GetComponent<AttackAreaScript>().creatorType = "enemy";
     }
 }
