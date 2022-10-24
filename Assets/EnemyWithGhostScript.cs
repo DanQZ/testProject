@@ -42,6 +42,8 @@ public class EnemyWithGhostScript : MonoBehaviour
     Queue<Vector3> hand2PosQ = new Queue<Vector3>();
     Queue<Vector3> foot1PosQ = new Queue<Vector3>();
     Queue<Vector3> foot2PosQ = new Queue<Vector3>();
+    Queue<bool> facingRightQ = new Queue<bool>();
+    
 
     void Awake()
     {
@@ -58,7 +60,16 @@ public class EnemyWithGhostScript : MonoBehaviour
 
     void Start()
     {
+        // makes the ghost translucent
         ghostFighterScript.ChangeColor(Color.grey);
+        ghostFighterScript.ChangeOpacity(0.25f);
+        ghostFighterScript.ChangeRenderSortingLayer(0);
+
+        // makes the fighter a different color and the sortinglayer over ghost
+        enemyFighterScript.ChangeRenderSortingLayer(1);
+        enemyFighterScript.ChangeColor(Color.red);
+
+        enemyFighterScript.EnableAllStances(); // allows to directly manipulate every single stance object
 
         enemyFighterTran = enemyFighter.transform;
         enemyHeadStanceTran = enemyHeadStance.transform;
@@ -71,7 +82,6 @@ public class EnemyWithGhostScript : MonoBehaviour
 
         enemyFoot1StanceTran = enemyFighterScript.stanceFoot1Tran;
         enemyFoot2StanceTran = enemyFighterScript.stanceFoot2Tran;
-
     }
 
     IEnumerator RealEnemyActions()
@@ -93,6 +103,14 @@ public class EnemyWithGhostScript : MonoBehaviour
             enemyFoot1StanceTran.position = foot1PosQ.Dequeue();
             enemyFoot2StanceTran.position = foot2PosQ.Dequeue();
 
+            bool toFaceRight = facingRightQ.Dequeue();
+            if(enemyFighterScript.facingRight != toFaceRight){
+                Debug.Log("successful detection of turning");
+                enemyFighterScript.SwapHingeAngles();
+                enemyFighterScript.TurnBody();
+                enemyFighterScript.facingRight = toFaceRight;
+            }
+
             yield return null;
         }
     }
@@ -111,5 +129,7 @@ public class EnemyWithGhostScript : MonoBehaviour
 
         foot1PosQ.Enqueue(ghostFighterScript.stanceFoot1Tran.position);
         foot2PosQ.Enqueue(ghostFighterScript.stanceFoot2Tran.position);
+
+        facingRightQ.Enqueue(ghostFighterScript.facingRight);
     }
 }

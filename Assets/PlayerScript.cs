@@ -70,7 +70,7 @@ public class PlayerScript : MonoBehaviour
 
     void AttackIfInput()
     {
-        if (PCScript.IsHeadWithinSectors())
+        if (PCScript.IsHeadWithinSectors() && PCScript.controlsEnabled)
         {
             if (Input.GetKey("space"))
             {

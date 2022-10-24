@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using PathCreation;
 
+// to do
+/*
+
+-sorting layer stuff
+
+*/
+
 public class FighterScript : MonoBehaviour
 {
     public bool isPlayer = false;
@@ -121,6 +128,7 @@ public class FighterScript : MonoBehaviour
     private LineRenderer arm2Renderer;
     private LineRenderer leg1Renderer;
     private LineRenderer leg2Renderer;
+    private LineRenderer torsoOutlineRenderer;
     private LineRenderer torsoRenderer;
 
     private Vector3[] arm1PointArray = new Vector3[3];
@@ -149,7 +157,8 @@ public class FighterScript : MonoBehaviour
     private HingeJoint2D calf2Hinge;
     private HingeJoint2D[] allHinges = new HingeJoint2D[8];
     private TrailRenderer[] allTrails = new TrailRenderer[8];
-    private LineRenderer[] allLineRenderers = new LineRenderer[5];
+    private List<LineRenderer> allLineRenderers = new List<LineRenderer>();
+    //private LineRenderer[] allLineRenderers = new LineRenderer[6];
 
     public void SetTags(string tag)
     {
@@ -201,7 +210,29 @@ public class FighterScript : MonoBehaviour
             trail.enabled = false;
         }*/
     }
+    void HideJointsAndStances()
+    {
+        stanceHead.GetComponent<SpriteRenderer>().enabled = false;
+        stanceTorsoTop.GetComponent<SpriteRenderer>().enabled = false;
+        stanceTorsoBot.GetComponent<SpriteRenderer>().enabled = false;
+        stanceHand1.GetComponent<SpriteRenderer>().enabled = false;
+        stanceHand2.GetComponent<SpriteRenderer>().enabled = false;
+        stanceFoot1.GetComponent<SpriteRenderer>().enabled = false;
+        stanceFoot2.GetComponent<SpriteRenderer>().enabled = false;
 
+        jointNeck.GetComponent<SpriteRenderer>().enabled = false;
+        jointShoulder1.GetComponent<SpriteRenderer>().enabled = false;
+        jointShoulder2.GetComponent<SpriteRenderer>().enabled = false;
+        jointRib1.GetComponent<SpriteRenderer>().enabled = false;
+        jointRib2.GetComponent<SpriteRenderer>().enabled = false;
+        jointPelvis1.GetComponent<SpriteRenderer>().enabled = false;
+        jointPelvis2.GetComponent<SpriteRenderer>().enabled = false;
+
+        jointElbow1.GetComponent<SpriteRenderer>().enabled = false;
+        jointElbow2.GetComponent<SpriteRenderer>().enabled = false;
+        jointKnee1.GetComponent<SpriteRenderer>().enabled = false;
+        jointKnee2.GetComponent<SpriteRenderer>().enabled = false;
+    }
     void InitHinges()
     {
         torsoTopHinge = torsoTop.GetComponent<HingeJoint2D>();
@@ -270,20 +301,21 @@ public class FighterScript : MonoBehaviour
         int defaultPositionCount = 3;
         int jointVertices = 2;
 
+        torsoRenderer = torsoTop.GetComponent<LineRenderer>();
+        torsoOutlineRenderer = jointNeck.GetComponent<LineRenderer>();
         arm1Renderer = jointShoulder1.GetComponent<LineRenderer>();
         arm2Renderer = jointShoulder2.GetComponent<LineRenderer>();
         leg1Renderer = jointPelvis1.GetComponent<LineRenderer>();
         leg2Renderer = jointPelvis2.GetComponent<LineRenderer>();
-        torsoRenderer = jointNeck.GetComponent<LineRenderer>();
-        allLineRenderers[0] = torsoRenderer;
-        allLineRenderers[1] = arm1Renderer;
-        allLineRenderers[2] = arm2Renderer;
-        allLineRenderers[3] = leg1Renderer;
-        allLineRenderers[4] = leg2Renderer;
+        allLineRenderers.Add(torsoRenderer);
+        allLineRenderers.Add(torsoOutlineRenderer);
+        allLineRenderers.Add(arm1Renderer);
+        allLineRenderers.Add(arm2Renderer);
+        allLineRenderers.Add(leg1Renderer);
+        allLineRenderers.Add(leg2Renderer);
 
-        for(int i = 0; i < 5; i++)
+        foreach (LineRenderer renderer in allLineRenderers)
         {
-            LineRenderer renderer = allLineRenderers[i];
             renderer.startColor = bodyColor;
             renderer.endColor = bodyColor;
             renderer.startWidth = thickness;
@@ -293,34 +325,64 @@ public class FighterScript : MonoBehaviour
             renderer.numCornerVertices = jointVertices;
             renderer.numCapVertices = jointVertices;
         }
-        torsoRenderer.numCornerVertices = 0;
-        torsoRenderer.positionCount = 7;
+        torsoOutlineRenderer.numCornerVertices = 0;
+        torsoOutlineRenderer.positionCount = 7;
 
         leg1Renderer.startWidth = thickness * 2;
         leg2Renderer.startWidth = thickness * 2;
-    }
 
+        Color torsoColor = new Color((bodyColor.r + 1f) / 2f, (bodyColor.g + 1f) / 2f, (bodyColor.b + 1f) / 2f, 1);
+        torsoRenderer.startColor = torsoColor;
+        torsoRenderer.endColor = torsoColor;
+        torsoRenderer.startWidth = thickness * 2;
+        torsoRenderer.endWidth = thickness * 2;
+        torsoRenderer.positionCount = 3;
+        torsoRenderer.numCornerVertices = 0;
+        torsoRenderer.numCapVertices = 0;
+
+    }
     public void ChangeColor(Color newColor)
     {
-        for(int i = 0; i < 5; i++)
+        foreach (LineRenderer renderer in allLineRenderers)
         {
-            LineRenderer renderer = allLineRenderers[i];
             renderer.startColor = newColor;
             renderer.endColor = newColor;
         }
+        Color torsoColor = new Color((newColor.r + 1f) / 2f, (newColor.g + 1f) / 2f, (newColor.b + 1f) / 2f, 1);
+        torsoRenderer.startColor = torsoColor;
+        torsoRenderer.endColor = torsoColor;
+
         HeadSprite.color = newColor;
     }
-
-    public void ChangeRenderSortingLayer(int layer){
+    public void ChangeOpacity(float alpha) // 1f = opaque, 0f = transparent
+    {
+        Color bodyColor = torsoOutlineRenderer.startColor;
+        Color newOpacity = new Color(bodyColor.r, bodyColor.g, bodyColor.b, alpha);
+        HeadSprite.color = newOpacity;
         foreach (LineRenderer renderer in allLineRenderers)
         {
-            renderer.sortingOrder = 0;
+            renderer.startColor = newOpacity;
+            renderer.endColor = newOpacity;
+        }
+
+        Color torsoColor = torsoRenderer.startColor;
+        Color newTorsOpacity = new Color(torsoColor.r, torsoColor.g, torsoColor.b, alpha);
+        torsoRenderer.startColor = torsoColor;
+        torsoRenderer.endColor = torsoColor;
+
+    }
+    public void ChangeRenderSortingLayer(int layer)
+    {
+        foreach (LineRenderer renderer in allLineRenderers)
+        {
+            renderer.sortingOrder = layer;
         }
     }
 
     // Start is called before the first frame update
     void Awake()
     {
+        HideJointsAndStances();
         Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
 
         fighterRB = this.gameObject.GetComponent<Rigidbody2D>();
@@ -372,7 +434,6 @@ public class FighterScript : MonoBehaviour
         torsoTop.tag = tag;
         torsoBottom.tag = tag;
     }
-
     void UpdateDefaultStancePositions()
     // used within MoveTowardsDefaultStance()
     {
@@ -381,7 +442,6 @@ public class FighterScript : MonoBehaviour
         foot1DefaultVector = transform.position - orientedTran.up * 4f - orientedTran.right * 1f;
         foot2DefaultVector = transform.position - orientedTran.up * 4f + orientedTran.right * 1f;
     }
-
     void MoveTowardsDefaultStance()
     //moves at speed towards default positions of hands and feet
     {
@@ -440,7 +500,6 @@ public class FighterScript : MonoBehaviour
             stanceFoot2Tran.position += stanceFoot2Tran.forward * Mathf.Max(speed * distance * 2, speed);
         }
     }
-
     void MoveAndDrawBody() //moves limbs to desired location, then positions the LineRenderers to where the joints are
     {
         // stances are used to drag around limbs while letting the physics engine rotate the limbs
@@ -512,6 +571,13 @@ public class FighterScript : MonoBehaviour
             stanceFoot2Tran.position = calf2Tran.position;
         }
 
+        Vector3[] torsoPoints = {
+            jointNeckTran.position,
+            (jointRib1Tran.position + jointRib2Tran.position)/2f,
+            stanceTorsoBotTran.position,
+        };
+        torsoRenderer.SetPositions(torsoPoints);
+
         Vector3[] arm1points = {
             jointShoulder1Tran.position,
             upperArm1Tran.position,
@@ -540,7 +606,7 @@ public class FighterScript : MonoBehaviour
             };
         leg2Renderer.SetPositions(leg2points);
 
-        Vector3[] torsoPoints = {
+        Vector3[] torsoOutlinePoints = {
             jointNeckTran.position,
             jointShoulder1Tran.position,
             jointRib1Tran.position,
@@ -549,14 +615,21 @@ public class FighterScript : MonoBehaviour
             jointRib2Tran.position,
             jointShoulder2Tran.position,
             };
-        torsoRenderer.SetPositions(torsoPoints);
+        torsoOutlineRenderer.SetPositions(torsoOutlinePoints);
     }
-
+    public void EnableAllStances(){
+        stanceHeadActive =true;
+        stanceTorsoTopActive =true;
+        stanceTorsoBotActive =true;
+        stanceHand1Active =true;
+        stanceHand2Active =true;
+        stanceFoot1Active =true;
+        stanceFoot2Active =true;
+    }
     public void Move(Vector3 direction)
     {
-        transform.position += Vector3.Normalize(direction) * speed;
+        transform.position += Vector3.Normalize(direction) * speed /2f;
     }
-
     public void MoveHead(int direction)
     {
         float playerX = transform.position.x;
@@ -605,7 +678,7 @@ public class FighterScript : MonoBehaviour
         return true;
     }
 
-    void SwapHingeAngles()
+    public void SwapHingeAngles()
     {
         foreach (var hinge in allHinges)
         {
@@ -615,19 +688,8 @@ public class FighterScript : MonoBehaviour
             hinge.limits = newLimits;
         }
     }
-    IEnumerator GoToCenterXAndTurn()
-    {
-        controlsEnabled = false;
-        stanceHand1Active = false;
-        SwapHingeAngles();
-        stanceHand1Active = true;
 
-        float directionMultiplier = orientedTran.position.x - stanceHeadTran.position.x;
-        while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.1f)
-        {
-            stanceHeadTran.position += transform.right * directionMultiplier * speed;
-            yield return null;
-        }
+    public void TurnBody(){
         float targetScale = 0 - transform.localScale.x; // can't use directionMultiplier for this!!!
         transform.localScale = new Vector3(targetScale, 1, 1);
         switch (transform.localScale.x)
@@ -643,6 +705,22 @@ public class FighterScript : MonoBehaviour
         Vector3 orienter = transform.position;
         orienter -= orientedTran.forward;
         orientedTran.LookAt(orienter);
+    }
+    IEnumerator GoToCenterXAndTurn()
+    {
+        controlsEnabled = false;
+        
+        float directionMultiplier = orientedTran.position.x - stanceHeadTran.position.x;
+        Vector3 movementVector = transform.right * directionMultiplier * speed;
+        while (Mathf.Abs(transform.position.x - stanceHeadTran.position.x) > 0.1f)
+        {
+            stanceHand1Tran.position += movementVector;
+            stanceHand2Tran.position += movementVector;
+            stanceHeadTran.position += movementVector;
+            yield return null;
+        }
+        SwapHingeAngles();
+        TurnBody();
         controlsEnabled = true;
         //Debug.Log("facing right: " + facingRight);
     }
@@ -816,7 +894,6 @@ public class FighterScript : MonoBehaviour
             return;
         }
     }
-
     IEnumerator Hook()
     {
         float sideRange = 4f;
