@@ -35,6 +35,7 @@ public class AttackAreaScript : MonoBehaviour
 
     void Awake()
     {
+        //Debug.Log("attackArea position = " + transform.position.x + "," + transform.position.y);
         creatorType = "NONE";
         warningSprite = warning.GetComponent<SpriteRenderer>();
         incomingCircleSprite = incomingCircle.GetComponent<SpriteRenderer>();

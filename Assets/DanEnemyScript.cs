@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyScript : MonoBehaviour
+public class DanEnemyScript : MonoBehaviour
 {
     public GameObject enemyCharacter;
     Transform enemyTran;
@@ -30,33 +30,27 @@ public class EnemyScript : MonoBehaviour
     void Update()
     {
         MoveTowardsPlayer();
-        if (timer < Time.frameCount)
-        {
-            if (Random.Range(0f, 1f) > 0.5f)
-            {
-                thisFighterScript.Attack("arms");
-            }
-            else
-            {
-                thisFighterScript.Attack("legs");
-            }
-            timer += attackInterval;
+    }
+    void FacePlayer(){
+        if(playerFighter.transform.position.x < enemyCharacter.transform.position.x){
+            thisFighterScript.TurnTo("left");
+        }
+        if(playerFighter.transform.position.x > enemyCharacter.transform.position.x){
+            thisFighterScript.TurnTo("right");
         }
     }
     void MoveTowardsPlayer()
     {
         targetDistanceToPlayer = 5f;
         distanceToPlayer = enemyCharacter.transform.position.x - playerFighter.transform.position.x;
-
+        FacePlayer();
         if (distanceToPlayer > targetDistanceToPlayer)
         {
             thisFighterScript.Move(-1f * transform.right);
-            thisFighterScript.TurnTo("left");
         }
         if (distanceToPlayer < 0 - targetDistanceToPlayer)
         {
             thisFighterScript.Move(transform.right);
-            thisFighterScript.TurnTo("right");
         }
 
         if (playerHeadTran.position.y > stanceHeadTran.position.y)
@@ -67,5 +61,27 @@ public class EnemyScript : MonoBehaviour
         {
             thisFighterScript.MoveHead(2);
         }
+    }
+
+    void InitiateAttack()
+    {
+        int randomSector = (int) Random.Range(0f,9f);
+        int randomArmOrLeg = Mathf.RoundToInt(Random.Range(0f,1f));
+
+        if (timer > Time.frameCount)
+        {
+            return;
+        }
+
+        if (Random.Range(0f, 1f) > 0.5f)
+        {
+            thisFighterScript.Attack("arms");
+        }
+        else
+        {
+            thisFighterScript.Attack("legs");
+        }
+        timer += attackInterval;
+
     }
 }
