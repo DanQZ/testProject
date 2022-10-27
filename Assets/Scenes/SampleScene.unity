@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85dad203c53ce3742b61b0bac7672636, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyWithGhostPrefab: {fileID: 8461294743135604799, guid: aaf421144fbf80b43977c18a06e2ac6a, type: 3}
+  enemyWithGhostPrefab: {fileID: 8461294743135604799, guid: b67cfa222543ca242ac4f7bdac8d1bf2, type: 3}
   player: {fileID: 416588847}
 --- !u!1 &164787221
 GameObject:

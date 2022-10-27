@@ -47,7 +47,7 @@ public class MasterEnemySpawnerScript : MonoBehaviour
         newEGScript.playerFighter = playerFighter;
         newEGScript.playerHead = playerFighter.GetComponent<FighterScript>().stanceHead;
 
-        EnemyScript newEnemyScript = newEnemyWithGhost.GetComponent<EnemyScript>();
+        DanEnemyScript newEnemyScript = newEnemyWithGhost.GetComponent<DanEnemyScript>();
         newEnemyScript.playerFighter = playerFighter;
         newEnemyScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
     }

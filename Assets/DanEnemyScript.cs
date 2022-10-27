@@ -30,6 +30,7 @@ public class DanEnemyScript : MonoBehaviour
     void Update()
     {
         MoveTowardsPlayer();
+        InitiateAttack();
     }
     void FacePlayer(){
         if(playerFighter.transform.position.x < enemyCharacter.transform.position.x){
