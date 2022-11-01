@@ -107,6 +107,8 @@ public class AttackAreaScript : MonoBehaviour
             collided = true;
             collision.gameObject.transform.parent.parent.GetComponent<FighterScript>().hp -= 5;
             Debug.Log("player attack hit");
+
+            Destroy(collision.gameObject.transform.root.gameObject);
             Destroy(this.gameObject);
             return;
         }

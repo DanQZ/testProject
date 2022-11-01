@@ -120,6 +120,7 @@ public class FighterScript : MonoBehaviour
     public float reach; // distance the fighterHead can move from fighter object position
 
     public bool controlsEnabled = true; // enabled, fighter can move head around + limbs move to default positions. disable when in an animation
+    public bool ragdolling = true; // if true, fighter cannot do ANYTHING outside of rigidbody physics 
 
     float expectedElbowDistanceToNeck1;
     float expectedElbowDistanceToNeck2;
@@ -627,9 +628,79 @@ public class FighterScript : MonoBehaviour
         stanceFoot1Active = true;
         stanceFoot2Active = true;
     }
+    public void DisableAllStances() // use on death maybe? not sure why it exists yet but Im sure I will need to use it later
+    {
+        stanceHeadActive = false;
+        stanceTorsoTopActive = false;
+        stanceTorsoBotActive = false;
+        stanceHand1Active = false;
+        stanceHand2Active = false;
+        stanceFoot1Active = false;
+        stanceFoot2Active = false;
+    }
     public void Move(Vector3 direction)
     {
         transform.position += Vector3.Normalize(direction) * speed / 2f;
+    }
+    public Vector3 GetSectorPosition(int sector)
+    {
+        Vector3 output = new Vector3(0, 0, 0);
+        float reachForX = reach * transform.localScale.x;
+        switch (sector)
+        {
+            case 0: // bottom back
+                output = new Vector3(
+                    transform.position.x - reachForX,
+                    transform.position.y - reach, 0);
+                break;
+            case 1: // bottom middle
+                output = new Vector3(
+                    transform.position.x,
+                    transform.position.y - reach, 0);
+                break;
+            case 2: // bottom forward
+                output = new Vector3(
+                    transform.position.x + reachForX,
+                transform.position.y - reach, 0);
+                break;
+            case 3: // center back
+                output = new Vector3(
+                    transform.position.x - reachForX,
+                    transform.position.y, 0);
+                break;
+            case 4: // true center
+                output = new Vector3(
+                    transform.position.x,
+                    transform.position.y, 0);
+                break;
+            case 5: // center forward
+                output = new Vector3(
+                    transform.position.x + reachForX,
+                    transform.position.y, 0);
+                break;
+            case 6: // top back
+                output = new Vector3(
+                    transform.position.x - reachForX,
+                    transform.position.y + reach, 0);
+                break;
+            case 7: // top center
+                output = new Vector3(
+                    transform.position.x,
+                    transform.position.y + reach, 0);
+                break;
+            case 8: // top forward
+                output = new Vector3(
+                    transform.position.x + reachForX,
+                    transform.position.y + reach, 0);
+                break;
+        }
+        return output;
+    }
+    public Vector3 GetHeadDirectionToSector(int sector)
+    {
+        Vector3 sectorPos = GetSectorPosition(sector);
+        Vector3 direction = sectorPos - stanceHeadTran.position;
+        return Vector3.Normalize(direction);
     }
     public void MoveHead(int direction)
     {
@@ -665,6 +736,13 @@ public class FighterScript : MonoBehaviour
                 }
                 break;
         }
+    }
+    public void MoveHead(Vector3 direction)
+    {
+        stanceHeadTran.position += Vector3.Normalize(direction) * speed;
+    }
+    public void MoveHeadTowardsSector(int sector){
+        MoveHead(GetHeadDirectionToSector(sector));
     }
     public bool IsHeadWithinSectors() // checks if head is within boundaries
     {
@@ -747,7 +825,6 @@ public class FighterScript : MonoBehaviour
         {
             MoveTowardsDefaultStance();
         }
-
     }
 
     // finds what sector the head is in, in order to do a
@@ -1031,7 +1108,6 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator RoundhouseKick()
     {
-        float range = 4f;
         float timeTaken = .25f; //seconds
         int framesTaken = (int)(timeTaken * 60);
 
