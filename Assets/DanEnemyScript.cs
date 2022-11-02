@@ -11,29 +11,81 @@ public class DanEnemyScript : MonoBehaviour
     public FighterScript thisFighterScript;
     public GameObject playerFighter;
     public Transform playerHeadTran;
-    int timer;
+    int attackTimer;
+    int stateTimer;
     int attackInterval;
+    int stateInterval;
+    int rangeChangeInterval;
     float targetDistanceToPlayer;
     float distanceToPlayer;
+    string enemyState;
     void Start()
     {
-        targetDistanceToPlayer = 5f;
+        enemyState = "keepDistance";
         thisFighterScript = enemyCharacter.gameObject.GetComponent<FighterScript>();
         playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHeadTran;
         stanceHead = thisFighterScript.stanceHead;
         stanceHeadTran = stanceHead.transform;
-        attackInterval = 180;
-        timer = Time.frameCount + attackInterval;
+        attackInterval = (int)Random.Range(45, 75);
+        attackTimer = Time.frameCount + attackInterval;
+        stateInterval = (int)Random.Range(150f, 200f);
+        stateTimer = Time.frameCount + stateInterval;
+        rangeChangeInterval = (int)Random.Range(60, 80);
+        EnemyStateRandomizer();
     }
 
     // Update is called once per frame
     void Update()
     {
-        MoveTowardsPlayer();
-        InitiateAttack();
-        if(Time.frameCount % 70 == 0){ // change target distance
-            targetDistanceToPlayer = Random.Range(3.5f,5.5f);
+        switch (enemyState)
+        {
+            case "keepDistance":
+                MoveTowardsTargetDistance();
+                break;
+            case "attack":
+                MoveTowardsTargetDistance();
+                InitiateAttack();
+                break;
         }
+
+        stateTimer++;
+        if (stateTimer >= stateInterval)
+        {
+            EnemyStateRandomizer();
+        }
+
+        if (Time.frameCount % rangeChangeInterval == 0)
+        { // change target distance
+            TargetDistanceUpdate();
+        }
+    }
+    void EnemyStateRandomizer()
+    {
+        float randomized = Random.Range(0f, 1f);
+        if (randomized < .75f)
+        {
+            enemyState = "attack";
+        }
+        else
+        {
+            enemyState = "keepDistance";
+        }
+        stateTimer = 0;
+        TargetDistanceUpdate();
+    }
+
+    void TargetDistanceUpdate()
+    {
+        switch (enemyState)
+        {
+            case "keepDistance":
+                targetDistanceToPlayer = Random.Range(6f, 8f);
+                break;
+            case "attack":
+                targetDistanceToPlayer = Random.Range(3.5f, 5.5f);
+                break;
+        }
+        Debug.Log("Enemystate = " + enemyState + ", targetDistance = " + targetDistanceToPlayer);
     }
     void FacePlayer()
     {
@@ -46,17 +98,31 @@ public class DanEnemyScript : MonoBehaviour
             thisFighterScript.TurnTo("right");
         }
     }
-    void MoveTowardsPlayer()
+    void MoveTowardsTargetDistance()
     {
-        distanceToPlayer = enemyCharacter.transform.position.x - playerFighter.transform.position.x;
+        distanceToPlayer = Mathf.Abs(enemyCharacter.transform.position.x - playerFighter.transform.position.x);
         FacePlayer();
-        if (distanceToPlayer > targetDistanceToPlayer || distanceToPlayer > 0 - targetDistanceToPlayer)
+        if (thisFighterScript.facingRight) // facing right
         {
-            thisFighterScript.Move(-1f * transform.right);
+            if (distanceToPlayer > targetDistanceToPlayer)
+            {
+                thisFighterScript.Move(Vector3.right);
+            }
+            if (distanceToPlayer < targetDistanceToPlayer)
+            {
+                thisFighterScript.Move(-1f * Vector3.right);
+            }
         }
-        if (distanceToPlayer < 0 - targetDistanceToPlayer || distanceToPlayer < targetDistanceToPlayer)
+        if (!thisFighterScript.facingRight) // facing left
         {
-            thisFighterScript.Move(transform.right);
+            if (distanceToPlayer < targetDistanceToPlayer)
+            {
+                thisFighterScript.Move(Vector3.right);
+            }
+            if (distanceToPlayer > targetDistanceToPlayer)
+            {
+                thisFighterScript.Move(-1f * Vector3.right);
+            }
         }
     }
 
@@ -65,13 +131,13 @@ public class DanEnemyScript : MonoBehaviour
         int randomSector = (int)Random.Range(0f, 9f);
         int randomArmOrLeg = Mathf.RoundToInt(Random.Range(0f, 1f));
 
-        if (timer > Time.frameCount)
+        if (attackTimer > Time.frameCount)
         {
             return;
         }
 
         string attackWith = "";
-        if (Random.Range(0f, 1f) > 0.5f)
+        if (Random.Range(0f, 1f) > 0.75f)
         {
             attackWith = "arms";
         }
@@ -79,7 +145,8 @@ public class DanEnemyScript : MonoBehaviour
         {
             attackWith = "legs";
         }
-        timer += attackInterval;
+
+        attackTimer = Time.frameCount + attackInterval;
         StartCoroutine(GoToSectorThenAttack(randomSector, attackWith));
     }
 
@@ -90,7 +157,8 @@ public class DanEnemyScript : MonoBehaviour
             thisFighterScript.MoveHeadTowardsSector(sector);
             yield return null;
         }
-        if(thisFighterScript.controlsEnabled){
+        if (thisFighterScript.controlsEnabled)
+        {
             thisFighterScript.Attack(attackWith);
         }
     }

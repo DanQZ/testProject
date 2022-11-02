@@ -158,7 +158,10 @@ public class FighterScript : MonoBehaviour
     private HingeJoint2D calf2Hinge;
     private HingeJoint2D[] allHinges = new HingeJoint2D[8];
     private TrailRenderer[] allTrails = new TrailRenderer[8];
+    private List<GameObject> allBodyParts = new List<GameObject>();
     private List<LineRenderer> allLineRenderers = new List<LineRenderer>();
+    private List<Rigidbody2D> allRigidbody2D = new List<Rigidbody2D>();
+    private List<BoxCollider2D> allBoxCollider2D = new List<BoxCollider2D>();
     //private LineRenderer[] allLineRenderers = new LineRenderer[6];
 
     public void SetTags(string tag)
@@ -167,6 +170,23 @@ public class FighterScript : MonoBehaviour
         HeadSpriteObject.tag = tag;
         torsoTop.tag = tag;
         torsoBottom.tag = tag;
+    }
+    void InitGameObjects()
+    {
+        allBodyParts.Add(fighterHead);
+
+        allBodyParts.Add(torsoTop);
+        allBodyParts.Add(torsoBottom);
+
+        allBodyParts.Add(upperArm1);
+        allBodyParts.Add(lowerArm1);
+        allBodyParts.Add(upperArm2);
+        allBodyParts.Add(lowerArm2);
+
+        allBodyParts.Add(thigh1);
+        allBodyParts.Add(calf1);
+        allBodyParts.Add(thigh2);
+        allBodyParts.Add(calf2);
     }
     void InitTrailRenderers()
     {/*
@@ -342,6 +362,56 @@ public class FighterScript : MonoBehaviour
         torsoRenderer.numCapVertices = 0;
 
     }
+    void InitRigidbody2DListAndProperties()
+    {
+        int rbCount = 0;
+        foreach (GameObject bodyPart in allBodyParts)
+        {
+            Rigidbody2D bodyPartRB = bodyPart.GetComponent<Rigidbody2D>();
+            if (bodyPartRB != null)
+            {
+                allRigidbody2D.Add(bodyPartRB);
+                rbCount++;
+            }
+        }
+        Debug.Log(rbCount + " RigidBodies added to list");
+        InitRigidBody2DProperties();
+    }
+    void InitRigidBody2DProperties()
+    {
+        foreach (Rigidbody2D rb2d in allRigidbody2D)
+        {
+            rb2d.drag = .5f;
+        }
+    }
+    void InitColliderList()
+    {
+        allBoxCollider2D.Add(HeadSpriteObject.GetComponent<BoxCollider2D>());
+        int bcCount = 1;
+        foreach (GameObject bodyPart in allBodyParts)
+        {
+            BoxCollider2D bodyPartBC = bodyPart.GetComponent<BoxCollider2D>();
+            if (bodyPartBC != null)
+            {
+                allBoxCollider2D.Add(bodyPartBC);
+                bcCount++;
+            }
+        }
+        Debug.Log(bcCount + " BoxCollider2D added to list");
+    }
+    void InitFightingColliders() // turns on head and torso, turns off others
+    {
+        foreach (BoxCollider2D bc2d in allBoxCollider2D)
+        {
+            bc2d.enabled = false;
+        }
+        if (!isGhost)
+        {
+            HeadSpriteObject.GetComponent<BoxCollider2D>().enabled = true;
+            torsoTop.GetComponent<BoxCollider2D>().enabled = true;
+            torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
+        }
+    }
     public void ChangeColor(Color newColor)
     {
         foreach (LineRenderer renderer in allLineRenderers)
@@ -383,15 +453,23 @@ public class FighterScript : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        HideJointsAndStances();
-        Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
-
-        fighterRB = this.gameObject.GetComponent<Rigidbody2D>();
+        InitGameObjects();
+        InitColliderList();
+        InitFightingColliders();
+        InitRigidbody2DListAndProperties();
         InitHinges();
         InitLineRenderers();
         InitTransforms();
+
         InitTrailRenderers();
+
+        HideJointsAndStances();
+
         UpdateDefaultStancePositions(); // need this to set up groundLevel
+
+        Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
+
+        fighterRB = this.gameObject.GetComponent<Rigidbody2D>();
 
         // defaults to enemy tags
         fighterHead.tag = "Enemy";
@@ -618,6 +696,7 @@ public class FighterScript : MonoBehaviour
             };
         torsoOutlineRenderer.SetPositions(torsoOutlinePoints);
     }
+
     public void EnableAllStances() // only used to enable the enemy following ghost
     {
         stanceHeadActive = true;
@@ -628,7 +707,7 @@ public class FighterScript : MonoBehaviour
         stanceFoot1Active = true;
         stanceFoot2Active = true;
     }
-    public void DisableAllStances() // use on death maybe? not sure why it exists yet but Im sure I will need to use it later
+    private void DisableAllStances() // use on death maybe? not sure why it exists yet but Im sure I will need to use it later
     {
         stanceHeadActive = false;
         stanceTorsoTopActive = false;
@@ -637,6 +716,36 @@ public class FighterScript : MonoBehaviour
         stanceHand2Active = false;
         stanceFoot1Active = false;
         stanceFoot2Active = false;
+    }
+    private void EnableGravity()
+    {
+        foreach (Rigidbody2D rb2d in allRigidbody2D)
+        {
+            rb2d.gravityScale = 1f;
+        }
+    }
+    private void TurnOnRagdoll()
+    {
+        foreach (BoxCollider2D bc2d in allBoxCollider2D)
+        {
+            bc2d.enabled = true;
+            bc2d.isTrigger = false;
+        }
+    }
+    private void EqualizeBodyPartMass()
+    {
+        foreach (Rigidbody2D rb2d in allRigidbody2D)
+        {
+            rb2d.mass = 1f;
+        }
+    }
+    public void Die()
+    {
+        StopAllCoroutines();
+        DisableAllStances();
+        EqualizeBodyPartMass();
+        EnableGravity();
+        TurnOnRagdoll();
     }
     public void Move(Vector3 direction)
     {
@@ -741,7 +850,8 @@ public class FighterScript : MonoBehaviour
     {
         stanceHeadTran.position += Vector3.Normalize(direction) * speed;
     }
-    public void MoveHeadTowardsSector(int sector){
+    public void MoveHeadTowardsSector(int sector)
+    {
         MoveHead(GetHeadDirectionToSector(sector));
     }
     public bool IsHeadWithinSectors() // checks if head is within boundaries
@@ -866,7 +976,10 @@ public class FighterScript : MonoBehaviour
         //Debug.Log(sectors[sector] + " sector");
         return sector;
     }
-
+    public void InterruptAllAnimations()
+    { // break animation coroutines
+        StopAllCoroutines();
+    }
     public void Attack(string attackType) // attackType = "arms" or "legs"
     {
         string[] sectors = {
@@ -948,7 +1061,7 @@ public class FighterScript : MonoBehaviour
         }
         //Debug.Log(sectors[sector] + " attack");
     }
-    private void StrikeThisLocation(Vector3 targetLocation) // creates an AttackArea, be it enemy or friendly
+    private void StrikeThisLocation(Vector3 targetLocation, GameObject strikingStanceObject, float xScale, float yScale) // creates an AttackArea, be it enemy or friendly
     // if it is an enemy attack, has 1 second delay before damage
     // if it is a player attack, immediately does damage
     {
@@ -956,11 +1069,19 @@ public class FighterScript : MonoBehaviour
         {
             return;
         }
+
         GameObject newWarning = Instantiate(
             AttackWarningPrefab,
             targetLocation,
             transform.rotation);
+
+            // NEED TO ADD TH RIGHT ROTATION AND SHIT THIAEWTOHASHDG KLASDFLKBASDG LJSDG KJLHSDAGLHKJD SHFKJ ASDLKGLKASJD GLASDJL KJKL ASDGKHJLK ASDJKHLHAJKLSDA HJLKDSHJLK GAHJSLKD G HJLKAGDSHJLK D GHJLKHLKJ GSDH JLKGSLK
         AttackAreaScript newWarningScript = newWarning.GetComponent<AttackAreaScript>();
+        newWarningScript.strikingLimb = strikingStanceObject;
+        newWarning.transform.LookAt(strikingStanceObject.transform.position);
+        Vector3 angles = newWarning.transform.eulerAngles;
+        newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z);
+        newWarning.transform.localScale = new Vector3(xScale, yScale, 1f);
 
         if (isGhost) // is the ghost of an enemy, creates visble attack area and warning, invokes creation of visible warning after framesUntilStrike frames
         {
@@ -1047,7 +1168,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(attackTarget);
+        StrikeThisLocation(attackTarget, stanceHand1, 1f, 1f);
 
         // return to default stance fast
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -1063,7 +1184,7 @@ public class FighterScript : MonoBehaviour
         Vector3 attackTarget = GetAttackVector("Jab" + type);
         float timeTaken = .12f; //seconds
         int framesTaken = (int)(timeTaken * 60);
-        float hand2DistancePerFrame = Mathf.Abs(stanceHeadTran.position.x - attackTarget.x) / framesTaken;
+        float hand2DistancePerFrame = Mathf.Abs(stanceHand2Tran.position.x - attackTarget.x) / framesTaken;
         float headDistancePerFrame = 0.3f * hand2DistancePerFrame;
 
         Vector3 headMoveVector = orientedTran.right * headDistancePerFrame;
@@ -1085,7 +1206,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(attackTarget);
+        StrikeThisLocation(attackTarget, stanceHand2, 1f, 1f);
 
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
         {
@@ -1141,7 +1262,7 @@ public class FighterScript : MonoBehaviour
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(distancePerFrame * distance, speed);
             yield return null;
         }
-        StrikeThisLocation(attackTarget);
+        StrikeThisLocation(attackTarget, stanceFoot1, 2f, 1f);
         stanceTorsoBotActive = false;
 
         while (Vector3.Distance(kickingFootTran.position, foot1DefaultVector) > .25f)
@@ -1202,7 +1323,7 @@ public class FighterScript : MonoBehaviour
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(kickDistancePerFrame * distance, speed);
             yield return null;
         }
-        StrikeThisLocation(kickingFootTran.position);
+        StrikeThisLocation(kickingFootTran.position, stanceFoot2, 2f, 1f);
         stanceTorsoBotActive = false;
 
         while (Vector3.Distance(kickingFootTran.position, foot2DefaultVector) > .25f)
@@ -1296,4 +1417,5 @@ public class FighterScript : MonoBehaviour
         controlsEnabled = true;
         yield return null;
     }
+
 }

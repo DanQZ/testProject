@@ -256,5 +256,6 @@ MonoBehaviour:
   lifespan: 60
   incomingCircle: {fileID: 853157815649759981}
   warning: {fileID: 6061490844486511566}
+  strikingLimb: {fileID: 0}
   attackDamage: 0
   creatorType: 
