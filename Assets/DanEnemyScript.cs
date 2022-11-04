@@ -19,8 +19,12 @@ public class DanEnemyScript : MonoBehaviour
     float targetDistanceToPlayer;
     float distanceToPlayer;
     string enemyState;
-    void Start()
+    IEnumerator Start()
     {
+        for (int i = 0; i < 10; i++) // waits a short time to make sure ghost does not glitch out
+        {
+            yield return null;
+        }
         enemyState = "keepDistance";
         thisFighterScript = enemyCharacter.gameObject.GetComponent<FighterScript>();
         playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHeadTran;
@@ -32,31 +36,45 @@ public class DanEnemyScript : MonoBehaviour
         stateTimer = Time.frameCount + stateInterval;
         rangeChangeInterval = (int)Random.Range(60, 80);
         EnemyStateRandomizer();
+        StartCoroutine(RealUpdateAfterSeconds(0.1f));
     }
 
-    // Update is called once per frame
-    void Update()
+    IEnumerator RealUpdateAfterSeconds(float time){
+        int frames = (int) (60f * time);
+        for(int i = 0; i < frames; i++){
+            yield return null;
+        }
+        StartCoroutine(RealUpdate());
+    }
+
+    IEnumerator RealUpdate()
     {
-        switch (enemyState)
+        while (true)
         {
-            case "keepDistance":
-                MoveTowardsTargetDistance();
-                break;
-            case "attack":
-                MoveTowardsTargetDistance();
-                InitiateAttack();
-                break;
-        }
 
-        stateTimer++;
-        if (stateTimer >= stateInterval)
-        {
-            EnemyStateRandomizer();
-        }
 
-        if (Time.frameCount % rangeChangeInterval == 0)
-        { // change target distance
-            TargetDistanceUpdate();
+            switch (enemyState)
+            {
+                case "keepDistance":
+                    MoveTowardsTargetDistance();
+                    break;
+                case "attack":
+                    MoveTowardsTargetDistance();
+                    InitiateAttack();
+                    break;
+            }
+
+            stateTimer++;
+            if (stateTimer >= stateInterval)
+            {
+                EnemyStateRandomizer();
+            }
+
+            if (Time.frameCount % rangeChangeInterval == 0)
+            { // change target distance
+                TargetDistanceUpdate();
+            }
+            yield return null;
         }
     }
     void EnemyStateRandomizer()
@@ -85,7 +103,7 @@ public class DanEnemyScript : MonoBehaviour
                 targetDistanceToPlayer = Random.Range(3.5f, 5.5f);
                 break;
         }
-        Debug.Log("Enemystate = " + enemyState + ", targetDistance = " + targetDistanceToPlayer);
+        //Debug.Log("Enemystate = " + enemyState + ", targetDistance = " + targetDistanceToPlayer);
     }
     void FacePlayer()
     {

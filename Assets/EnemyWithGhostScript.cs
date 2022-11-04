@@ -61,15 +61,15 @@ public class EnemyWithGhostScript : MonoBehaviour
     void Start()
     {
         // makes the ghost translucent
-        ghostFighterScript.ChangeColor(Color.grey);
-        ghostFighterScript.ChangeOpacity(0.25f);
-        ghostFighterScript.ChangeRenderSortingLayer(0);
+        ghostFighterScript.SetColor(Color.grey);
+        ghostFighterScript.SetOpacity(0.25f);
+        ghostFighterScript.SetRenderSortingLayer(0);
 
         // makes the fighter a different color and the sortinglayer over ghost
-        enemyFighterScript.ChangeRenderSortingLayer(1);
-        enemyFighterScript.ChangeColor(Color.red);
+        enemyFighterScript.SetRenderSortingLayer(1);
+        enemyFighterScript.SetColor(Color.red);
 
-        enemyFighterScript.EnableAllStances(); // allows to directly manipulate every single stance object
+        enemyFighterScript.SetAllStances(true); // allows to directly manipulate every single stance object
 
         enemyFighterTran = enemyFighter.transform;
         enemyHeadStanceTran = enemyHeadStance.transform;

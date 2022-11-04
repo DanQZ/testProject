@@ -162,9 +162,10 @@ public class FighterScript : MonoBehaviour
     private List<LineRenderer> allLineRenderers = new List<LineRenderer>();
     private List<Rigidbody2D> allRigidbody2D = new List<Rigidbody2D>();
     private List<BoxCollider2D> allBoxCollider2D = new List<BoxCollider2D>();
+    private List<GameObject> allStances = new List<GameObject>();
     //private LineRenderer[] allLineRenderers = new LineRenderer[6];
 
-    public void SetTags(string tag)
+    public void SetTags(string tag) // sets the tags for the collisions
     {
         fighterHead.tag = tag;
         HeadSpriteObject.tag = tag;
@@ -187,6 +188,14 @@ public class FighterScript : MonoBehaviour
         allBodyParts.Add(calf1);
         allBodyParts.Add(thigh2);
         allBodyParts.Add(calf2);
+
+        allStances.Add(stanceHead);
+        allStances.Add(stanceTorsoTop);
+        allStances.Add(stanceTorsoBot);
+        allStances.Add(stanceHand1);
+        allStances.Add(stanceHand2);
+        allStances.Add(stanceFoot1);
+        allStances.Add(stanceFoot2);
     }
     void InitTrailRenderers()
     {/*
@@ -399,11 +408,12 @@ public class FighterScript : MonoBehaviour
         }
         Debug.Log(bcCount + " BoxCollider2D added to list");
     }
-    void InitFightingColliders() // turns on head and torso, turns off others
+    void SetCombatColliders() // turns on head and torso, turns off others
     {
         foreach (BoxCollider2D bc2d in allBoxCollider2D)
         {
             bc2d.enabled = false;
+            bc2d.isTrigger = true;
         }
         if (!isGhost)
         {
@@ -412,7 +422,7 @@ public class FighterScript : MonoBehaviour
             torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
         }
     }
-    public void ChangeColor(Color newColor)
+    public void SetColor(Color newColor)
     {
         foreach (LineRenderer renderer in allLineRenderers)
         {
@@ -425,7 +435,7 @@ public class FighterScript : MonoBehaviour
 
         HeadSprite.color = newColor;
     }
-    public void ChangeOpacity(float alpha) // 1f = opaque, 0f = transparent
+    public void SetOpacity(float alpha) // 1f = opaque, 0f = transparent
     {
         Color bodyColor = torsoOutlineRenderer.startColor;
         Color newOpacity = new Color(bodyColor.r, bodyColor.g, bodyColor.b, alpha);
@@ -442,7 +452,7 @@ public class FighterScript : MonoBehaviour
         torsoRenderer.endColor = torsoColor;
 
     }
-    public void ChangeRenderSortingLayer(int layer)
+    public void SetRenderSortingLayer(int layer)
     {
         foreach (LineRenderer renderer in allLineRenderers)
         {
@@ -455,7 +465,7 @@ public class FighterScript : MonoBehaviour
     {
         InitGameObjects();
         InitColliderList();
-        InitFightingColliders();
+        SetCombatColliders();
         InitRigidbody2DListAndProperties();
         InitHinges();
         InitLineRenderers();
@@ -697,58 +707,81 @@ public class FighterScript : MonoBehaviour
         torsoOutlineRenderer.SetPositions(torsoOutlinePoints);
     }
 
-    public void EnableAllStances() // only used to enable the enemy following ghost
+    public void SetAllStances(bool stancesOn)
     {
-        stanceHeadActive = true;
-        stanceTorsoTopActive = true;
-        stanceTorsoBotActive = true;
-        stanceHand1Active = true;
-        stanceHand2Active = true;
-        stanceFoot1Active = true;
-        stanceFoot2Active = true;
+        stanceHeadActive = stancesOn;
+        stanceTorsoTopActive = stancesOn;
+        stanceTorsoBotActive = stancesOn;
+        stanceHand1Active = stancesOn;
+        stanceHand2Active = stancesOn;
+        stanceFoot1Active = stancesOn;
+        stanceFoot2Active = stancesOn;
     }
-    private void DisableAllStances() // use on death maybe? not sure why it exists yet but Im sure I will need to use it later
+    private void EnableGravity(bool gravityOn)
     {
-        stanceHeadActive = false;
-        stanceTorsoTopActive = false;
-        stanceTorsoBotActive = false;
-        stanceHand1Active = false;
-        stanceHand2Active = false;
-        stanceFoot1Active = false;
-        stanceFoot2Active = false;
-    }
-    private void EnableGravity()
-    {
+        float gravity = 0f;
+        if (gravityOn)
+        {
+            gravity = 1f;
+        }
         foreach (Rigidbody2D rb2d in allRigidbody2D)
         {
-            rb2d.gravityScale = 1f;
+            rb2d.gravityScale = gravity;
         }
     }
-    private void TurnOnRagdoll()
+    private void SetRagdoll(bool ragdoll)
     {
-        foreach (BoxCollider2D bc2d in allBoxCollider2D)
+        if (ragdoll)
         {
-            bc2d.enabled = true;
-            bc2d.isTrigger = false;
+            SetAllStances(false);
+            EnableGravity(true);
+            EqualizeBodyPartMass(true);
+            foreach (BoxCollider2D bc2d in allBoxCollider2D)
+            {
+                bc2d.enabled = true;
+                bc2d.isTrigger = false;
+            }
+        }
+        else
+        {
+            SetAllStances(true);
+            EnableGravity(false);
+            EqualizeBodyPartMass(false);
+            SetCombatColliders();
         }
     }
-    private void EqualizeBodyPartMass()
+    private void EqualizeBodyPartMass(bool equalize)
     {
         foreach (Rigidbody2D rb2d in allRigidbody2D)
         {
             rb2d.mass = 1f;
         }
+
+        if (equalize)
+        {
+            return;
+        }
+        else
+        {
+            HeadSpriteObject.GetComponent<Rigidbody2D>().mass = 100f;
+            torsoTop.GetComponent<Rigidbody2D>().mass = 10f;
+        }
     }
     public void Die()
     {
         StopAllCoroutines();
-        DisableAllStances();
-        EqualizeBodyPartMass();
-        EnableGravity();
-        TurnOnRagdoll();
+        SetRagdoll(true);
+        Destroy(this.transform.root.gameObject, 5);
+    }
+    public void Stumble(Vector3 forceVector, float time)
+    {
+        // enable physics temporarily then turn back on stances
     }
     public void Move(Vector3 direction)
     {
+        if(airborne){
+            return;
+        }
         transform.position += Vector3.Normalize(direction) * speed / 2f;
     }
     public Vector3 GetSectorPosition(int sector)
@@ -1061,7 +1094,7 @@ public class FighterScript : MonoBehaviour
         }
         //Debug.Log(sectors[sector] + " attack");
     }
-    private void StrikeThisLocation(Vector3 targetLocation, GameObject strikingStanceObject, float xScale, float yScale) // creates an AttackArea, be it enemy or friendly
+    private void StrikeThisLocation(Vector3 targetLocation, Vector3 endOfLimb, GameObject strikingStanceObject, GameObject limbObject, float xScale, float yScale) // creates an AttackArea, be it enemy or friendly
     // if it is an enemy attack, has 1 second delay before damage
     // if it is a player attack, immediately does damage
     {
@@ -1072,15 +1105,14 @@ public class FighterScript : MonoBehaviour
 
         GameObject newWarning = Instantiate(
             AttackWarningPrefab,
-            targetLocation,
+            (targetLocation + endOfLimb) / 2f,
             transform.rotation);
 
-            // NEED TO ADD TH RIGHT ROTATION AND SHIT THIAEWTOHASHDG KLASDFLKBASDG LJSDG KJLHSDAGLHKJD SHFKJ ASDLKGLKASJD GLASDJL KJKL ASDGKHJLK ASDJKHLHAJKLSDA HJLKDSHJLK GAHJSLKD G HJLKAGDSHJLK D GHJLKHLKJ GSDH JLKGSLK
+        // NEED TO ADD TH RIGHT ROTATION AND SHIT THIAEWTOHASHDG KLASDFLKBASDG LJSDG KJLHSDAGLHKJD SHFKJ ASDLKGLKASJD GLASDJL KJKL ASDGKHJLK ASDJKHLHAJKLSDA HJLKDSHJLK GAHJSLKD G HJLKAGDSHJLK D GHJLKHLKJ GSDH JLKGSLK
         AttackAreaScript newWarningScript = newWarning.GetComponent<AttackAreaScript>();
         newWarningScript.strikingLimb = strikingStanceObject;
-        newWarning.transform.LookAt(strikingStanceObject.transform.position);
-        Vector3 angles = newWarning.transform.eulerAngles;
-        newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z);
+        Vector3 angles = limbObject.transform.eulerAngles;
+        newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z + 90f);
         newWarning.transform.localScale = new Vector3(xScale, yScale, 1f);
 
         if (isGhost) // is the ghost of an enemy, creates visble attack area and warning, invokes creation of visible warning after framesUntilStrike frames
@@ -1168,7 +1200,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(attackTarget, stanceHand1, 1f, 1f);
+        StrikeThisLocation(attackTarget, attackTarget, stanceHand1, lowerArm1, 1f, 1f);
 
         // return to default stance fast
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -1206,7 +1238,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(attackTarget, stanceHand2, 1f, 1f);
+        StrikeThisLocation(attackTarget, attackTarget, stanceHand2, lowerArm2, 1f, 1f);
 
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
         {
@@ -1262,7 +1294,7 @@ public class FighterScript : MonoBehaviour
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(distancePerFrame * distance, speed);
             yield return null;
         }
-        StrikeThisLocation(attackTarget, stanceFoot1, 2f, 1f);
+        StrikeThisLocation(attackTarget, jointKnee1Tran.position, stanceFoot1, calf1, 2f, 1f);
         stanceTorsoBotActive = false;
 
         while (Vector3.Distance(kickingFootTran.position, foot1DefaultVector) > .25f)
@@ -1323,7 +1355,7 @@ public class FighterScript : MonoBehaviour
             stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(kickDistancePerFrame * distance, speed);
             yield return null;
         }
-        StrikeThisLocation(kickingFootTran.position, stanceFoot2, 2f, 1f);
+        StrikeThisLocation(kickingFootTran.position, jointKnee2Tran.position, stanceFoot2, calf2, 2f, 1f);
         stanceTorsoBotActive = false;
 
         while (Vector3.Distance(kickingFootTran.position, foot2DefaultVector) > .25f)
@@ -1414,7 +1446,6 @@ public class FighterScript : MonoBehaviour
 
         // jump and kick at the same time
         yield return StartCoroutine(JumpingFrontKickPart2(10f));
-        controlsEnabled = true;
         yield return null;
     }
 

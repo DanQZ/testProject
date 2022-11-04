@@ -24,8 +24,8 @@ public class AttackAreaScript : MonoBehaviour
         switch (creatorType)
         {
             case "player":
-                warningSprite.enabled = false;
-                incomingCircleSprite.enabled = false;
+               // warningSprite.enabled = false;
+              //  incomingCircleSprite.enabled = false;
                 break;
             case "enemy":
                 warningSprite.enabled = true;

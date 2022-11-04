@@ -10,7 +10,7 @@ public class MasterEnemySpawnerScript : MonoBehaviour
     GameObject enemyFighter;
     FighterScript ghostScript; // reference to the FighterScript inside the ghost inside enemyprefab
     FighterScript enemyFighterScript; // reference to the FighterScript inside the ghost inside enemyprefab
-    
+
     public GameObject player; // reference to player prefab in the scene
     GameObject playerFighter; // reference to the fighter prefab inside the player prefab
     PlayerScript PCScript; // reference to the player script
@@ -29,19 +29,24 @@ public class MasterEnemySpawnerScript : MonoBehaviour
         // on pressing P, spawn 1 enemy per second to the right
         if (Input.GetKey("p") && canSpawnEnemy)
         {
-            SpawnEnemyToTheRight();
+            SpawnEnemyToTheRightOrLeft();
             canSpawnEnemy = false;
             Invoke("CanSpawnEnemyTrue", 1f);
         }
     }
     // spawn 1 enemy 10 units to the right
-    void SpawnEnemyToTheRight()
+    void SpawnEnemyToTheRightOrLeft()
     {
+        float leftRight = 10f;
+        if (Random.Range(0f, 1f) > 0.5f)
+        {
+            leftRight = -10f;
+        }
         GameObject newEnemyWithGhost = Instantiate(enemyWithGhostPrefab,
-            playerFighter.transform.position + Vector3.right * -10f,
+            new Vector3(0, 0, 0) + Vector3.right * leftRight,
             transform.rotation
             );
-        
+
         // properly references the player
         EnemyWithGhostScript newEGScript = newEnemyWithGhost.GetComponent<EnemyWithGhostScript>();
         newEGScript.playerFighter = playerFighter;
