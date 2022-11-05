@@ -383,7 +383,7 @@ public class FighterScript : MonoBehaviour
                 rbCount++;
             }
         }
-        Debug.Log(rbCount + " RigidBodies added to list");
+        //Debug.Log(rbCount + " RigidBodies added to list");
         InitRigidBody2DProperties();
     }
     void InitRigidBody2DProperties()
@@ -406,7 +406,7 @@ public class FighterScript : MonoBehaviour
                 bcCount++;
             }
         }
-        Debug.Log(bcCount + " BoxCollider2D added to list");
+        //Debug.Log(bcCount + " BoxCollider2D added to list");
     }
     void SetColliders(string type) // turns on head and torso, turns off others
     {
@@ -470,6 +470,7 @@ public class FighterScript : MonoBehaviour
         {
             renderer.sortingOrder = layer;
         }
+        torsoRenderer.sortingOrder = layer-1;
     }
 
     // Start is called before the first frame update
@@ -1206,7 +1207,7 @@ public class FighterScript : MonoBehaviour
             case "jabaggressive":
                 output =
                     stanceHand2Tran.position
-                    + orientedTran.right * 1.8f;
+                    + orientedTran.right * 2.1f;
                 break;
             case "roundhousekick":
                 output =
@@ -1247,7 +1248,7 @@ public class FighterScript : MonoBehaviour
         }
         StrikeThisLocation(attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1f);
 
-        // return to default stance fast
+        // return to default stance fast before regaining control
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
         {
             MoveTowardsDefaultStance();
@@ -1285,6 +1286,7 @@ public class FighterScript : MonoBehaviour
         }
         StrikeThisLocation(attackTarget, jointElbow2Tran.position, stanceHand2, lowerArm2, 1f, 1f);
 
+        // pull jabbing hand back
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
         {
             MoveTowardsDefaultStance();

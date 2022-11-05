@@ -16,6 +16,7 @@ public class MasterEnemySpawnerScript : MonoBehaviour
     PlayerScript PCScript; // reference to the player script
 
     bool canSpawnEnemy = true;
+    bool spawningEnemies = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -32,6 +33,20 @@ public class MasterEnemySpawnerScript : MonoBehaviour
             SpawnEnemyToTheRightOrLeft();
             canSpawnEnemy = false;
             Invoke("CanSpawnEnemyTrue", 1f);
+        }
+        if (Input.GetKeyDown("o") && canSpawnEnemy)
+        {
+            if (spawningEnemies)
+            {
+                StopAllCoroutines();
+                spawningEnemies = false;
+            }
+            else
+            {
+                StartCoroutine(KeepSpawningEnemies());
+                spawningEnemies = true;
+            }
+
         }
     }
     // spawn 1 enemy 10 units to the right
@@ -59,5 +74,20 @@ public class MasterEnemySpawnerScript : MonoBehaviour
     void CanSpawnEnemyTrue()
     {
         canSpawnEnemy = true;
+    }
+    IEnumerator KeepSpawningEnemies()
+    {
+        int i = 0;
+        int nextFrame = 0;
+        while (true)
+        {
+            i++;
+            if (i >= nextFrame)
+            {
+                SpawnEnemyToTheRightOrLeft();
+                nextFrame = i + (int)(60f * Random.Range(3f, 6f));
+            }
+            yield return null;
+        }
     }
 }
