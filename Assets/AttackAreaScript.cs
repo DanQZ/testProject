@@ -101,7 +101,7 @@ public class AttackAreaScript : MonoBehaviour
         GameObject objectRoot = collision.gameObject.transform.root.gameObject;
         GameObject thingHit = collision.gameObject;
 
-        if (creatorType == "enemy" && collision.gameObject.tag == "Player")
+        if (creatorType == "enemy" && collision.gameObject.tag == "Player")// enemy hits player
         {
             warningSprite.color = Color.blue;
             collided = true;
@@ -114,7 +114,7 @@ public class AttackAreaScript : MonoBehaviour
             Destroy(this.gameObject);
             return;
         }
-        if (creatorType == "player" && collision.gameObject.tag == "Enemy")
+        if (creatorType == "player" && collision.gameObject.tag == "Enemy") // player hits enemy
         {
             FighterScript danEnemyFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
             GameObject collisionObject = collision.gameObject;

@@ -815,6 +815,7 @@ public class FighterScript : MonoBehaviour
     {
         int frames = (int)(time * 60f);
         SetRagdoll(true);
+
         // adds force to the ragdoll
         Rigidbody2D rb2d = partHit.GetComponent<Rigidbody2D>();
         if (rb2d != null)
@@ -1244,7 +1245,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(attackTarget, attackTarget, stanceHand1, lowerArm1, 1f, 1f);
+        StrikeThisLocation(attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1f);
 
         // return to default stance fast
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -1282,7 +1283,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(attackTarget, attackTarget, stanceHand2, lowerArm2, 1f, 1f);
+        StrikeThisLocation(attackTarget, jointElbow2Tran.position, stanceHand2, lowerArm2, 1f, 1f);
 
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
         {
