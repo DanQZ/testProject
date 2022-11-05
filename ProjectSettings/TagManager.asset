@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Enemy
   - Fighter
+  - Ghost
   layers:
   - Default
   - TransparentFX

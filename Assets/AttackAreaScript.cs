@@ -10,11 +10,11 @@ public class AttackAreaScript : MonoBehaviour
     public GameObject incomingCircle; // declaring a public GameObject allows you to make a reference to any other GameObject
     SpriteRenderer incomingCircleSprite; // SpriteRenderer is a component, which means it is part of another GameObject
     public GameObject warning;
-    public GameObject strikingLimb;
+    public Vector3 strikeDirection;
     SpriteRenderer warningSprite;
     bool despawnNextFrame = false;
     public int attackDamage = 10;
-
+    public GameObject creator;
     public string creatorType;
     CircleCollider2D myCollider;
     bool collided = false;
@@ -24,8 +24,8 @@ public class AttackAreaScript : MonoBehaviour
         switch (creatorType)
         {
             case "player":
-               // warningSprite.enabled = false;
-              //  incomingCircleSprite.enabled = false;
+                // warningSprite.enabled = false;
+                //  incomingCircleSprite.enabled = false;
                 break;
             case "enemy":
                 warningSprite.enabled = true;
@@ -62,6 +62,10 @@ public class AttackAreaScript : MonoBehaviour
 
     void Update()
     {
+        if(creator == null){
+            Destroy(this.gameObject);
+        }
+
         if (despawnNextFrame)
         {
             //Debug.Log("attack from " + creatorType);
@@ -94,15 +98,18 @@ public class AttackAreaScript : MonoBehaviour
         {
             return;
         }
-
         GameObject objectRoot = collision.gameObject.transform.root.gameObject;
+        GameObject thingHit = collision.gameObject;
 
         if (creatorType == "enemy" && collision.gameObject.tag == "Player")
         {
             warningSprite.color = Color.blue;
             collided = true;
             // dont use objectRoot for this because the fighterscript is not on the player root object
-            collision.gameObject.transform.parent.parent.GetComponent<FighterScript>().hp -= 5;
+            FighterScript playerFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
+
+            playerFS.hp -= 5;
+
             Debug.Log("enemy attack hit");
             Destroy(this.gameObject);
             return;
@@ -114,10 +121,12 @@ public class AttackAreaScript : MonoBehaviour
             collided = true;
             Debug.Log("player attack hit");
             danEnemyFS.Die(); // disables stances and enables gravity and collisions
-            LaunchAway(collision.gameObject);
+            LaunchAway(thingHit);
+
             // use objectRoot because we want to destroy the entire enemy gameObject
             objectRoot.GetComponent<EnemyWithGhostScript>().StopAllCoroutines();
             objectRoot.GetComponent<EnemyWithGhostScript>().enabled = false;
+            objectRoot.GetComponent<DanEnemyScript>().StopAllCoroutines();
             objectRoot.GetComponent<DanEnemyScript>().enabled = false;
             Destroy(objectRoot.GetComponent<EnemyWithGhostScript>().ghostFighter);
             Destroy(this.gameObject);
@@ -131,9 +140,7 @@ public class AttackAreaScript : MonoBehaviour
         {
             return;
         }
-
         Rigidbody2D rb2d = thingHit.GetComponent<Rigidbody2D>();
-        Vector3 oppDirection = Vector3.Normalize(thingHit.transform.position - strikingLimb.transform.position);
-        rb2d.AddForce(oppDirection * 65f, ForceMode2D.Impulse);
+        rb2d.AddForce(Vector3.Normalize(strikeDirection) * 65f, ForceMode2D.Impulse);
     }
 }

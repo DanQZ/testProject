@@ -18,7 +18,7 @@ public class PlayerScript : MonoBehaviour
         stanceHeadTran = stanceHead.transform;
         PCScript = playerCharacter.GetComponent<FighterScript>();
         PCScript.isPlayer = true;
-        PCScript.UpdateTags();
+        PCScript.UpdateBasedOnBools();
         speed = PCScript.speed;
         moveSpeed = speed * 0.66f;
     }

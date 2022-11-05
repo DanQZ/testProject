@@ -43,34 +43,28 @@ public class EnemyWithGhostScript : MonoBehaviour
     Queue<Vector3> foot1PosQ = new Queue<Vector3>();
     Queue<Vector3> foot2PosQ = new Queue<Vector3>();
     Queue<bool> facingRightQ = new Queue<bool>();
-    
+
 
     void Awake()
     {
         enemyFighterScript = enemyFighter.gameObject.GetComponent<FighterScript>();
+        enemyFighterScript.isGhost = false;
+        enemyFighterScript.isPlayer = false;
+
         ghostFighterScript = ghostFighter.gameObject.GetComponent<FighterScript>();
         ghostFighterScript.isGhost = true;
+        ghostFighterScript.isPlayer = false;
 
         ghostFighterTran = ghostFighter.transform;
         ghostHeadStanceTran = ghostHeadStance.transform;
-
 
         StartCoroutine(RealEnemyActions());
     }
 
     void Start()
     {
-        // makes the ghost translucent
-        ghostFighterScript.SetColor(Color.grey);
-        ghostFighterScript.SetOpacity(0.25f);
-        ghostFighterScript.SetRenderSortingLayer(0);
-
-        // makes the fighter a different color and the sortinglayer over ghost
-        enemyFighterScript.SetRenderSortingLayer(1);
-        enemyFighterScript.SetColor(Color.red);
-
-        enemyFighterScript.SetAllStances(true); // allows to directly manipulate every single stance object
-
+        ghostFighterScript.UpdateBasedOnBools();
+        enemyFighterScript.UpdateBasedOnBools();
         enemyFighterTran = enemyFighter.transform;
         enemyHeadStanceTran = enemyHeadStance.transform;
 
@@ -104,7 +98,8 @@ public class EnemyWithGhostScript : MonoBehaviour
             enemyFoot2StanceTran.position = foot2PosQ.Dequeue();
 
             bool toFaceRight = facingRightQ.Dequeue();
-            if(enemyFighterScript.facingRight != toFaceRight){
+            if (enemyFighterScript.facingRight != toFaceRight)
+            {
                 Debug.Log("successful detection of turning");
                 enemyFighterScript.SwapHingeAngles();
                 enemyFighterScript.TurnBody();

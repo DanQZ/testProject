@@ -408,18 +408,30 @@ public class FighterScript : MonoBehaviour
         }
         Debug.Log(bcCount + " BoxCollider2D added to list");
     }
-    void SetCombatColliders() // turns on head and torso, turns off others
+    void SetColliders(string type) // turns on head and torso, turns off others
     {
-        foreach (BoxCollider2D bc2d in allBoxCollider2D)
+        switch (type)
         {
-            bc2d.enabled = false;
-            bc2d.isTrigger = true;
-        }
-        if (!isGhost)
-        {
-            HeadSpriteObject.GetComponent<BoxCollider2D>().enabled = true;
-            torsoTop.GetComponent<BoxCollider2D>().enabled = true;
-            torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
+            case "combat":
+                foreach (BoxCollider2D bc2d in allBoxCollider2D)
+                {
+                    bc2d.enabled = false;
+                    bc2d.isTrigger = true;
+                }
+                if (!isGhost)
+                {
+                    HeadSpriteObject.GetComponent<BoxCollider2D>().enabled = true;
+                    torsoTop.GetComponent<BoxCollider2D>().enabled = true;
+                    torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
+                }
+                break;
+            case "ragdoll":
+                foreach (BoxCollider2D bc2d in allBoxCollider2D)
+                {
+                    bc2d.enabled = true;
+                    bc2d.isTrigger = false;
+                }
+                break;
         }
     }
     public void SetColor(Color newColor)
@@ -465,7 +477,7 @@ public class FighterScript : MonoBehaviour
     {
         InitGameObjects();
         InitColliderList();
-        SetCombatColliders();
+        SetColliders("combat");
         InitRigidbody2DListAndProperties();
         InitHinges();
         InitLineRenderers();
@@ -498,8 +510,16 @@ public class FighterScript : MonoBehaviour
         speed = 4f / 60f; // x units per 60 frames
         reach = 1f;
     }
+    void Update()
+    {
+        MoveAndDrawBody(); // for some reason important this is called first
+        if (controlsEnabled) // if the fighter is not currently in an animation
+        {
+            MoveTowardsDefaultStance();
+        }
+    }
 
-    public void UpdateTags()
+    public void UpdateBasedOnBools()
     {
         string tag = "";
         if (isPlayer)
@@ -509,14 +529,16 @@ public class FighterScript : MonoBehaviour
         if (isGhost)
         {
             tag = "Ghost";
-            fighterHead.GetComponent<BoxCollider2D>().enabled = false;
-            HeadSpriteObject.GetComponent<BoxCollider2D>().enabled = false;
-            torsoTop.GetComponent<BoxCollider2D>().enabled = false;
-            torsoBottom.GetComponent<BoxCollider2D>().enabled = false;
+            SetColor(Color.red);
+            SetOpacity(0.2f);
+            SetRenderSortingLayer(0);
         }
         if (!isPlayer && !isGhost)
         {
             tag = "Enemy";
+            SetColor(Color.red);
+            SetRenderSortingLayer(1);
+            SetStances("all");
         }
         fighterHead.tag = tag;
         HeadSpriteObject.tag = tag;
@@ -707,47 +729,30 @@ public class FighterScript : MonoBehaviour
         torsoOutlineRenderer.SetPositions(torsoOutlinePoints);
     }
 
-    public void SetAllStances(bool stancesOn)
+    public void SetStances(string type)
     {
-        stanceHeadActive = stancesOn;
-        stanceTorsoTopActive = stancesOn;
-        stanceTorsoBotActive = stancesOn;
-        stanceHand1Active = stancesOn;
-        stanceHand2Active = stancesOn;
-        stanceFoot1Active = stancesOn;
-        stanceFoot2Active = stancesOn;
-    }
-    private void EnableGravity(bool gravityOn)
-    {
-        float gravity = 0f;
-        if (gravityOn)
+        bool turnOn = true;
+        switch (type)
         {
-            gravity = 1f;
+            case "all":
+                turnOn = true;
+                break;
+            case "none":
+                turnOn = false;
+                break;
         }
-        foreach (Rigidbody2D rb2d in allRigidbody2D)
+        stanceHeadActive = turnOn;
+        stanceTorsoTopActive = turnOn;
+        stanceTorsoBotActive = turnOn;
+        stanceHand1Active = turnOn;
+        stanceHand2Active = turnOn;
+        stanceFoot1Active = turnOn;
+        stanceFoot2Active = turnOn;
+
+        if (type == "combat")
         {
-            rb2d.gravityScale = gravity;
-        }
-    }
-    private void SetRagdoll(bool ragdoll)
-    {
-        if (ragdoll)
-        {
-            SetAllStances(false);
-            EnableGravity(true);
-            EqualizeBodyPartMass(true);
-            foreach (BoxCollider2D bc2d in allBoxCollider2D)
-            {
-                bc2d.enabled = true;
-                bc2d.isTrigger = false;
-            }
-        }
-        else
-        {
-            SetAllStances(true);
-            EnableGravity(false);
-            EqualizeBodyPartMass(false);
-            SetCombatColliders();
+            stanceTorsoTopActive = false;
+            stanceTorsoBotActive = false;
         }
     }
     private void EqualizeBodyPartMass(bool equalize)
@@ -763,8 +768,41 @@ public class FighterScript : MonoBehaviour
         }
         else
         {
-            HeadSpriteObject.GetComponent<Rigidbody2D>().mass = 100f;
+            fighterHead.GetComponent<Rigidbody2D>().mass = 100f;
             torsoTop.GetComponent<Rigidbody2D>().mass = 10f;
+        }
+    }
+    private void EnableGravity(bool gravityOn)
+    {
+        float gravityScale = 0f;
+        if (gravityOn)
+        {
+            gravityScale = 1f;
+        }
+        foreach (Rigidbody2D rb2d in allRigidbody2D)
+        {
+            rb2d.gravityScale = gravityScale;
+        }
+    }
+    private void SetRagdoll(bool ragdoll)
+    {
+        if (ragdoll)
+        {
+            //Debug.Log("ragdoll set true");
+            controlsEnabled = false;
+            EnableGravity(true);
+            EqualizeBodyPartMass(true);
+            SetColliders("ragdoll");
+            SetStances("none");
+        }
+        else
+        {
+            //Debug.Log("ragdoll set false");
+            controlsEnabled = true;
+            EnableGravity(false);
+            EqualizeBodyPartMass(false);
+            SetColliders("combat");
+            SetStances("combat");
         }
     }
     public void Die()
@@ -773,13 +811,29 @@ public class FighterScript : MonoBehaviour
         SetRagdoll(true);
         Destroy(this.transform.root.gameObject, 5);
     }
-    public void Stumble(Vector3 forceVector, float time)
+    public IEnumerator Stumble(float time, Vector3 direction, float impulse, GameObject partHit) // enable physics temporarily then turn back on stances
     {
-        // enable physics temporarily then turn back on stances
+        int frames = (int)(time * 60f);
+        SetRagdoll(true);
+        // adds force to the ragdoll
+        Rigidbody2D rb2d = partHit.GetComponent<Rigidbody2D>();
+        if (rb2d != null)
+        {
+            rb2d.AddForce(direction * impulse, ForceMode2D.Impulse);
+        }
+
+        // waits x frames until regaining control
+        for (int i = 0; i < frames; i++)
+        {
+            yield return null;
+        }
+        SetRagdoll(false);
     }
+
     public void Move(Vector3 direction)
     {
-        if(airborne){
+        if (airborne)
+        {
             return;
         }
         transform.position += Vector3.Normalize(direction) * speed / 2f;
@@ -899,7 +953,6 @@ public class FighterScript : MonoBehaviour
         }
         return true;
     }
-
     public void SwapHingeAngles()
     {
         foreach (var hinge in allHinges)
@@ -910,7 +963,6 @@ public class FighterScript : MonoBehaviour
             hinge.limits = newLimits;
         }
     }
-
     public void TurnBody()
     {
         float targetScale = 0 - transform.localScale.x; // can't use directionMultiplier for this!!!
@@ -959,15 +1011,6 @@ public class FighterScript : MonoBehaviour
         }
         StartCoroutine(GoToCenterXAndTurn());
         MoveAndDrawBody();
-    }
-
-    void Update()
-    {
-        MoveAndDrawBody(); // for some reason important this is called first
-        if (controlsEnabled) // if the fighter is not currently in an animation
-        {
-            MoveTowardsDefaultStance();
-        }
     }
 
     // finds what sector the head is in, in order to do a
@@ -1094,7 +1137,7 @@ public class FighterScript : MonoBehaviour
         }
         //Debug.Log(sectors[sector] + " attack");
     }
-    private void StrikeThisLocation(Vector3 targetLocation, Vector3 endOfLimb, GameObject strikingStanceObject, GameObject limbObject, float xScale, float yScale) // creates an AttackArea, be it enemy or friendly
+    private void StrikeThisLocation(Vector3 targetLocation, Vector3 startOfBodyPart, GameObject strikingStanceObject, GameObject limbObject, float xScale, float yScale) // creates an AttackArea, be it enemy or friendly
     // if it is an enemy attack, has 1 second delay before damage
     // if it is a player attack, immediately does damage
     {
@@ -1105,12 +1148,13 @@ public class FighterScript : MonoBehaviour
 
         GameObject newWarning = Instantiate(
             AttackWarningPrefab,
-            (targetLocation + endOfLimb) / 2f,
+            (targetLocation + startOfBodyPart) / 2f,
             transform.rotation);
 
-        // NEED TO ADD TH RIGHT ROTATION AND SHIT THIAEWTOHASHDG KLASDFLKBASDG LJSDG KJLHSDAGLHKJD SHFKJ ASDLKGLKASJD GLASDJL KJKL ASDGKHJLK ASDJKHLHAJKLSDA HJLKDSHJLK GAHJSLKD G HJLKAGDSHJLK D GHJLKHLKJ GSDH JLKGSLK
         AttackAreaScript newWarningScript = newWarning.GetComponent<AttackAreaScript>();
-        newWarningScript.strikingLimb = strikingStanceObject;
+        newWarningScript.creator = this.gameObject;
+        newWarningScript.strikeDirection = targetLocation - startOfBodyPart;
+
         Vector3 angles = limbObject.transform.eulerAngles;
         newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z + 90f);
         newWarning.transform.localScale = new Vector3(xScale, yScale, 1f);

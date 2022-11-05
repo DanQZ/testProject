@@ -51,8 +51,6 @@ public class DanEnemyScript : MonoBehaviour
     {
         while (true)
         {
-
-
             switch (enemyState)
             {
                 case "keepDistance":
