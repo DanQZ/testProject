@@ -112,8 +112,8 @@ public class FighterScript : MonoBehaviour
     public Transform stanceTorsoBotTran;
     bool stanceTorsoBotActive = false;
 
-    public GameObject HeadSpriteObject;
-    SpriteRenderer HeadSprite;
+    public GameObject headLimb;
+    public SpriteRenderer headSprite;
 
     // public List<string> movementQueue = new List<string>();
 
@@ -168,7 +168,7 @@ public class FighterScript : MonoBehaviour
     public void SetTags(string tag) // sets the tags for the collisions
     {
         fighterHead.tag = tag;
-        HeadSpriteObject.tag = tag;
+        headLimb.tag = tag;
         torsoTop.tag = tag;
         torsoBottom.tag = tag;
     }
@@ -395,7 +395,7 @@ public class FighterScript : MonoBehaviour
     }
     void InitColliderList()
     {
-        allBoxCollider2D.Add(HeadSpriteObject.GetComponent<BoxCollider2D>());
+        allBoxCollider2D.Add(headLimb.GetComponent<BoxCollider2D>());
         int bcCount = 1;
         foreach (GameObject bodyPart in allBodyParts)
         {
@@ -420,7 +420,7 @@ public class FighterScript : MonoBehaviour
                 }
                 if (!isGhost)
                 {
-                    HeadSpriteObject.GetComponent<BoxCollider2D>().enabled = true;
+                    headLimb.GetComponent<BoxCollider2D>().enabled = true;
                     torsoTop.GetComponent<BoxCollider2D>().enabled = true;
                     torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
                 }
@@ -445,13 +445,13 @@ public class FighterScript : MonoBehaviour
         torsoRenderer.startColor = torsoColor;
         torsoRenderer.endColor = torsoColor;
 
-        HeadSprite.color = newColor;
+        headSprite.color = newColor;
     }
     public void SetOpacity(float alpha) // 1f = opaque, 0f = transparent
     {
         Color bodyColor = torsoOutlineRenderer.startColor;
         Color newOpacity = new Color(bodyColor.r, bodyColor.g, bodyColor.b, alpha);
-        HeadSprite.color = newOpacity;
+        headSprite.color = newOpacity;
         foreach (LineRenderer renderer in allLineRenderers)
         {
             renderer.startColor = newOpacity;
@@ -505,7 +505,6 @@ public class FighterScript : MonoBehaviour
         expectedElbowDistanceToNeck2 = Vector3.Distance(jointElbow2Tran.position, jointShoulder2Tran.position);
 
         controlsEnabled = true;
-        HeadSprite = HeadSpriteObject.GetComponent<SpriteRenderer>();
         facingRight = true;
         hp = 100;
         speed = 4f / 60f; // x units per 60 frames
@@ -542,7 +541,7 @@ public class FighterScript : MonoBehaviour
             SetStances("all");
         }
         fighterHead.tag = tag;
-        HeadSpriteObject.tag = tag;
+        headLimb.tag = tag;
         torsoTop.tag = tag;
         torsoBottom.tag = tag;
     }

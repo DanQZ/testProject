@@ -62,7 +62,8 @@ public class AttackAreaScript : MonoBehaviour
 
     void Update()
     {
-        if(creator == null){
+        if (creator == null)
+        {
             Destroy(this.gameObject);
         }
 
@@ -136,11 +137,26 @@ public class AttackAreaScript : MonoBehaviour
 
     void LaunchAway(GameObject thingHit)
     {
-        if (thingHit.GetComponent<Rigidbody2D>() == null)
+        Rigidbody2D rb2d = GetRigidbody2DOfObject(thingHit);
+        if (rb2d != null)
         {
-            return;
+            rb2d.AddForce(Vector3.Normalize(strikeDirection) * 65f, ForceMode2D.Impulse);
         }
-        Rigidbody2D rb2d = thingHit.GetComponent<Rigidbody2D>();
-        rb2d.AddForce(Vector3.Normalize(strikeDirection) * 65f, ForceMode2D.Impulse);
+        else{
+            Debug.Log("no rigidbody found in gameobject or parent of gameobject");
+        }
+    }
+
+    Rigidbody2D GetRigidbody2DOfObject(GameObject gObject)
+    {
+        Rigidbody2D objectRB = gObject.GetComponent<Rigidbody2D>();
+        if (objectRB != null)
+        {
+            return objectRB;
+        }
+        else
+        {
+            return gObject.transform.parent.gameObject.GetComponent<Rigidbody2D>();
+        }
     }
 }
