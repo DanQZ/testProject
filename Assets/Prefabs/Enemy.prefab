@@ -47,7 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyCharacter: {fileID: 1498385057246905792}
   stanceHead: {fileID: 1498385056579862360}
-  player: {fileID: 0}
+  thisFighterScript: {fileID: 0}
+  player: {fileID: 5528175834239307050, guid: 01ebb5b2eefb50c46865fff3d0571c8e, type: 3}
 --- !u!1001 &1164533929551451301
 PrefabInstance:
   m_ObjectHideFlags: 0

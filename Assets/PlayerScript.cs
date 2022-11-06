@@ -8,7 +8,7 @@ public class PlayerScript : MonoBehaviour
     Transform PCTran;
     public GameObject stanceHead;
     Transform stanceHeadTran;
-    FighterScript PCScript;
+    public FighterScript PCScript;
     float speed;
     public float moveSpeed;
     // Start is called before the first frame update
@@ -17,6 +17,8 @@ public class PlayerScript : MonoBehaviour
         PCTran = playerCharacter.transform;
         stanceHeadTran = stanceHead.transform;
         PCScript = playerCharacter.GetComponent<FighterScript>();
+        PCScript.isPlayer = true;
+        PCScript.UpdateBasedOnBools();
         speed = PCScript.speed;
         moveSpeed = speed * 0.66f;
     }
@@ -37,44 +39,38 @@ public class PlayerScript : MonoBehaviour
         {
             PCScript.MoveHead(2);
         }
-        if (Input.GetKey("left"))
+        if (Input.GetKey("a"))
         {
             PCScript.MoveHead(3);
         }
-        if (Input.GetKey("right"))
+        if (Input.GetKey("d"))
         {
             PCScript.MoveHead(4);
         }
 
-        if (Input.GetKey("a"))
+        if (Input.GetKey("left"))
         {
-            playerCharacter.transform.position -= transform.right * moveSpeed;
+            PCScript.Move(transform.right * -1f);
         }
-        if (Input.GetKey("d"))
+        if (Input.GetKey("right"))
         {
-            playerCharacter.transform.position += transform.right * moveSpeed;
+            PCScript.Move(transform.right);
         }
         if (Input.GetKey("q")) // face left
         {
-            if (PCScript.facingRight)
-            {
-                PCScript.TurnTo("left");
-                return;
-            }
+            PCScript.TurnTo("left");
+            return;
         }
         if (Input.GetKey("e")) // face right
         {
-            if (!PCScript.facingRight)
-            {
-                PCScript.TurnTo("right");
-                return;
-            }
+            PCScript.TurnTo("right");
+            return;
         }
     }
 
     void AttackIfInput()
     {
-        if (PCScript.IsHeadWithinSectors())
+        if (PCScript.IsHeadWithinSectors() && PCScript.controlsEnabled)
         {
             if (Input.GetKey("space"))
             {

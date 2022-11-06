@@ -6,11 +6,12 @@ TagManager:
   tags:
   - Enemy
   - Fighter
+  - Ghost
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Fighter
   - Water
   - UI
   - EnemyAttack
