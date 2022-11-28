@@ -110,6 +110,9 @@ public class AttackAreaScript : MonoBehaviour
             FighterScript playerFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
 
             playerFS.hp -= 5;
+            if(playerFS.hp < 0){
+                playerFS.Die();
+            }
 
             Debug.Log("enemy attack hit");
             Destroy(this.gameObject);

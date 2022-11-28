@@ -837,7 +837,7 @@ public class FighterScript : MonoBehaviour
         {
             return;
         }
-        controlsEnabled = false;
+        //controlsEnabled = false;
         //StartCoroutine(Step((int)direction.x));
         transform.position += Vector3.Normalize(direction) * speed / 2f;
     }
