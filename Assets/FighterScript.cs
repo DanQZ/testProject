@@ -28,7 +28,7 @@ public class FighterScript : MonoBehaviour
     public Rigidbody2D fighterRB;
     public float groundLevel;
     public GameObject fighterOrienter;
-    public Transform orientedTran;
+    public Transform orientedTran; // .right is forward no matter what direction the fighter is currently looking in
     public float speed;
     public int hp;
     public bool facingRight = true;
@@ -470,7 +470,7 @@ public class FighterScript : MonoBehaviour
         {
             renderer.sortingOrder = layer;
         }
-        torsoRenderer.sortingOrder = layer-1;
+        torsoRenderer.sortingOrder = layer - 1;
     }
 
     // Start is called before the first frame update
@@ -554,7 +554,7 @@ public class FighterScript : MonoBehaviour
         foot2DefaultVector = transform.position - orientedTran.up * 4f + orientedTran.right * 1f;
     }
     void MoveTowardsDefaultStance()
-    //moves at speed towards default positions of hands and feet
+    //only happens with controlsEnabled. moves at speed towards default positions of hands and feet
     {
         float fighterX = transform.position.x;
         float fighterY = transform.position.y;
@@ -831,13 +831,76 @@ public class FighterScript : MonoBehaviour
         SetRagdoll(false);
     }
 
-    public void Move(Vector3 direction)
+    public void Move(Vector3 direction) // put an animation on this shit while it's happening
     {
         if (airborne)
         {
             return;
         }
+        controlsEnabled = false;
+        //StartCoroutine(Step((int)direction.x));
         transform.position += Vector3.Normalize(direction) * speed / 2f;
+    }
+    IEnumerator Step(int directionArg) // WIP 
+    {
+        float stepDistance = 0.5f;
+        float stepTime = 0.15f;
+        float delay = stepTime / 2f;
+        int delayFrames = (int)Mathf.Ceil(delay * 60f);
+        string directionInput = "";
+        string firstFoot = "";
+        string secondFoot = "";
+
+        if (directionArg > 0)
+        {
+            directionInput = "forward";
+            firstFoot = "front";
+            secondFoot = "back";
+        }
+        else
+        {
+            directionInput = "backward";
+            firstFoot = "back";
+            secondFoot = "front";
+        }
+        StartCoroutine(IndivLimbStep("head", directionInput, stepDistance, stepTime * 1.5f)); // re-enables controls when finished
+        StartCoroutine(IndivLimbStep(firstFoot, directionInput, stepDistance, stepTime));
+        for (int i = 0; i < delayFrames; i++)
+        {
+            yield return null;
+        }
+        StartCoroutine(IndivLimbStep(secondFoot, directionInput, stepDistance, stepTime));
+    }
+    IEnumerator IndivLimbStep(string limb, string forwardOrBackward, float moveDistance, float time) // WIP
+    {
+        Transform limbStanceTran = null;
+        if (limb == "front")
+        {
+            limbStanceTran = stanceFoot2Tran;
+        }
+        if (limb == "back")
+        {
+            limbStanceTran = stanceFoot1Tran;
+        }
+        if (limb == "head")
+        {
+            limbStanceTran = stanceHeadTran;
+        }
+        float movingSpeed = moveDistance / time;
+        if (forwardOrBackward == "forward")
+        {
+            limbStanceTran.position += orientedTran.right * movingSpeed;
+        }
+        if (forwardOrBackward == "backward")
+        {
+            limbStanceTran.position += orientedTran.right * -1f * movingSpeed;
+        }
+        yield return null;
+        // on head movement completion, change the transform and return to monke
+        if (limb == "head")
+        {
+            controlsEnabled = true;
+        }
     }
     public Vector3 GetSectorPosition(int sector)
     {
@@ -954,7 +1017,7 @@ public class FighterScript : MonoBehaviour
         }
         return true;
     }
-// finds what sector the head is in, in order to do a
+    // finds what sector the head is in, in order to do a
     public int GetHeadSector()
     {
         string[] sectors = {
@@ -1074,13 +1137,13 @@ public class FighterScript : MonoBehaviour
                 switch (sector)
                 {
                     case 0: // bottom back
-                        StartCoroutine(Hook());
+                        StartCoroutine(Uppercut());
                         break;
                     case 1: // bottom 
-                        StartCoroutine(Hook());
+                        StartCoroutine(Uppercut());
                         break;
                     case 2: // bottom forward
-                        StartCoroutine(JabCombo("aggressive"));
+                        StartCoroutine(Uppercut());
                         break;
                     case 3: // center back
                         StartCoroutine(Hook());
@@ -1206,6 +1269,12 @@ public class FighterScript : MonoBehaviour
                 output =
                     stanceHand2Tran.position
                     + orientedTran.right * 2.1f;
+                break;
+            case "uppercut":
+                output =
+                    stanceHand2Tran.position
+                    + orientedTran.up * 2f
+                    + orientedTran.right * 1f;
                 break;
             case "roundhousekick":
                 output =
@@ -1493,5 +1562,42 @@ public class FighterScript : MonoBehaviour
         yield return StartCoroutine(JumpingFrontKickPart2(10f));
         yield return null;
     }
+    IEnumerator Uppercut()
+    {
 
+        float timeTaken = .15f; //seconds
+        int framesTaken = (int)(timeTaken * 60);
+        Vector3 attackTarget = GetAttackVector("Uppercut");
+
+        yield return attackTarget;
+        float distance = Vector3.Distance(attackTarget, stanceHand1Tran.position);
+        float distancePerFrame = distance / framesTaken;
+
+        // throw punch animation
+        for (int i = 0; i < framesTaken; i++)
+        {
+            stanceHeadTran.position += orientedTran.up * distancePerFrame * .4f;
+            stanceHeadTran.position += orientedTran.right * distancePerFrame * .25f;
+
+            // punching hand
+            stanceHand1Tran.LookAt(attackTarget);
+            stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
+
+            // guard hand
+            stanceHand2Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
+            stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame * 0.5f;
+            upperArm1Tran.position = jointElbow1Tran.position;
+            yield return null;
+        }
+        StrikeThisLocation(attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1f);
+
+        // return to default stance fast before regaining control
+        while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
+        {
+            MoveTowardsDefaultStance();
+            MoveTowardsDefaultStance();
+            yield return null;
+        }
+        controlsEnabled = true;
+    }
 }
