@@ -508,7 +508,7 @@ public class FighterScript : MonoBehaviour
         facingRight = true;
         hp = 100;
         speed = 4f / 60f; // x units per 60 frames
-        reach = 1f;
+        reach = .75f;
     }
     void Update()
     {
@@ -954,6 +954,45 @@ public class FighterScript : MonoBehaviour
         }
         return true;
     }
+// finds what sector the head is in, in order to do a
+    public int GetHeadSector()
+    {
+        string[] sectors = {
+        "bottom back", "bottom", "bottom forward",
+        "center back", "true center", "center forward",
+        "top back", "top", "top forward"
+        };
+
+        int xSector = 1;
+        float fighterHeadX = stanceHeadTran.position.x;
+        float fighterX = transform.position.x;
+        float fighterHeadToCenterX = (fighterHeadX - fighterX) * transform.localScale.x;
+        if (fighterHeadToCenterX < 0 - reach / 3) // on lean back side
+        {
+            xSector = 0;
+        }
+        if (fighterHeadToCenterX > reach / 3) // on lean forward side
+        {
+            xSector = 2;
+        }
+
+        int ySector = 1;
+        float fighterHeadY = stanceHeadTran.position.y;
+        float fighterY = transform.position.y;
+        float fighterHeadToCenterY = (fighterHeadY - fighterY) * transform.localScale.y;
+        if (fighterHeadToCenterY < 0 - reach / 3) // on bottom side
+        {
+            ySector = 0;
+        }
+        if (fighterHeadToCenterY > reach / 3) // on top side
+        {
+            ySector = 2;
+        }
+
+        int sector = ySector * 3 + xSector;
+        //Debug.Log(sectors[sector] + " sector");
+        return sector;
+    }
     public void SwapHingeAngles()
     {
         foreach (var hinge in allHinges)
@@ -1012,46 +1051,6 @@ public class FighterScript : MonoBehaviour
         }
         StartCoroutine(GoToCenterXAndTurn());
         MoveAndDrawBody();
-    }
-
-    // finds what sector the head is in, in order to do a
-    public int GetHeadSector()
-    {
-        string[] sectors = {
-        "bottom back", "bottom", "bottom forward",
-        "center back", "true center", "center forward",
-        "top back", "top", "top forward"
-        };
-
-        int xSector = 1;
-        float fighterHeadX = stanceHeadTran.position.x;
-        float fighterX = transform.position.x;
-        float fighterHeadToCenterX = (fighterHeadX - fighterX) * transform.localScale.x;
-        if (fighterHeadToCenterX < 0 - reach / 3) // on lean back side
-        {
-            xSector = 0;
-        }
-        if (fighterHeadToCenterX > reach / 3) // on lean forward side
-        {
-            xSector = 2;
-        }
-
-        int ySector = 1;
-        float fighterHeadY = stanceHeadTran.position.y;
-        float fighterY = transform.position.y;
-        float fighterHeadToCenterY = (fighterHeadY - fighterY) * transform.localScale.y;
-        if (fighterHeadToCenterY < 0 - reach / 3) // on bottom side
-        {
-            ySector = 0;
-        }
-        if (fighterHeadToCenterY > reach / 3) // on top side
-        {
-            ySector = 2;
-        }
-
-        int sector = ySector * 3 + xSector;
-        //Debug.Log(sectors[sector] + " sector");
-        return sector;
     }
     public void InterruptAllAnimations()
     { // break animation coroutines
