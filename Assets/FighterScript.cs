@@ -442,10 +442,13 @@ public class FighterScript : MonoBehaviour
                     bc2d.enabled = false;
                     bc2d.isTrigger = true;
                 }
+                
+                // every collider is now disabled
+
                 if (!isGhost)
                 {
                     headLimb.GetComponent<BoxCollider2D>().enabled = true;
-                    torsoTop.GetComponent<BoxCollider2D>().enabled = true;
+                   // torsoTop.GetComponent<BoxCollider2D>().enabled = true;
                     torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
                 }
                 break;
@@ -510,7 +513,7 @@ public class FighterScript : MonoBehaviour
 
         InitTrailRenderers();
 
-        // HideJointsAndStances();
+        HideJointsAndStances();
     }
     void Start()
     {
@@ -518,6 +521,7 @@ public class FighterScript : MonoBehaviour
         UpdateDefaultStancePositions(); // need this to set up groundLevel
 
         Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
+        QualitySettings.vSyncCount = 0;
         // defaults to enemy tags
         fighterHead.tag = "Enemy";
         torsoTop.tag = "Enemy";
@@ -832,7 +836,7 @@ public class FighterScript : MonoBehaviour
             healthBar.transform.localScale = new Vector3(0f,0f,0f);
             return;
         }
-        
+
         float percentage = ((float)hp) / ((float)maxhp);
         healthBar.transform.localScale = new Vector3(
             2f * percentage,
