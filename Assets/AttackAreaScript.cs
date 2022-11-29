@@ -13,7 +13,7 @@ public class AttackAreaScript : MonoBehaviour
     public Vector3 strikeDirection;
     SpriteRenderer warningSprite;
     bool despawnNextFrame = false;
-    public int attackDamage = 10;
+    public int attackDamage;
     public GameObject creator;
     public string creatorType;
     PolygonCollider2D myCollider;
@@ -127,7 +127,7 @@ public class AttackAreaScript : MonoBehaviour
             return;
         }
 
-        guyHitScript.hp -= 5;
+        guyHitScript.hp -= attackDamage;
         guyHitScript.UpdateHealthBar();
 
         if (guyHitScript.hp <= 0)

@@ -828,6 +828,11 @@ public class FighterScript : MonoBehaviour
     }
     public void UpdateHealthBar()
     {
+        if(hp < 0){
+            healthBar.transform.localScale = new Vector3(0f,0f,0f);
+            return;
+        }
+        
         float percentage = ((float)hp) / ((float)maxhp);
         healthBar.transform.localScale = new Vector3(
             2f * percentage,
@@ -1259,6 +1264,8 @@ public class FighterScript : MonoBehaviour
         Vector3 angles = limbObject.transform.eulerAngles;
         newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z + 90f);
         newWarning.transform.localScale = new Vector3(xScale, yScale, 1f);
+
+        newWarningScript.attackDamage = power;
 
         if (isGhost) // is the ghost of an enemy, creates visble attack area and warning, invokes creation of visible warning after framesUntilStrike frames
         {
