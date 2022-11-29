@@ -100,7 +100,7 @@ public class EnemyWithGhostScript : MonoBehaviour
             bool toFaceRight = facingRightQ.Dequeue();
             if (enemyFighterScript.facingRight != toFaceRight)
             {
-                Debug.Log("successful detection of turning");
+                //Debug.Log("successful detection of turning");
                 enemyFighterScript.SwapHingeAngles();
                 enemyFighterScript.TurnBody();
                 enemyFighterScript.facingRight = toFaceRight;

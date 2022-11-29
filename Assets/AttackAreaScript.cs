@@ -16,8 +16,9 @@ public class AttackAreaScript : MonoBehaviour
     public int attackDamage = 10;
     public GameObject creator;
     public string creatorType;
-    CircleCollider2D myCollider;
+    PolygonCollider2D myCollider;
     bool collided = false;
+    private FighterScript guyHitScript = null;
 
     public void UpdateSprites()
     {
@@ -44,7 +45,7 @@ public class AttackAreaScript : MonoBehaviour
 
     void Start()
     {
-        myCollider = this.gameObject.GetComponent<CircleCollider2D>();
+        myCollider = this.gameObject.GetComponent<PolygonCollider2D>();
         myCollider.enabled = false;
         despawnNextFrame = false;
 
@@ -102,9 +103,10 @@ public class AttackAreaScript : MonoBehaviour
 
         GameObject objectRoot = collision.gameObject.transform.root.gameObject;
         GameObject thingHit = collision.gameObject;
-        FighterScript guyHitScript = null;
+        bool someoneGotHit = false;
         if (creatorType == "enemy" && collision.gameObject.tag == "Player")// enemy hits player
         {
+            someoneGotHit = true;
             warningSprite.color = Color.blue;
             collided = true;
             // dont use objectRoot for this because the fighterscript is not on the player root object
@@ -113,10 +115,16 @@ public class AttackAreaScript : MonoBehaviour
         }
         if (creatorType == "player" && collision.gameObject.tag == "Enemy") // player hits enemy
         {
+            someoneGotHit = true;
             FighterScript danEnemyFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
             guyHitScript = danEnemyFS;
             GameObject collisionObject = collision.gameObject;
             collided = true;
+        }
+
+        if (!someoneGotHit)
+        {
+            return;
         }
 
         guyHitScript.hp -= 5;
@@ -124,8 +132,8 @@ public class AttackAreaScript : MonoBehaviour
 
         if (guyHitScript.hp <= 0)
         {
-            LaunchAway(thingHit);
             guyHitScript.Die();
+            LaunchAway(thingHit);
             // in the case we kill an enemy, delete the ghost 
             if (collision.gameObject.tag == "Enemy")
             {
@@ -147,6 +155,7 @@ public class AttackAreaScript : MonoBehaviour
 
     void LaunchAway(GameObject thingHit)
     {
+        guyHitScript.SetRagdoll(true);
         Rigidbody2D rb2d = GetRigidbody2DOfObject(thingHit);
         if (rb2d != null)
         {
