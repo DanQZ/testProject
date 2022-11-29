@@ -554,6 +554,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   healthBar: {fileID: 2531187615910670151}
   healthBarBackground: {fileID: 8702347660276618670}
+  healthBarHeight: {x: 0, y: 0, z: 0}
   isPlayer: 0
   isGhost: 0
   AttackWarningPrefab: {fileID: 6061490844802025200, guid: f811dbe99e9c9e94ca405acf7a7d27d3, type: 3}

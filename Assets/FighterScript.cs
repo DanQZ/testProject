@@ -14,6 +14,7 @@ public class FighterScript : MonoBehaviour
 {
     public GameObject healthBar;
     public GameObject healthBarBackground;
+    public Vector3 healthBarHeight;
 
     public bool isPlayer = false;
     public bool isGhost = false;
@@ -512,14 +513,18 @@ public class FighterScript : MonoBehaviour
 
         controlsEnabled = true;
         facingRight = true;
-        maxhp = 100;
-        hp = 100;
-        if (!isGhost && !isPlayer)
+        maxhp = 10;
+        hp = 10;
+        healthBarHeight = new Vector3(0, 0.5f, 0);
+        healthBar.transform.position = headLimb.transform.position + healthBarHeight;
+        healthBarBackground.transform.position = headLimb.transform.position + healthBarHeight;
+        if (isPlayer)
         {
-            maxhp = 10;
-            hp = 10;
+            maxhp = 100;
+            hp = 100;
         }
-        if(isGhost){
+        if (isGhost)
+        {
             Destroy(healthBar);
             Destroy(healthBarBackground);
         }
@@ -823,7 +828,18 @@ public class FighterScript : MonoBehaviour
     }
     public void UpdateHealthBar()
     {
-        healthBar.transform.localScale = new Vector3(2f * ((float)hp) / ((float)maxhp), .25f, 1f);
+        float percentage = ((float)hp) / ((float)maxhp);
+        healthBar.transform.localScale = new Vector3(
+            2f * percentage,
+            .25f,
+            1f
+            );
+        healthBar.transform.position = new Vector3(
+            headLimb.transform.position.x - (1f-percentage),
+            headLimb.transform.position.y,
+            1
+            )
+            + healthBarHeight;
     }
     public void Die()
     {
