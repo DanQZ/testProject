@@ -59,3 +59,6 @@ TagManager:
   - name: EnemyAttackCircle
     uniqueID: 3702924305
     locked: 0
+  - name: HealthBars
+    uniqueID: 4094262433
+    locked: 0

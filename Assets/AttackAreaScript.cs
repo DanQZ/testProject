@@ -99,43 +99,50 @@ public class AttackAreaScript : MonoBehaviour
         {
             return;
         }
+
         GameObject objectRoot = collision.gameObject.transform.root.gameObject;
         GameObject thingHit = collision.gameObject;
-
+        FighterScript guyHitScript = null;
         if (creatorType == "enemy" && collision.gameObject.tag == "Player")// enemy hits player
         {
             warningSprite.color = Color.blue;
             collided = true;
             // dont use objectRoot for this because the fighterscript is not on the player root object
             FighterScript playerFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
-
-            playerFS.hp -= 5;
-            if(playerFS.hp < 0){
-                playerFS.Die();
-            }
-
-            Debug.Log("enemy attack hit");
-            Destroy(this.gameObject);
-            return;
+            guyHitScript = playerFS;
         }
         if (creatorType == "player" && collision.gameObject.tag == "Enemy") // player hits enemy
         {
             FighterScript danEnemyFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
+            guyHitScript = danEnemyFS;
             GameObject collisionObject = collision.gameObject;
             collided = true;
-            Debug.Log("player attack hit");
-            danEnemyFS.Die(); // disables stances and enables gravity and collisions
-            LaunchAway(thingHit);
-
-            // use objectRoot because we want to destroy the entire enemy gameObject
-            objectRoot.GetComponent<EnemyWithGhostScript>().StopAllCoroutines();
-            objectRoot.GetComponent<EnemyWithGhostScript>().enabled = false;
-            objectRoot.GetComponent<DanEnemyScript>().StopAllCoroutines();
-            objectRoot.GetComponent<DanEnemyScript>().enabled = false;
-            Destroy(objectRoot.GetComponent<EnemyWithGhostScript>().ghostFighter);
-            Destroy(this.gameObject);
-            return;
         }
+
+        guyHitScript.hp -= 5;
+        guyHitScript.UpdateHealthBar();
+
+        if (guyHitScript.hp <= 0)
+        {
+            LaunchAway(thingHit);
+            guyHitScript.Die();
+            // in the case we kill an enemy, delete the ghost 
+            if (collision.gameObject.tag == "Enemy")
+            {
+                // use objectRoot because we want to destroy the entire enemy gameObject
+                objectRoot.GetComponent<EnemyWithGhostScript>().StopAllCoroutines();
+                objectRoot.GetComponent<EnemyWithGhostScript>().enabled = false;
+                objectRoot.GetComponent<DanEnemyScript>().StopAllCoroutines();
+                objectRoot.GetComponent<DanEnemyScript>().enabled = false;
+                Destroy(objectRoot.GetComponent<EnemyWithGhostScript>().ghostFighter);
+                Destroy(this.gameObject);
+                return;
+            }
+        }
+
+        Debug.Log("enemy attack hit");
+        Destroy(this.gameObject);
+        return;
     }
 
     void LaunchAway(GameObject thingHit)
@@ -145,7 +152,8 @@ public class AttackAreaScript : MonoBehaviour
         {
             rb2d.AddForce(Vector3.Normalize(strikeDirection) * 65f, ForceMode2D.Impulse);
         }
-        else{
+        else
+        {
             Debug.Log("no rigidbody found in gameobject or parent of gameobject");
         }
     }

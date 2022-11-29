@@ -12,6 +12,9 @@ using PathCreation;
 
 public class FighterScript : MonoBehaviour
 {
+    public GameObject healthBar;
+    public GameObject healthBarBackground;
+
     public bool isPlayer = false;
     public bool isGhost = false;
     public GameObject AttackWarningPrefab;
@@ -30,6 +33,7 @@ public class FighterScript : MonoBehaviour
     public GameObject fighterOrienter;
     public Transform orientedTran; // .right is forward no matter what direction the fighter is currently looking in
     public float speed;
+    public int maxhp;
     public int hp;
     public bool facingRight = true;
     public GameObject fighterAttackArea;
@@ -487,7 +491,9 @@ public class FighterScript : MonoBehaviour
         InitTrailRenderers();
 
         HideJointsAndStances();
-
+    }
+    void Start()
+    {
         UpdateDefaultStancePositions(); // need this to set up groundLevel
 
         Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
@@ -506,7 +512,17 @@ public class FighterScript : MonoBehaviour
 
         controlsEnabled = true;
         facingRight = true;
+        maxhp = 100;
         hp = 100;
+        if (!isGhost && !isPlayer)
+        {
+            maxhp = 10;
+            hp = 10;
+        }
+        if(isGhost){
+            Destroy(healthBar);
+            Destroy(healthBarBackground);
+        }
         speed = 4f / 60f; // x units per 60 frames
         reach = .75f;
     }
@@ -805,8 +821,14 @@ public class FighterScript : MonoBehaviour
             SetStances("combat");
         }
     }
+    public void UpdateHealthBar()
+    {
+        healthBar.transform.localScale = new Vector3(2f * ((float)hp) / ((float)maxhp), .25f, 1f);
+    }
     public void Die()
     {
+        Destroy(healthBar);
+        Destroy(healthBarBackground);
         StopAllCoroutines();
         SetRagdoll(true);
         Destroy(this.transform.root.gameObject, 5);
