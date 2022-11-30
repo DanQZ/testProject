@@ -9,8 +9,7 @@ public class PlayerScript : MonoBehaviour
     public GameObject stanceHead;
     Transform stanceHeadTran;
     public FighterScript PCScript;
-    float speed;
-    public float moveSpeed;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -18,9 +17,14 @@ public class PlayerScript : MonoBehaviour
         stanceHeadTran = stanceHead.transform;
         PCScript = playerCharacter.GetComponent<FighterScript>();
         PCScript.isPlayer = true;
+        PCScript.isGhost = false;
+        StartCoroutine(FixTheFuckingTagsHolyShitWhyTheFuckDoINeedThis());
+    }
+    IEnumerator FixTheFuckingTagsHolyShitWhyTheFuckDoINeedThis(){
+        for(int i = 0; i < 2; i++){
+            yield return null;
+        }
         PCScript.UpdateBasedOnBools();
-        speed = PCScript.speed;
-        moveSpeed = speed * 0.66f;
     }
 
     void MoveHeadIfInput()

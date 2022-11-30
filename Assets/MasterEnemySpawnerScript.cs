@@ -17,7 +17,10 @@ public class MasterEnemySpawnerScript : MonoBehaviour
 
     bool canSpawnEnemy = true;
     bool spawningEnemies = false;
+    public List<GameObject> allEnemies = new List<GameObject>();
+
     // Start is called before the first frame update
+
     void Start()
     {
         PCScript = player.GetComponent<PlayerScript>(); // creates a reference
@@ -70,6 +73,8 @@ public class MasterEnemySpawnerScript : MonoBehaviour
         DanEnemyScript newEnemyScript = newEnemyWithGhost.GetComponent<DanEnemyScript>();
         newEnemyScript.playerFighter = playerFighter;
         newEnemyScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
+
+        allEnemies.Add(newEnemyWithGhost);
     }
     void CanSpawnEnemyTrue()
     {

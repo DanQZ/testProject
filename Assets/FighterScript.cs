@@ -442,14 +442,17 @@ public class FighterScript : MonoBehaviour
                     bc2d.enabled = false;
                     bc2d.isTrigger = true;
                 }
-                
+                headLimb.GetComponent<BoxCollider2D>().enabled = true;
+                torsoTop.GetComponent<BoxCollider2D>().enabled = true;
+                torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
+
                 // every collider is now disabled
 
-                if (!isGhost)
+                if (isGhost)
                 {
-                    headLimb.GetComponent<BoxCollider2D>().enabled = true;
-                   // torsoTop.GetComponent<BoxCollider2D>().enabled = true;
-                    torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
+                    headLimb.GetComponent<BoxCollider2D>().enabled = false;
+                    torsoTop.GetComponent<BoxCollider2D>().enabled = false;
+                    torsoBottom.GetComponent<BoxCollider2D>().enabled = false;
                 }
                 break;
             case "ragdoll": // interact with physics system
@@ -565,16 +568,20 @@ public class FighterScript : MonoBehaviour
             SetRenderSortingLayer(1);
             SetStances("all");
         }
-        fighterHead.tag = tag;
-        headLimb.tag = tag;
-        torsoTop.tag = tag;
-        torsoBottom.tag = tag;
+        SetTags(tag);
     }
     void UpdateDefaultStancePositions()
     // used within MoveTowardsDefaultStance()
     {
-        hand1DefaultVector = stanceHeadTran.position + orientedTran.right * 0.25f - orientedTran.up * 1f;
-        hand2DefaultVector = stanceHeadTran.position + orientedTran.right * 1.5f - orientedTran.up * 0.5f;
+        float localScaleX = transform.localScale.x;
+        hand1DefaultVector =
+            stanceHeadTran.position
+            + torsoBottom.transform.right * 0.75f * localScaleX
+            - torsoBottom.transform.up * 0.5f;
+        hand2DefaultVector =
+            stanceHeadTran.position
+            + torsoBottom.transform.right * 1.5f * localScaleX
+            - torsoBottom.transform.up * 0.25f;
         foot1DefaultVector = transform.position - orientedTran.up * 4f - orientedTran.right * 1f;
         foot2DefaultVector = transform.position - orientedTran.up * 4f + orientedTran.right * 1f;
     }
@@ -832,8 +839,9 @@ public class FighterScript : MonoBehaviour
     }
     public void UpdateHealthBar()
     {
-        if(hp < 0){
-            healthBar.transform.localScale = new Vector3(0f,0f,0f);
+        if (hp < 0)
+        {
+            healthBar.transform.localScale = new Vector3(0f, 0f, 0f);
             return;
         }
 

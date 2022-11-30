@@ -106,11 +106,11 @@ public class AttackAreaScript : MonoBehaviour
         bool someoneGotHit = false;
         if (creatorType == "enemy" && collision.gameObject.tag == "Player")// enemy hits player
         {
+            Debug.Log("player hit");
             someoneGotHit = true;
             warningSprite.color = Color.blue;
             collided = true;
-            // dont use objectRoot for this because the fighterscript is not on the player root object
-            FighterScript playerFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
+            FighterScript playerFS = objectRoot.GetComponent<PlayerScript>().PCScript;
             guyHitScript = playerFS;
         }
         if (creatorType == "player" && collision.gameObject.tag == "Enemy") // player hits enemy
