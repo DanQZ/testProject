@@ -153,7 +153,7 @@ public class DanEnemyScript : MonoBehaviour
         }
 
         string attackWith = "";
-        if (Random.Range(0f, 1f) > 0.75f)
+        if (Random.Range(0f, 1f) > 0.5f)
         {
             attackWith = "arms";
         }
