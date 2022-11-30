@@ -47,6 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCharacter: {fileID: 1807330274207174158}
   stanceHead: {fileID: 231158464686811250}
+  PCScript: {fileID: 0}
 --- !u!1001 &2159187373883449195
 PrefabInstance:
   m_ObjectHideFlags: 0

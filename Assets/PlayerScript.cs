@@ -9,22 +9,16 @@ public class PlayerScript : MonoBehaviour
     public GameObject stanceHead;
     Transform stanceHeadTran;
     public FighterScript PCScript;
+    public GameObject gameStateManager;
 
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         PCTran = playerCharacter.transform;
         stanceHeadTran = stanceHead.transform;
         PCScript = playerCharacter.GetComponent<FighterScript>();
         PCScript.isPlayer = true;
         PCScript.isGhost = false;
-        StartCoroutine(FixTheFuckingTagsHolyShitWhyTheFuckDoINeedThis());
-    }
-    IEnumerator FixTheFuckingTagsHolyShitWhyTheFuckDoINeedThis(){
-        for(int i = 0; i < 2; i++){
-            yield return null;
-        }
-        PCScript.UpdateBasedOnBools();
+        StartCoroutine(PCScript.UpdateBasedOnBools());
     }
 
     void MoveHeadIfInput()

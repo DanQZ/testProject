@@ -7,11 +7,13 @@ public class AttackAreaScript : MonoBehaviour
     int startFrame;
     int deathFrame;
     public int lifespan = 60; // 60 frames = 1 second
+    
     public GameObject incomingCircle; // declaring a public GameObject allows you to make a reference to any other GameObject
     SpriteRenderer incomingCircleSprite; // SpriteRenderer is a component, which means it is part of another GameObject
     public GameObject warning;
-    public Vector3 strikeDirection;
     SpriteRenderer warningSprite;
+    
+    public Vector3 strikeDirection;
     bool despawnNextFrame = false;
     public int attackDamage;
     public GameObject creator;

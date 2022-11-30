@@ -12,9 +12,18 @@ using PathCreation;
 
 public class FighterScript : MonoBehaviour
 {
+    public GameObject gameStateManager;
     public GameObject healthBar;
     public GameObject healthBarBackground;
-    public Vector3 healthBarHeight;
+    private Vector3 healthBarHeight;
+    private float healthBarScaleX;
+    private float healthBarScaleY;
+
+    public GameObject energyBar;
+    public GameObject energyBarBackground;
+    private Vector3 energyBarHeight;
+    private float energyBarScaleX;
+    private float energyBarScaleY;
 
     public bool isPlayer = false;
     public bool isGhost = false;
@@ -36,6 +45,11 @@ public class FighterScript : MonoBehaviour
     public float speed;
     public int maxhp;
     public int hp;
+
+    public int maxEnergy;
+    public int currentEnergy;
+    int nextEnergyRegainFrame;
+    int energyPerSecond;
     public bool facingRight = true;
     public GameObject fighterAttackArea;
 
@@ -166,7 +180,7 @@ public class FighterScript : MonoBehaviour
     private List<GameObject> allBodyParts = new List<GameObject>();
     private List<LineRenderer> allLineRenderers = new List<LineRenderer>();
     private List<Rigidbody2D> allRigidbody2D = new List<Rigidbody2D>();
-    private List<BoxCollider2D> allBoxCollider2D = new List<BoxCollider2D>();
+    private List<PolygonCollider2D> allPolyCollider2D = new List<PolygonCollider2D>();
     private List<GameObject> allStances = new List<GameObject>();
     //private LineRenderer[] allLineRenderers = new LineRenderer[6];
 
@@ -177,22 +191,40 @@ public class FighterScript : MonoBehaviour
         torsoTop.tag = tag;
         torsoBottom.tag = tag;
     }
-    void InitHealthBar()
+    void InitHealthAndEnergyBar()
     {
         maxhp = 10;
         hp = 10;
-        healthBarHeight = new Vector3(0, 0.5f, 0);
-        healthBar.transform.position = headLimb.transform.position + healthBarHeight;
-        healthBarBackground.transform.position = headLimb.transform.position + healthBarHeight;
+        healthBarHeight = new Vector3(0f, 0.5f, 0f);
+        healthBarScaleX = 2f;
+        healthBarScaleY = .25f;
+
+        maxEnergy = 100;
+        currentEnergy = 100;
+        energyPerSecond = 15;
+        energyBarHeight = new Vector3(0f, 0.4f, 0f);
+        energyBarScaleX = 2f;
+        energyBarScaleY = .1f;
+
+        Vector3 headLimbPos = headLimb.transform.position;
+
+        healthBar.transform.position = headLimbPos + healthBarHeight;
+        healthBarBackground.transform.position = healthBar.transform.position;
+
+        energyBar.transform.position = headLimbPos + energyBarHeight;
+        energyBarBackground.transform.position = energyBar.transform.position;
+
         if (isPlayer)
         {
-            maxhp = 100;
-            hp = 100;
+            maxhp = 30;
+            hp = 30;
         }
         if (isGhost)
         {
             Destroy(healthBar);
             Destroy(healthBarBackground);
+            Destroy(energyBar);
+            Destroy(energyBarBackground);
         }
     }
     void InitGameObjects()
@@ -419,14 +451,14 @@ public class FighterScript : MonoBehaviour
     }
     void InitColliderList()
     {
-        allBoxCollider2D.Add(headLimb.GetComponent<BoxCollider2D>());
+        allPolyCollider2D.Add(headLimb.GetComponent<PolygonCollider2D>());
         int bcCount = 1;
         foreach (GameObject bodyPart in allBodyParts)
         {
-            BoxCollider2D bodyPartBC = bodyPart.GetComponent<BoxCollider2D>();
+            PolygonCollider2D bodyPartBC = bodyPart.GetComponent<PolygonCollider2D>();
             if (bodyPartBC != null)
             {
-                allBoxCollider2D.Add(bodyPartBC);
+                allPolyCollider2D.Add(bodyPartBC);
                 bcCount++;
             }
         }
@@ -437,29 +469,29 @@ public class FighterScript : MonoBehaviour
         switch (type)
         {
             case "combat": // purely to check hitboxes for attacks
-                foreach (BoxCollider2D bc2d in allBoxCollider2D)
+                foreach (PolygonCollider2D pc2d in allPolyCollider2D)
                 {
-                    bc2d.enabled = false;
-                    bc2d.isTrigger = true;
+                    pc2d.enabled = false;
+                    pc2d.isTrigger = true;
                 }
-                headLimb.GetComponent<BoxCollider2D>().enabled = true;
-                torsoTop.GetComponent<BoxCollider2D>().enabled = true;
-                torsoBottom.GetComponent<BoxCollider2D>().enabled = true;
+                headLimb.GetComponent<PolygonCollider2D>().enabled = true;
+                torsoTop.GetComponent<PolygonCollider2D>().enabled = true;
+                torsoBottom.GetComponent<PolygonCollider2D>().enabled = true;
 
                 // every collider is now disabled
 
                 if (isGhost)
                 {
-                    headLimb.GetComponent<BoxCollider2D>().enabled = false;
-                    torsoTop.GetComponent<BoxCollider2D>().enabled = false;
-                    torsoBottom.GetComponent<BoxCollider2D>().enabled = false;
+                    headLimb.GetComponent<PolygonCollider2D>().enabled = false;
+                    torsoTop.GetComponent<PolygonCollider2D>().enabled = false;
+                    torsoBottom.GetComponent<PolygonCollider2D>().enabled = false;
                 }
                 break;
             case "ragdoll": // interact with physics system
-                foreach (BoxCollider2D bc2d in allBoxCollider2D)
+                foreach (PolygonCollider2D pc2d in allPolyCollider2D)
                 {
-                    bc2d.enabled = true;
-                    bc2d.isTrigger = false;
+                    pc2d.enabled = true;
+                    pc2d.isTrigger = false;
                 }
                 break;
         }
@@ -520,11 +552,9 @@ public class FighterScript : MonoBehaviour
     }
     void Start()
     {
-        InitHealthBar(); //THIS NEEDS TO BE IN START, NOT AWAKE
+        InitHealthAndEnergyBar(); //THIS NEEDS TO BE IN START, NOT AWAKE
         UpdateDefaultStancePositions(); // need this to set up groundLevel
 
-        Application.targetFrameRate = 60; // sets frame rate to 60fps, i will likely move this to another script later
-        QualitySettings.vSyncCount = 0;
         // defaults to enemy tags
         fighterHead.tag = "Enemy";
         torsoTop.tag = "Enemy";
@@ -540,6 +570,18 @@ public class FighterScript : MonoBehaviour
     }
     void Update()
     {
+        if (Time.frameCount % 60 == 0)
+        {
+            if (currentEnergy < maxEnergy)
+            {
+                currentEnergy += energyPerSecond;
+                if (currentEnergy > maxEnergy)
+                {
+                    currentEnergy = maxEnergy;
+                }
+                UpdateEnergyBar();
+            }
+        }
         MoveAndDrawBody(); // for some reason important this is called first
         if (controlsEnabled) // if the fighter is not currently in an animation
         {
@@ -547,12 +589,18 @@ public class FighterScript : MonoBehaviour
         }
     }
 
-    public void UpdateBasedOnBools()
+    public IEnumerator UpdateBasedOnBools() // waits 3 frames then updates info
     {
+        for (int i = 0; i < 3; i++)
+        {
+            yield return null;
+        }
         string tag = "";
         if (isPlayer)
         {
             tag = "Player";
+            maxhp = 30;
+            hp = 30;
         }
         if (isGhost)
         {
@@ -839,7 +887,11 @@ public class FighterScript : MonoBehaviour
     }
     public void UpdateHealthBar()
     {
-        if (hp < 0)
+        if (healthBar == null)
+        {
+            return;
+        }
+        if (hp <= 0)
         {
             healthBar.transform.localScale = new Vector3(0f, 0f, 0f);
             return;
@@ -847,21 +899,64 @@ public class FighterScript : MonoBehaviour
 
         float percentage = ((float)hp) / ((float)maxhp);
         healthBar.transform.localScale = new Vector3(
-            2f * percentage,
-            .25f,
+            2f * percentage * transform.localScale.x,
+            healthBarScaleY,
             1f
             );
+        healthBarBackground.transform.localScale = new Vector3(
+            2f * transform.localScale.x,
+            healthBarScaleY,
+            1f
+            );
+
+        healthBarHeight = new Vector3(0f, transform.localScale.y * 0.5f, 0f);
+
         healthBar.transform.position = new Vector3(
-            headLimb.transform.position.x - (1f - percentage),
+            (headLimb.transform.position.x - (1f - percentage) * healthBarScaleX / 2f),
             headLimb.transform.position.y,
             1
             )
             + healthBarHeight;
     }
+    public void UpdateEnergyBar()
+    {
+        if (energyBar == null)
+        {
+            return;
+        }
+        if (currentEnergy <= 0)
+        {
+            energyBar.transform.localScale = new Vector3(0f, 0f, 0f);
+            return;
+        }
+
+        float percentage = ((float)currentEnergy) / ((float)maxEnergy);
+        energyBar.transform.localScale = new Vector3(
+            energyBarScaleX * percentage * transform.localScale.x,
+            energyBarScaleY,
+            1f
+            );
+        energyBarBackground.transform.localScale = new Vector3(
+            2f * transform.localScale.x,
+            energyBarScaleY,
+            1f
+            );
+
+        energyBarHeight = new Vector3(0f, transform.localScale.y * 0.4f, 0f);
+
+        energyBar.transform.position = new Vector3(
+            (headLimb.transform.position.x - (1f - percentage) * energyBarScaleX / 2f),
+            headLimb.transform.position.y,
+            1f
+            )
+            + energyBarHeight;
+    }
     public void Die()
     {
         Destroy(healthBar);
         Destroy(healthBarBackground);
+        Destroy(energyBar);
+        Destroy(energyBarBackground);
         StopAllCoroutines();
         SetRagdoll(true);
         Destroy(this.transform.root.gameObject, 5);
@@ -1124,7 +1219,7 @@ public class FighterScript : MonoBehaviour
     public void TurnBody()
     {
         float targetScale = 0 - transform.localScale.x; // can't use directionMultiplier for this!!!
-        transform.localScale = new Vector3(targetScale, 1, 1);
+        transform.localScale = new Vector3(targetScale, 1f, 1f);
         switch (transform.localScale.x)
         {
             case 1: // go from right to left
@@ -1138,6 +1233,8 @@ public class FighterScript : MonoBehaviour
         Vector3 orienter = transform.position;
         orienter -= orientedTran.forward;
         orientedTran.LookAt(orienter);
+        UpdateHealthBar();
+        UpdateEnergyBar();
     }
     IEnumerator GoToCenterXAndTurn()
     {
@@ -1347,6 +1444,17 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator Hook()
     {
+        int energyCost = 10;
+        if (currentEnergy < energyCost)
+        {
+            controlsEnabled = true;
+            yield break;
+        }
+        else
+        {
+            currentEnergy -= energyCost;
+            UpdateEnergyBar();
+        }
         int power = 6;
         float timeTaken = .2f; //seconds
         int framesTaken = (int)(timeTaken * 60);
@@ -1382,9 +1490,29 @@ public class FighterScript : MonoBehaviour
         }
         controlsEnabled = true;
     }
-    IEnumerator JabCombo(string type)
+    IEnumerator JabCombo(string type) // type = "defensive" or "aggressive". defensive is a 2 hit combo, aggressive is a single far jab
     {
-        int power = 4;
+        int energyCost = 8;
+        int power = 3;
+        switch (type)
+        {
+            case "defensive":
+                energyCost = 8;
+                break;
+            case "aggressive":
+                energyCost = 25;
+                break;
+        }
+        if (currentEnergy < energyCost)
+        {
+            controlsEnabled = true;
+            yield break;
+        }
+        else
+        {
+            currentEnergy -= energyCost;
+            UpdateEnergyBar();
+        }
 
         Vector3 attackTarget = GetAttackVector("Jab" + type);
         float timeTaken = .12f; //seconds
@@ -1435,6 +1563,18 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator RoundhouseKick()
     {
+        int energyCost = 30;
+        if (currentEnergy < energyCost)
+        {
+            controlsEnabled = true;
+            yield break;
+        }
+        else
+        {
+            currentEnergy -= energyCost;
+            UpdateEnergyBar();
+
+        }
         int power = 8;
         float timeTaken = .25f; //seconds
         int framesTaken = (int)(timeTaken * 60);
@@ -1466,7 +1606,8 @@ public class FighterScript : MonoBehaviour
             Vector3 hand1Guard = stanceHeadTran.position + orientedTran.right * 1f;
             float distance = Vector3.Distance(hand1Guard, stanceHand1Tran.position);
             stanceHand1Tran.LookAt(hand1Guard);
-            stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(distancePerFrame * distance, speed);
+            stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Min(distancePerFrame * distance, speed);
+
             yield return null;
         }
         StrikeThisLocation(power, attackTarget, jointKnee1Tran.position, stanceFoot1, calf1, 2f, 1f);
@@ -1482,8 +1623,29 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator FrontKick(string type) // type = "grounded" or "flying"
     {
+        int energyCost = 30;
         int power = 7;
         bool grounded = true;
+        switch (type)
+        {
+            case "grounded":
+                energyCost = 4;
+                break;
+            case "flying":
+                energyCost = 0;
+                break;
+        }
+        if (currentEnergy < energyCost)
+        {
+            controlsEnabled = true;
+            yield break;
+        }
+        else
+        {
+            currentEnergy -= energyCost;
+            UpdateEnergyBar();
+        }
+
         switch (type)
         {
             case "grounded":
@@ -1501,7 +1663,6 @@ public class FighterScript : MonoBehaviour
                 stanceHand2Active = true;
                 break;
         }
-
         float range = 4.5f;
         float raiseFootTime = .15f;
         float kickTime = .2f; //seconds
@@ -1636,6 +1797,19 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator JumpingFrontKick()
     {
+        int energyCost = 65;
+        // no power listed here, rather it is listed on the front kick
+        if (currentEnergy < energyCost)
+        {
+            controlsEnabled = true;
+            yield break;
+        }
+        else
+        {
+            currentEnergy -= energyCost;
+            UpdateEnergyBar();
+        }
+
         controlsEnabled = false;
         int sector = GetHeadSector();
 
@@ -1658,7 +1832,13 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator Uppercut()
     {
+        int energyCost = 20;
         int power = 6;
+        if (currentEnergy < energyCost)
+        {
+            controlsEnabled = true;
+            yield break;
+        }
         float timeTaken = .2f; //seconds
         int framesTaken = (int)(timeTaken * 60);
         Vector3 attackTarget = GetAttackVector("Uppercut");

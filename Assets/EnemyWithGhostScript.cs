@@ -43,6 +43,7 @@ public class EnemyWithGhostScript : MonoBehaviour
     Queue<Vector3> foot1PosQ = new Queue<Vector3>();
     Queue<Vector3> foot2PosQ = new Queue<Vector3>();
     Queue<bool> facingRightQ = new Queue<bool>();
+    Queue<int> currentEnergyQ = new Queue<int>();
 
 
     void Awake()
@@ -63,8 +64,8 @@ public class EnemyWithGhostScript : MonoBehaviour
 
     void Start()
     {
-        ghostFighterScript.UpdateBasedOnBools();
-        enemyFighterScript.UpdateBasedOnBools();
+        StartCoroutine(ghostFighterScript.UpdateBasedOnBools());
+        StartCoroutine(enemyFighterScript.UpdateBasedOnBools());
         enemyFighterTran = enemyFighter.transform;
         enemyHeadStanceTran = enemyHeadStance.transform;
 
@@ -98,6 +99,8 @@ public class EnemyWithGhostScript : MonoBehaviour
             enemyFoot2StanceTran.position = foot2PosQ.Dequeue();
 
             bool toFaceRight = facingRightQ.Dequeue();
+            enemyFighterScript.currentEnergy = currentEnergyQ.Dequeue();
+            enemyFighterScript.UpdateEnergyBar();
             if (enemyFighterScript.facingRight != toFaceRight)
             {
                 //Debug.Log("successful detection of turning");
@@ -126,5 +129,6 @@ public class EnemyWithGhostScript : MonoBehaviour
         foot2PosQ.Enqueue(ghostFighterScript.stanceFoot2Tran.position);
 
         facingRightQ.Enqueue(ghostFighterScript.facingRight);
+        currentEnergyQ.Enqueue(ghostFighterScript.currentEnergy);
     }
 }
