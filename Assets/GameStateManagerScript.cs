@@ -17,6 +17,7 @@ public class GameStateManagerScript : MonoBehaviour
     public GameObject MAIN_MENU_UI;
     public GameObject IN_GAME_UI;
     public GameObject GAME_OVER_UI;
+    public GameObject CREDITS_UI;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
 
     void Awake()
@@ -24,6 +25,7 @@ public class GameStateManagerScript : MonoBehaviour
         ALL_UI_LIST.Add(MAIN_MENU_UI);
         ALL_UI_LIST.Add(IN_GAME_UI);
         ALL_UI_LIST.Add(GAME_OVER_UI);
+        ALL_UI_LIST.Add(CREDITS_UI);
 
 
         transform.position = new Vector3(0f, 0f, 0f);
@@ -62,6 +64,10 @@ public class GameStateManagerScript : MonoBehaviour
         scoreCounter.text = "Score: 0";
     }
 
+    public void ExitApplication()
+    {
+        Application.Quit();
+    }
 
     public void EndGame()
     {
@@ -74,6 +80,11 @@ public class GameStateManagerScript : MonoBehaviour
     {
         DisplayUI("game over");
         enemyManagerScript.StopSpawningEnemies();
+    }
+
+    public void ShowCredits()
+    {
+        DisplayUI("credits");
     }
 
     public void HideAllUI()
@@ -100,6 +111,9 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
             case "game over":
                 buttonSet = GAME_OVER_UI;
+                break;
+            case "credits":
+                buttonSet = CREDITS_UI;
                 break;
         }
 
