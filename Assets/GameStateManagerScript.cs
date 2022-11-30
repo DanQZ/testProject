@@ -12,7 +12,10 @@ public class GameStateManagerScript : MonoBehaviour
     private EnemyManagerScript enemyManagerScript;
     public List<GameObject> allEnemies;
     public int score;
-    public Text scoreCounter;
+    public int highScore;
+    public Text scoreCounterText;
+    public Text gameOverText;
+    public Text highScoreText;
 
     public GameObject MAIN_MENU_UI;
     public GameObject IN_GAME_UI;
@@ -39,6 +42,7 @@ public class GameStateManagerScript : MonoBehaviour
 
         allEnemies = enemyManagerScript.allEnemiesList;
 
+        highScore = 0;
         DisplayUI("main menu");
     }
 
@@ -61,7 +65,14 @@ public class GameStateManagerScript : MonoBehaviour
 
         // start counting score
         score = 0;
-        scoreCounter.text = "Score: 0";
+        scoreCounterText.text = "Score: 0";
+    }
+
+    public void UpdateHighScore(){
+        if(score > highScore){
+            highScore = score;
+        }
+        highScoreText.text = "High Score: " + highScore;
     }
 
     public void ExitApplication()
@@ -78,7 +89,8 @@ public class GameStateManagerScript : MonoBehaviour
 
     public void GameOver()
     {
-        DisplayUI("game over");
+        DisplayUI("game over");    
+        gameOverText.text = "GAME OVER\nScore: " + score;
         enemyManagerScript.StopSpawningEnemies();
     }
 
@@ -99,27 +111,22 @@ public class GameStateManagerScript : MonoBehaviour
     {
         HideAllUI();
         string buttonSetName = buttonSetNameArg.ToLower();
-        GameObject buttonSet = null;
 
         switch (buttonSetName)
         {
             case "main menu":
-                buttonSet = MAIN_MENU_UI;
+                UpdateHighScore();
+                MAIN_MENU_UI.SetActive(true);
                 break;
             case "in game":
-                buttonSet = IN_GAME_UI;
+                IN_GAME_UI.SetActive(true);
                 break;
             case "game over":
-                buttonSet = GAME_OVER_UI;
+                GAME_OVER_UI.SetActive(true);
                 break;
             case "credits":
-                buttonSet = CREDITS_UI;
+                CREDITS_UI.SetActive(true);
                 break;
-        }
-
-        if (buttonSet != null)
-        {
-            buttonSet.SetActive(true);
         }
     }
 
@@ -131,6 +138,6 @@ public class GameStateManagerScript : MonoBehaviour
 
     void UpdateScore()
     {
-        scoreCounter.text = "Score: " + score;
+        scoreCounterText.text = "Score: " + score;
     }
 }

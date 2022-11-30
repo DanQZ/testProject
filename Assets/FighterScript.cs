@@ -1804,7 +1804,7 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator JumpingFrontKick()
     {
-        int energyCost = 65;
+        int energyCost = 75;
         // no power listed here, rather it is listed on the front kick
         if (currentEnergy < energyCost)
         {
