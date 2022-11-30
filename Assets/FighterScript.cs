@@ -959,6 +959,13 @@ public class FighterScript : MonoBehaviour
         Destroy(energyBarBackground);
         StopAllCoroutines();
         SetRagdoll(true);
+        if(isPlayer){
+            gameStateManager.GetComponent<GameStateManagerScript>().GameOver();
+            return;
+        }
+        if(!isGhost && !isPlayer){
+            gameStateManager.GetComponent<GameStateManagerScript>().AddScore(100);
+        }
         Destroy(this.transform.root.gameObject, 5);
     }
     public IEnumerator Stumble(float time, Vector3 direction, float impulse, GameObject partHit) // enable physics temporarily then turn back on stances
@@ -1629,7 +1636,7 @@ public class FighterScript : MonoBehaviour
         switch (type)
         {
             case "grounded":
-                energyCost = 4;
+                energyCost = 30;
                 break;
             case "flying":
                 energyCost = 0;

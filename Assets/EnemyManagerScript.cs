@@ -15,44 +15,41 @@ public class EnemyManagerScript : MonoBehaviour
     public GameObject player; // reference to player prefab in the scene
     GameObject playerFighter; // reference to the fighter prefab inside the player prefab
     PlayerScript PCScript; // reference to the player script
+    public List<GameObject> allEnemiesList = new List<GameObject>();
 
-    bool canSpawnEnemy = true;
-    bool spawningEnemies = false;
-    public List<GameObject> allEnemies = new List<GameObject>();
+    private IEnumerator spawnEnemiesCoroutine;
 
     // Start is called before the first frame update
 
     void Start()
     {
-        PCScript = player.GetComponent<PlayerScript>(); // creates a reference
-        playerFighter = PCScript.playerCharacter; // creates a reference to the fighter inside the player
+        spawnEnemiesCoroutine = KeepSpawningEnemies();
     }
-
-    // Update is called once per frame
-    void Update()
+    public void NewGame()
     {
-        // on pressing P, spawn 1 enemy per second to the right
-        if (Input.GetKey("p") && canSpawnEnemy)
-        {
-            SpawnEnemyToTheRightOrLeft();
-            canSpawnEnemy = false;
-            Invoke("CanSpawnEnemyTrue", 1f);
-        }
-        if (Input.GetKeyDown("o") && canSpawnEnemy)
-        {
-            if (spawningEnemies)
-            {
-                StopAllCoroutines();
-                spawningEnemies = false;
-            }
-            else
-            {
-                StartCoroutine(KeepSpawningEnemies());
-                spawningEnemies = true;
-            }
+        PCScript = player.GetComponent<PlayerScript>(); // creates a reference
+        playerFighter = PCScript.playerFighter; // creates a reference to the fighter inside the player
+        StartCoroutine(spawnEnemiesCoroutine);
+    }
 
+    private void ClearAllEnemies()
+    {
+        foreach (GameObject enemy in allEnemiesList)
+        {
+            Destroy(enemy);
         }
     }
+    public void EndGame()
+    {
+        StopSpawningEnemies();
+        ClearAllEnemies();
+    }
+
+    public void StopSpawningEnemies()
+    {
+        StopCoroutine(spawnEnemiesCoroutine);
+    }
+
     // spawn 1 enemy 10 units to the right
     void SpawnEnemyToTheRightOrLeft()
     {
@@ -75,23 +72,20 @@ public class EnemyManagerScript : MonoBehaviour
         newEnemyScript.playerFighter = playerFighter;
         newEnemyScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
 
-        allEnemies.Add(newEnemyWithGhost);
+        newEGScript.enemyFighter.GetComponent<FighterScript>().gameStateManager = gameStateManager;
+
+        allEnemiesList.Add(newEnemyWithGhost);
     }
-    void CanSpawnEnemyTrue()
+
+    IEnumerator KeepSpawningEnemies() // spawns an enemy every 3-6 seconds
     {
-        canSpawnEnemy = true;
-    }
-    IEnumerator KeepSpawningEnemies()
-    {
-        int i = 0;
-        int nextFrame = 0;
+        int nextFrame = Time.frameCount;
         while (true)
         {
-            i++;
-            if (i >= nextFrame)
+            if (Time.frameCount >= nextFrame)
             {
                 SpawnEnemyToTheRightOrLeft();
-                nextFrame = i + (int)(60f * Random.Range(3f, 6f));
+                nextFrame = Time.frameCount + (int)(60f * Random.Range(3f, 6f));
             }
             yield return null;
         }

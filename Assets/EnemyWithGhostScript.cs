@@ -45,6 +45,12 @@ public class EnemyWithGhostScript : MonoBehaviour
     Queue<bool> facingRightQ = new Queue<bool>();
     Queue<int> currentEnergyQ = new Queue<int>();
 
+    private IEnumerator realEnemyActionsCoroutine;
+
+    public void StopAll(){
+        Destroy(ghostFighter);
+        StopCoroutine(realEnemyActionsCoroutine);
+    }
 
     void Awake()
     {
@@ -59,7 +65,8 @@ public class EnemyWithGhostScript : MonoBehaviour
         ghostFighterTran = ghostFighter.transform;
         ghostHeadStanceTran = ghostHeadStance.transform;
 
-        StartCoroutine(RealEnemyActions());
+        realEnemyActionsCoroutine = RealEnemyActions();
+        StartCoroutine(realEnemyActionsCoroutine);
     }
 
     void Start()

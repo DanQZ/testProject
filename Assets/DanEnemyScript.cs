@@ -8,7 +8,7 @@ public class DanEnemyScript : MonoBehaviour
     Transform enemyTran;
     public GameObject stanceHead;
     Transform stanceHeadTran;
-    public FighterScript thisFighterScript;
+    public FighterScript thisFighterScript; // script of the ghost fighter
     public GameObject playerFighter;
     public Transform playerHeadTran;
     int attackTimer;
@@ -19,6 +19,9 @@ public class DanEnemyScript : MonoBehaviour
     float targetDistanceToPlayer;
     float distanceToPlayer;
     string enemyState;
+    public void StopAll(){
+        StopAllCoroutines();
+    }
     IEnumerator Start()
     {
         for (int i = 0; i < 10; i++) // waits a short time to make sure ghost does not glitch out
@@ -98,7 +101,7 @@ public class DanEnemyScript : MonoBehaviour
                 targetDistanceToPlayer = Random.Range(6f, 8f);
                 break;
             case "attack":
-                targetDistanceToPlayer = Random.Range(3.5f, 5.5f);
+                targetDistanceToPlayer = Random.Range(3f, 5f);
                 break;
         }
         //Debug.Log("Enemystate = " + enemyState + ", targetDistance = " + targetDistanceToPlayer);

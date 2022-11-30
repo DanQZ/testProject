@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
 {
-    public GameObject playerCharacter;
+    public GameObject playerFighter;
     Transform PCTran;
     public GameObject stanceHead;
     Transform stanceHeadTran;
@@ -13,9 +13,9 @@ public class PlayerScript : MonoBehaviour
 
     void Awake()
     {
-        PCTran = playerCharacter.transform;
+        PCTran = playerFighter.transform;
         stanceHeadTran = stanceHead.transform;
-        PCScript = playerCharacter.GetComponent<FighterScript>();
+        PCScript = playerFighter.GetComponent<FighterScript>();
         PCScript.isPlayer = true;
         PCScript.isGhost = false;
         StartCoroutine(PCScript.UpdateBasedOnBools());
