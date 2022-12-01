@@ -120,7 +120,7 @@ public class DanEnemyScript : MonoBehaviour
     }
     void MoveTowardsTargetDistance()
     {
-        distanceToPlayer = Mathf.Abs(enemyCharacter.transform.position.x - playerFighter.transform.position.x);
+        distanceToPlayer = Mathf.Abs(enemyFollower.transform.position.x - playerFighter.transform.position.x);
         FacePlayer();
         if (thisFighterScript.facingRight) // facing right
         {

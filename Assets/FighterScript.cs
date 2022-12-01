@@ -2008,6 +2008,7 @@ public class FighterScript : MonoBehaviour
         int power = 8;
         if (currentEnergy < maxEnergy)
         {
+            controlsEnabled = true;
             yield break;
         }
         else
