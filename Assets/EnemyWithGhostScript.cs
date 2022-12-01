@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class EnemyWithGhostScript : MonoBehaviour
 {
+    public GameObject myManagerObject;
+    public EnemyManagerScript myManagerScript;
+
+    public int enemyID;
     public GameObject enemyFighter;
     public GameObject ghostFighter;
     public GameObject enemyHeadStance;
@@ -27,7 +31,6 @@ public class EnemyWithGhostScript : MonoBehaviour
     int attackInterval;
     float targetDistanceToPlayer;
     float distanceToPlayer;
-
 
     Vector3 pos1sAgo;
     string method1sAgo;
@@ -84,6 +87,8 @@ public class EnemyWithGhostScript : MonoBehaviour
 
         enemyFoot1StanceTran = enemyFighterScript.stanceFoot1Tran;
         enemyFoot2StanceTran = enemyFighterScript.stanceFoot2Tran;
+        
+        enemyID = myManagerScript.numOfEnemiesSpawnedThisGame;
     }
 
     IEnumerator RealEnemyActions()

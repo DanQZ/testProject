@@ -9,8 +9,7 @@ public class GameStateManagerScript : MonoBehaviour
     private GameObject currentPlayer;
     public GameObject enemyManager;
 
-    private EnemyManagerScript enemyManagerScript;
-    public List<GameObject> allEnemies;
+    public EnemyManagerScript enemyManagerScript;
     public int score;
     public int highScore;
     public Text scoreCounterText;
@@ -18,6 +17,7 @@ public class GameStateManagerScript : MonoBehaviour
     public Text highScoreText;
     public Text chosenCharacterText;
 
+    public GameObject UI_PARENT;
     public GameObject MAIN_MENU_UI;
     public GameObject IN_GAME_UI;
     public GameObject GAME_OVER_UI;
@@ -29,12 +29,12 @@ public class GameStateManagerScript : MonoBehaviour
 
     void Awake()
     {
+        Debug.Log("screen width/height = " + Screen.width + ", " + Screen.height);
         ALL_UI_LIST.Add(MAIN_MENU_UI);
         ALL_UI_LIST.Add(IN_GAME_UI);
         ALL_UI_LIST.Add(GAME_OVER_UI);
         ALL_UI_LIST.Add(CREDITS_UI);
         ALL_UI_LIST.Add(INSTRUCTIONS_UI);
-
 
         transform.position = new Vector3(0f, 0f, 0f);
 
@@ -45,8 +45,6 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript = enemyManager.GetComponent<EnemyManagerScript>();
         enemyManagerScript.gameStateManager = this.gameObject;
 
-        allEnemies = enemyManagerScript.allEnemiesList;
-
         highScore = 0;
         chosenCharacterType = "acolyte";
         DisplayUI("main menu");
@@ -55,7 +53,7 @@ public class GameStateManagerScript : MonoBehaviour
     public void StartNewGame()
     {
         DisplayUI("in game");
-        
+
         // makes and returns new player object
         currentPlayer = CreatePlayer();
 
@@ -66,11 +64,8 @@ public class GameStateManagerScript : MonoBehaviour
         score = 0;
         scoreCounterText.text = "Score: " + score;
     }
-
-
     public GameObject CreatePlayer()
     {
-
         GameObject newPlayerPrefab = Instantiate(playerPrefab, transform.position, transform.rotation);
         currentPlayer = newPlayerPrefab;
         PlayerScript newPlayerScript = currentPlayer.GetComponent<PlayerScript>();
@@ -79,6 +74,7 @@ public class GameStateManagerScript : MonoBehaviour
         // updates the player fighter and makes reference to the fighter
         newPlayerScript.gameStateManager = transform.gameObject;
         PFScript.gameStateManager = transform.gameObject;
+        PFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
         PFScript.SetCharacterType(chosenCharacterType);
 
         return newPlayerPrefab;
@@ -145,7 +141,22 @@ public class GameStateManagerScript : MonoBehaviour
         switch (buttonSetName)
         {
             case "main menu":
+
+                // this might be an autistic way to do this but whatever it scales it correctly for 16:9 ratio
+                float UIHeightMult = (((float)Screen.height) / 604f);
+                float UIWidthMult = (((float)Screen.width) / 1074f);
+                float ratio = ((float)Screen.width) / ((float)Screen.height);
+                float UIMult = 0f;
+                if(ratio > 1.777f){
+                    UIMult = UIHeightMult;
+                }
+                else{
+                    UIMult = UIWidthMult;
+                }
+
+                UI_PARENT.transform.localScale = new Vector3(UIMult, UIMult, 1f);
                 UpdateHighScore();
+
                 MAIN_MENU_UI.SetActive(true);
                 break;
             case "in game":

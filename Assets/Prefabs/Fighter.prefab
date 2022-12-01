@@ -560,7 +560,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fdc7c5fa3ca2ec4d8343cd5920cbd1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  particleEffectsPrefab: {fileID: 6418008581784927329, guid: c0de8e511e337be47aa46764bb3cd6de, type: 3}
   gameStateManager: {fileID: 0}
+  gameStateManagerScript: {fileID: 0}
   healthBar: {fileID: 2531187615910670151}
   healthBarBackground: {fileID: 8702347660276618670}
   energyBar: {fileID: 1926604501053430742}
@@ -573,8 +575,7 @@ MonoBehaviour:
   groundLevel: 0
   fighterOrienter: {fileID: 6132136372627296245}
   orientedTran: {fileID: 0}
-  speed: 0
-  maxhp: 0
+  characterType: 
   hp: 0
   maxEnergy: 0
   currentEnergy: 0

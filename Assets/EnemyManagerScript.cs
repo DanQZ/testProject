@@ -6,6 +6,7 @@ public class EnemyManagerScript : MonoBehaviour
 {
     public GameObject gameStateManager;
     public GameObject enemyWithGhostPrefab; // reference to the enemy prefab
+    public int numOfEnemiesSpawnedThisGame;
     EnemyWithGhostScript EGScript;
     GameObject ghostFighter;
     GameObject enemyFighter;
@@ -18,18 +19,30 @@ public class EnemyManagerScript : MonoBehaviour
     public List<GameObject> allEnemiesList = new List<GameObject>();
 
     private IEnumerator spawnEnemiesCoroutine;
+    private int enemiesSpawnedThisFrame;
 
     // Start is called before the first frame update
 
     void Start()
     {
         spawnEnemiesCoroutine = KeepSpawningEnemies();
+        numOfEnemiesSpawnedThisGame = 0;
     }
     public void NewGame()
     {
+        numOfEnemiesSpawnedThisGame = 0;
         PCScript = playerPrefab.GetComponent<PlayerScript>(); // creates a reference
         playerFighter = PCScript.playerFighter; // creates a reference to the fighter inside the player
         StartCoroutine(spawnEnemiesCoroutine);
+    }
+    public List<GameObject> GetAllEnemiesList()
+    {
+        RemoveDestroyedEnemiesFromList();
+        return allEnemiesList;
+    }
+    public void RemoveDestroyedEnemiesFromList()
+    {
+        allEnemiesList.RemoveAll(enemy => enemy == null);
     }
 
     private void ClearAllEnemies()
@@ -63,18 +76,26 @@ public class EnemyManagerScript : MonoBehaviour
             transform.rotation
             );
 
-        // properly references the player
+        // properly references the player for the ghost/enemyFighter object
         EnemyWithGhostScript newEGScript = newEnemyWithGhost.GetComponent<EnemyWithGhostScript>();
         newEGScript.playerFighter = playerFighter;
         newEGScript.playerHead = playerFighter.GetComponent<FighterScript>().stanceHead;
+        newEGScript.myManagerObject = transform.gameObject;
+        newEGScript.myManagerScript = transform.gameObject.GetComponent<EnemyManagerScript>();
 
+        // the enemy AI referencing 
         DanEnemyScript newEnemyScript = newEnemyWithGhost.GetComponent<DanEnemyScript>();
         newEnemyScript.playerFighter = playerFighter;
         newEnemyScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
 
-        newEGScript.enemyFighter.GetComponent<FighterScript>().gameStateManager = gameStateManager;
+        // the non-ghost part 
+        FighterScript newEGSFighterScript = newEGScript.enemyFighter.GetComponent<FighterScript>();
+
+        newEGSFighterScript.gameStateManager = gameStateManager;
+        newEGSFighterScript.gameStateManagerScript = gameStateManager.GetComponent<GameStateManagerScript>();
 
         allEnemiesList.Add(newEnemyWithGhost);
+        numOfEnemiesSpawnedThisGame++;
     }
 
     IEnumerator KeepSpawningEnemies() // spawns an enemy every x to y seconds

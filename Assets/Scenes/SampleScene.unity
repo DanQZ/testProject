@@ -194,7 +194,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: CLAIRVOYANCE ALPHA 1.0
+  m_Text: CLAIRVOYANCE ALPHA 1.2
 --- !u!222 &57362973
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -249,6 +249,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameStateManager: {fileID: 1875287469}
   enemyWithGhostPrefab: {fileID: 8461294743135604799, guid: b67cfa222543ca242ac4f7bdac8d1bf2, type: 3}
+  numOfEnemiesSpawnedThisGame: 0
   playerPrefab: {fileID: 0}
   allEnemiesList: []
 --- !u!1 &157350610
@@ -1044,7 +1045,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 517110077}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2521,7 +2522,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -0.362}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 155.4, y: -5.9}
+  m_AnchoredPosition: {x: 155.4, y: -5.8999996}
   m_SizeDelta: {x: 363.69, y: 419.67}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &974057649
@@ -2979,7 +2980,7 @@ RectTransform:
   m_GameObject: {fileID: 1193845031}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 1}
-  m_LocalScale: {x: 1.9611671, y: 1.9611671, z: 1.9611671}
+  m_LocalScale: {x: 1.4064705, y: 1.4064705, z: 1.4064705}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 714381960}
@@ -2988,7 +2989,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -65.067, y: 59.723}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1193845033
@@ -3257,7 +3258,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1266465019}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.6, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 11.41, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3866,7 +3867,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 5.5999985, y: -0.7}
+  m_AnchoredPosition: {x: 5.5999985, y: -0.6999998}
   m_SizeDelta: {x: 296.66, y: 85.38}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1585995679
@@ -4270,13 +4271,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 5528175834239307050, guid: 01ebb5b2eefb50c46865fff3d0571c8e, type: 3}
   enemyManager: {fileID: 88031893}
-  allEnemies: []
+  enemyManagerScript: {fileID: 0}
   score: 0
   highScore: 0
   scoreCounterText: {fileID: 2036325212}
   gameOverText: {fileID: 2023857973}
   highScoreText: {fileID: 1291490193}
   chosenCharacterText: {fileID: 1829622247}
+  UI_PARENT: {fileID: 517110077}
   MAIN_MENU_UI: {fileID: 559985707}
   IN_GAME_UI: {fileID: 458392745}
   GAME_OVER_UI: {fileID: 2051840213}
@@ -4693,7 +4695,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2137158688}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 7.5, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

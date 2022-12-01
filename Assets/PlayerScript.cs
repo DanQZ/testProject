@@ -82,6 +82,12 @@ public class PlayerScript : MonoBehaviour
                 PFScript.Attack("legs");
                 return;
             }
+            if (Input.GetKey("f"))
+            {
+                PFScript.controlsEnabled = false;
+                PFScript.Attack("groundslam");
+                return;
+            }
         }
     }
 

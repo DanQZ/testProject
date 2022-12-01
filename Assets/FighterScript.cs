@@ -12,7 +12,9 @@ using PathCreation;
 
 public class FighterScript : MonoBehaviour
 {
+    public GameObject particleEffectsPrefab;
     public GameObject gameStateManager;
+    public GameStateManagerScript gameStateManagerScript;
     public GameObject healthBar;
     public GameObject healthBarBackground;
     private Vector3 healthBarHeight;
@@ -548,7 +550,7 @@ public class FighterScript : MonoBehaviour
         InitTrailRenderers();
 
         HideJointsAndStances();
-
+        EqualizeBodyPartMass(false);
         hp = 10;
         maxhp = 10;
         speedMultiplier = 1f;
@@ -679,21 +681,6 @@ public class FighterScript : MonoBehaviour
         Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + powerMultiplier);
         moveSpeed = defaultMoveSpeed * speedMultiplier;
     }
-    void UpdateDefaultStancePositions()
-    // used within MoveTowardsDefaultStance()
-    {
-        float localScaleX = transform.localScale.x;
-        hand1DefaultVector =
-            stanceHeadTran.position
-            + torsoBottom.transform.right * 0.75f * localScaleX
-            - torsoBottom.transform.up * 0.5f;
-        hand2DefaultVector =
-            stanceHeadTran.position
-            + torsoBottom.transform.right * 1.5f * localScaleX
-            - torsoBottom.transform.up * 0.25f;
-        foot1DefaultVector = transform.position - orientedTran.up * 4f - orientedTran.right * 1f;
-        foot2DefaultVector = transform.position - orientedTran.up * 4f + orientedTran.right * 1f;
-    }
     void MoveTowardsDefaultStance()
     //only happens with controlsEnabled. moves at speed towards default positions of hands and feet
     {
@@ -751,6 +738,21 @@ public class FighterScript : MonoBehaviour
             stanceFoot2Tran.LookAt(foot2DefaultVector);
             stanceFoot2Tran.position += stanceFoot2Tran.forward * Mathf.Max(moveSpeed * distance * 2, moveSpeed);
         }
+    }
+    void UpdateDefaultStancePositions()
+    // used within MoveTowardsDefaultStance()
+    {
+        float localScaleX = transform.localScale.x;
+        hand1DefaultVector =
+            stanceHeadTran.position
+            + torsoBottom.transform.right * 0.75f * localScaleX
+            - torsoBottom.transform.up * 0.5f;
+        hand2DefaultVector =
+            stanceHeadTran.position
+            + torsoBottom.transform.right * 1.5f * localScaleX
+            - torsoBottom.transform.up * 0.25f;
+        foot1DefaultVector = transform.position - orientedTran.up * 4f - orientedTran.right * 1f;
+        foot2DefaultVector = transform.position - orientedTran.up * 4f + orientedTran.right * 1f;
     }
     void MoveAndDrawBody() //moves limbs to desired location, then positions the LineRenderers to where the joints are
     {
@@ -946,7 +948,33 @@ public class FighterScript : MonoBehaviour
             SetStances("combat");
         }
     }
-    public void UpdateHealthBar()
+    public void TakeHealing(int healing)
+    {
+        ChangeHealth(healing);
+    }
+    public void TakeDamage(int damage)
+    {
+        ChangeHealth(damage * -1);
+    }
+    private void ChangeHealth(int change)
+    {
+        hp += change;
+        if (hp > maxhp)
+        {
+            hp = maxhp;
+        }
+        UpdateHealthBar();
+    }
+    public void SetHealth(int amount)
+    {
+        hp = amount;
+        if (hp > maxhp)
+        {
+            hp = maxhp;
+        }
+        UpdateHealthBar();
+    }
+    private void UpdateHealthBar()
     {
         if (healthBar == null)
         {
@@ -1223,6 +1251,9 @@ public class FighterScript : MonoBehaviour
     }
     public void MoveHeadTowardsSector(int sector)
     {
+        // 0 1 2 = bottom back, bottom, bottom forward
+        // 3 4 5 = center back, true center, center forward
+        // 6 7 8 = top back, top, top forard
         MoveHead(GetHeadDirectionToSector(sector));
     }
     public bool IsHeadWithinSectors() // checks if head is within boundaries
@@ -1350,6 +1381,12 @@ public class FighterScript : MonoBehaviour
         };
         controlsEnabled = false;
 
+        if (attackType == "groundslam")
+        {
+            StartCoroutine(GroundSlam());
+            return;
+        }
+
         int sector = GetHeadSector();
         //Debug.Log("Attacking from " + transform.position.x + "," + transform.position.y);
         //Debug.Log("Head at " + stanceHeadTran.position.x + "," + stanceHeadTran.position.y);
@@ -1422,7 +1459,15 @@ public class FighterScript : MonoBehaviour
         }
         //Debug.Log(sectors[sector] + " attack");
     }
-    private void StrikeThisLocation(int power, Vector3 targetLocation, Vector3 startOfBodyPart, GameObject strikingStanceObject, GameObject limbObject, float xScale, float yScale) // creates an AttackArea, be it enemy or friendly
+    private void StrikeThisLocation(
+        int power,
+        Vector3 targetLocation, // attack area spawn will be averaged with startOfBodyPart
+        Vector3 startOfBodyPart, // strike direction is determined by this and targetLocation
+        GameObject strikingStanceObject, // the stance object of the limb
+        GameObject limbObject, // the actual limb itself
+        float xScale, float yScale // size of attack area 
+        )
+    // creates an AttackArea, be it enemy or friendly
     // if it is an enemy attack, has 1 second delay before damage
     // if it is a player attack, immediately does damage
     {
@@ -1438,7 +1483,7 @@ public class FighterScript : MonoBehaviour
 
         AttackAreaScript newWarningScript = newWarning.GetComponent<AttackAreaScript>();
         newWarningScript.creator = this.gameObject;
-        newWarningScript.strikeDirection = targetLocation - startOfBodyPart;
+        newWarningScript.strikeForceVector = ((float)power) * 7f * Vector3.Normalize(targetLocation - startOfBodyPart);
 
         Vector3 angles = limbObject.transform.eulerAngles;
         newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z + 90f);
@@ -1460,15 +1505,19 @@ public class FighterScript : MonoBehaviour
             return;
         }
     }
-    IEnumerator KeepHandsInDefaultStance()
+    IEnumerator KeepHandsInPlace()
     {
+        Vector3 fromHeadHand1 = stanceHeadTran.position - stanceHand1Tran.position;
+        Vector3 fromHeadHand2 = stanceHeadTran.position - stanceHand2Tran.position;
+
         while (true)
         {
-            UpdateDefaultStancePositions();
-            lowerArm1Tran.position = hand1DefaultVector;
-            lowerArm2Tran.position = hand2DefaultVector;
-            stanceHand1Tran.position = hand1DefaultVector;
-            stanceHand2Tran.position = hand2DefaultVector;
+            Vector3 currentHand1 = stanceHeadTran.position - fromHeadHand1;
+            Vector3 currentHand2 = stanceHeadTran.position - fromHeadHand2;
+            lowerArm1Tran.position = currentHand1;
+            lowerArm2Tran.position = currentHand2;
+            stanceHand1Tran.position = currentHand1;
+            stanceHand2Tran.position = currentHand2;
             yield return null;
         }
     }
@@ -1814,7 +1863,7 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator JumpingFrontKickPart2(float jumpSpeed)
     {
-        IEnumerator handStanceCoroutine = KeepHandsInDefaultStance();
+        IEnumerator handStanceCoroutine = KeepHandsInPlace();
         StartCoroutine(handStanceCoroutine);
         controlsEnabled = false;
         airborne = true;
@@ -1864,6 +1913,7 @@ public class FighterScript : MonoBehaviour
             0,
             0
         );
+
         //Debug.Log("landed");
         for (int i = 0; i < 10; i++)
         {
@@ -1894,7 +1944,7 @@ public class FighterScript : MonoBehaviour
         Vector3 headTargetPosition = orientedTran.position + orientedTran.right + orientedTran.up;
         Vector3 initHeadPosition = fighterHead.transform.position;
         float headMoveTime = 20f / speedMultiplier;
-        IEnumerator keepHandsInPlace = KeepHandsInDefaultStance();
+        IEnumerator keepHandsInPlace = KeepHandsInPlace();
         StartCoroutine(keepHandsInPlace);
         for (int i = 0; i < (int)headMoveTime; i++)
         {
@@ -1949,6 +1999,118 @@ public class FighterScript : MonoBehaviour
             MoveTowardsDefaultStance();
             yield return null;
         }
+        controlsEnabled = true;
+    }
+    IEnumerator GroundSlam()
+    {
+        controlsEnabled = false;
+
+        int power = 8;
+        if (currentEnergy < maxEnergy)
+        {
+            yield break;
+        }
+        else
+        {
+            currentEnergy = 0;
+        }
+
+        float timeTakenWindUp = 0.3f;
+        float timeTakenJump = 0.5f;
+        int framesTakenWindUp = (int)(timeTakenWindUp * 60f);
+        int framesTakenJump = (int)(timeTakenJump * 60f);
+
+        IEnumerator keepHandsInPlace = KeepHandsInPlace();
+        StartCoroutine(keepHandsInPlace);
+
+        // wind up animation
+        Vector3 initHeadPos = stanceHeadTran.position;
+        float xTarget = GetSectorPosition(2).x;
+        Vector3 headTargetPos = new Vector3(
+            xTarget,
+            -1f,
+            stanceHeadTran.position.z
+            );
+
+        for (int i = 0; i < framesTakenWindUp; i++)
+        {
+            stanceHeadTran.position = Vector3.Lerp(initHeadPos, headTargetPos, ((float)(i)) / framesTakenWindUp);
+            yield return null;
+        }
+
+        // jump animation
+
+        initHeadPos = stanceHeadTran.position;
+        headTargetPos = new Vector3(
+            stanceHeadTran.position.x,
+            2f,
+            stanceHeadTran.position.z
+            );
+
+        for (int i = 0; i < framesTakenJump; i++)
+        {
+            stanceHeadTran.position = Vector3.Lerp(initHeadPos, headTargetPos, ((float)(i)) / framesTakenJump);
+            yield return null;
+        }
+
+        // jump 
+        float jumpSpeed = 20f;
+        fighterRB.velocity = new Vector2(0f, jumpSpeed);
+        fighterRB.gravityScale = 3f;
+        stanceFoot1Tran.position += Vector3.up * 0.1f;
+        stanceFoot2Tran.position += Vector3.up * 0.1f;
+
+        while (stanceFoot1Tran.position.y > groundLevel
+            && stanceFoot2Tran.position.y > groundLevel)
+        {
+            MoveHeadTowardsSector(1);
+            yield return null;
+        }
+        StopCoroutine(keepHandsInPlace);
+
+        fighterRB.velocity = new Vector2(0, 0);
+        fighterRB.gravityScale = 0f;
+        transform.position = new Vector3(
+            transform.position.x,
+            0,
+            0
+        );
+
+        //particle effects object
+        GameObject particleEffectObject = Instantiate(
+            particleEffectsPrefab,
+            stanceFoot1Tran.position - (stanceFoot1Tran.position - stanceFoot2Tran.position) / 2f,
+            transform.rotation
+            );
+        particleEffectObject.GetComponent<ParticleEffectsController>().PlayEffect("groundslam", true);
+
+
+        // damage all enemies
+        List<GameObject> tempAllEnemiesList = gameStateManagerScript.enemyManagerScript.GetAllEnemiesList(); // removes null enemies before returning the list
+
+        // use 1 attackAreaScript to attack all enemies
+        GameObject directDamager = Instantiate(
+            AttackWarningPrefab,
+            transform.position + Vector3.up * 100f,
+            transform.rotation
+        );
+        AttackAreaScript damagerScript = directDamager.GetComponent<AttackAreaScript>();
+
+        // run through the list to damage them
+        foreach (GameObject enemy in tempAllEnemiesList)
+        {
+            if (!enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript.airborne)
+            {
+                FighterScript targetFighterScript = enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript;
+                damagerScript.attackDamage = power;
+                damagerScript.DirectlyDamage(
+                    targetFighterScript,
+                    power,
+                    Vector3.up * 50f + Vector3.Normalize(targetFighterScript.transform.position - transform.position) * 50f);
+            }
+        }
+        Destroy(directDamager);
+
         controlsEnabled = true;
     }
 }
