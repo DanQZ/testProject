@@ -22,6 +22,7 @@ public class GameStateManagerScript : MonoBehaviour
     public GameObject IN_GAME_UI;
     public GameObject GAME_OVER_UI;
     public GameObject CREDITS_UI;
+    public GameObject INSTRUCTIONS_UI;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
 
     public string chosenCharacterType;
@@ -32,6 +33,7 @@ public class GameStateManagerScript : MonoBehaviour
         ALL_UI_LIST.Add(IN_GAME_UI);
         ALL_UI_LIST.Add(GAME_OVER_UI);
         ALL_UI_LIST.Add(CREDITS_UI);
+        ALL_UI_LIST.Add(INSTRUCTIONS_UI);
 
 
         transform.position = new Vector3(0f, 0f, 0f);
@@ -53,39 +55,39 @@ public class GameStateManagerScript : MonoBehaviour
     public void StartNewGame()
     {
         DisplayUI("in game");
+        
         // makes and returns new player object
+        currentPlayer = CreatePlayer();
 
-        GameObject newPlayerPrefab = CreatePlayer();
-        // sets up enemyManager and starts new game
-        enemyManagerScript.playerPrefab = newPlayerPrefab;
+        enemyManagerScript.playerPrefab = currentPlayer;
         enemyManagerScript.NewGame();
 
         // start counting score
         score = 0;
-        scoreCounterText.text = "Score: 0";
-        chosenCharacterText.text = "Chosen: " + chosenCharacterType;
+        scoreCounterText.text = "Score: " + score;
     }
 
-    public GameObject CreatePlayer(){
-        
+
+    public GameObject CreatePlayer()
+    {
+
         GameObject newPlayerPrefab = Instantiate(playerPrefab, transform.position, transform.rotation);
         currentPlayer = newPlayerPrefab;
-        PlayerScript newPlayerScript = playerPrefab.GetComponent<PlayerScript>();
+        PlayerScript newPlayerScript = currentPlayer.GetComponent<PlayerScript>();
         FighterScript PFScript = newPlayerScript.playerFighter.GetComponent<FighterScript>();
 
         // updates the player fighter and makes reference to the fighter
         newPlayerScript.gameStateManager = transform.gameObject;
         PFScript.gameStateManager = transform.gameObject;
         PFScript.SetCharacterType(chosenCharacterType);
-        
+
         return newPlayerPrefab;
     }
-    
+
 
     public void SetChosenCharacter(string typeArg)
     {
         chosenCharacterType = typeArg;
-        Debug.Log(chosenCharacterType + " class chosen");
         chosenCharacterText.text = "Chosen: " + chosenCharacterType;
     }
 
@@ -122,6 +124,11 @@ public class GameStateManagerScript : MonoBehaviour
         DisplayUI("credits");
     }
 
+    public void ShowInstructions()
+    {
+        DisplayUI("instructions");
+    }
+
     public void HideAllUI()
     {
         foreach (GameObject UIGameObject in ALL_UI_LIST)
@@ -149,6 +156,9 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
             case "credits":
                 CREDITS_UI.SetActive(true);
+                break;
+            case "instructions":
+                INSTRUCTIONS_UI.SetActive(true);
                 break;
         }
     }

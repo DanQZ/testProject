@@ -657,7 +657,7 @@ public class FighterScript : MonoBehaviour
             case "brawler":
                 Debug.Log("setting brawler");
                 speedMultiplier = 0.8f;
-                powerMultiplier = 1.3f;
+                powerMultiplier = 1.4f;
                 maxhp = 16;
                 hp = 16;
                 break;
