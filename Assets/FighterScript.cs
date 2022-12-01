@@ -12,7 +12,8 @@ using PathCreation;
 
 public class FighterScript : MonoBehaviour
 {
-    public GameObject particleEffectsPrefab;
+    public GameObject particleEffectController;
+    ParticleEffectsController particleControllerScript;
     public GameObject gameStateManager;
     public GameStateManagerScript gameStateManagerScript;
     public GameObject healthBar;
@@ -573,6 +574,8 @@ public class FighterScript : MonoBehaviour
         InitHealthAndEnergyBar(); //THIS NEEDS TO BE IN START, NOT AWAKE
         UpdateDefaultStancePositions(); // need this to set up groundLevel
         groundLevel = Mathf.Min(foot1DefaultVector.y, foot2DefaultVector.y); // keep this in Start()
+
+        particleControllerScript = particleEffectController.GetComponent<ParticleEffectsController>();
     }
     void GainEnergy()
     {
@@ -620,7 +623,7 @@ public class FighterScript : MonoBehaviour
         {
             tag = "Ghost";
             SetColor(Color.red);
-            SetOpacity(0.2f);
+            SetOpacity(0.1f);
             SetRenderSortingLayer(0);
         }
         if (!isPlayer && !isGhost)
@@ -1483,12 +1486,23 @@ public class FighterScript : MonoBehaviour
 
         AttackAreaScript newWarningScript = newWarning.GetComponent<AttackAreaScript>();
         newWarningScript.creator = this.gameObject;
+
+        newWarningScript.thingHittingStancePos = strikingStanceObject.transform.position;
+        newWarningScript.thingHittingPos = limbObject.transform.position;
+        
+        // force vector
         newWarningScript.strikeForceVector = ((float)power) * 7f * Vector3.Normalize(targetLocation - startOfBodyPart);
 
+        //particle effect stuff
+        newWarningScript.particleEffectController = particleEffectController;
+        newWarningScript.particleControllerScript = particleControllerScript;
+
+        // getting the rotation of the area
         Vector3 angles = limbObject.transform.eulerAngles;
         newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z + 90f);
         newWarning.transform.localScale = new Vector3(xScale, yScale, 1f);
-
+        
+        //set damage
         newWarningScript.attackDamage = power;
 
         if (isGhost) // is the ghost of an enemy, creates visble attack area and warning, invokes creation of visible warning after framesUntilStrike frames
@@ -1499,7 +1513,7 @@ public class FighterScript : MonoBehaviour
 
         if (isPlayer)
         { // is the player, creates invisible attack area that checks for collision with enemies
-            newWarningScript.lifespan = 1;
+            newWarningScript.lifespan = 0;
             newWarningScript.creatorType = "player";
             newWarningScript.UpdateSprites();
             return;
@@ -1990,7 +2004,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(power, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1f);
+        StrikeThisLocation(power, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1.5f);
 
         // return to default stance fast before regaining control
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -2078,12 +2092,11 @@ public class FighterScript : MonoBehaviour
         );
 
         //particle effects object
-        GameObject particleEffectObject = Instantiate(
-            particleEffectsPrefab,
-            stanceFoot1Tran.position - (stanceFoot1Tran.position - stanceFoot2Tran.position) / 2f,
-            transform.rotation
-            );
-        particleEffectObject.GetComponent<ParticleEffectsController>().PlayEffect("groundslam", true);
+        particleEffectController.transform.position =
+            stanceFoot1Tran.position
+            - (stanceFoot1Tran.position - stanceFoot2Tran.position) / 2f;
+
+        particleControllerScript.PlayEffect("groundslam");
 
 
         // damage all enemies

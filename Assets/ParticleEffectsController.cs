@@ -5,27 +5,34 @@ using UnityEngine;
 public class ParticleEffectsController : MonoBehaviour
 {
     public GameObject groundSlamObject;
-    private ParticleSystem groundSlamParticles; 
+    public GameObject attackHitObject;
+    private Quaternion defaultRotation;
     void Awake()
     {
-        groundSlamParticles = groundSlamObject.GetComponent<ParticleSystem>();
+        defaultRotation = transform.rotation;
     }
-
-    public void PlayEffect(string effectNameArg, bool destroyAfterFinishing){
+    public void PlayEffect(string effectNameArg)
+    {
         string effectName = effectNameArg.ToLower();
-        switch(effectName){
+        GameObject newEffectObject = null;
+        switch (effectName)
+        {
             case "groundslam":
-                groundSlamParticles.Play();
-            break;
+                newEffectObject = Instantiate(
+                    groundSlamObject,
+                    transform.position - Vector3.up * 0.33f,
+                    transform.rotation);
+                break;
+            case "attackhit":
+                newEffectObject = Instantiate(
+                    attackHitObject,
+                    transform.position,
+                    transform.rotation
+                );
+                break;
         }
-        if(destroyAfterFinishing){
-            StartCoroutine(SuicideAfterEffectIsDone(groundSlamParticles));
-        }
-    }
-    private IEnumerator SuicideAfterEffectIsDone(ParticleSystem particles){
-        while(particles.IsAlive()){
-            yield return null;
-        }
-        Destroy(this.gameObject);
+        newEffectObject.GetComponent<ParticleSystem>().Play(); 
+        transform.rotation = defaultRotation;
+
     }
 }

@@ -7,13 +7,18 @@ public class AttackAreaScript : MonoBehaviour
     int startFrame;
     int deathFrame;
     public int lifespan = 60; // 60 frames = 1 second
-
+    public GameObject particleEffectController;
+    public ParticleEffectsController particleControllerScript;
     public GameObject incomingCircle; // declaring a public GameObject allows you to make a reference to any other GameObject
     SpriteRenderer incomingCircleSprite; // SpriteRenderer is a component, which means it is part of another GameObject
     public GameObject warning;
     SpriteRenderer warningSprite;
 
     public Vector3 strikeForceVector;
+
+    public Vector3 thingHittingPos; // these are used for particle system showing attack hit
+    public Vector3 thingHittingStancePos;
+
     public GameObject thingHit;
     public GameObject thingHitObjectRoot;
     bool despawnNextFrame = false;
@@ -29,8 +34,8 @@ public class AttackAreaScript : MonoBehaviour
         switch (creatorType)
         {
             case "player":
-                // warningSprite.enabled = false;
-                //  incomingCircleSprite.enabled = false;
+                warningSprite.enabled = false;
+                incomingCircleSprite.enabled = false;
                 break;
             case "enemy":
                 warningSprite.enabled = true;
@@ -103,6 +108,7 @@ public class AttackAreaScript : MonoBehaviour
         thingHit = arg;
         thingHitObjectRoot = thingHit.transform.root.gameObject;
     }
+
     void OnTriggerStay2D(Collider2D collision)
     {
         if (collided)
@@ -136,8 +142,18 @@ public class AttackAreaScript : MonoBehaviour
         }
 
         guyHitScript.TakeDamage(attackDamage);
+        PlayAttackEffect();
         CheckIfThingHitIsDead();
         return;
+    }
+
+    private void PlayAttackEffect()
+    {
+        particleEffectController.transform.position = thingHit.transform.position;
+
+        particleEffectController.transform.up = thingHit.transform.position - thingHittingPos;
+
+        particleControllerScript.PlayEffect("attackHit");
     }
 
     private void CheckIfThingHitIsDead()
