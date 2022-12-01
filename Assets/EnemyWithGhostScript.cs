@@ -71,8 +71,8 @@ public class EnemyWithGhostScript : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(ghostFighterScript.UpdateBasedOnBools());
-        StartCoroutine(enemyFighterScript.UpdateBasedOnBools());
+        StartCoroutine(ghostFighterScript.InitBasedOnCharSettings());
+        StartCoroutine(enemyFighterScript.InitBasedOnCharSettings());
         enemyFighterTran = enemyFighter.transform;
         enemyHeadStanceTran = enemyHeadStance.transform;
 

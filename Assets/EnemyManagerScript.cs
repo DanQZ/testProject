@@ -12,7 +12,7 @@ public class EnemyManagerScript : MonoBehaviour
     FighterScript ghostScript; // reference to the FighterScript inside the ghost inside enemyprefab
     FighterScript enemyFighterScript; // reference to the FighterScript inside the ghost inside enemyprefab
 
-    public GameObject player; // reference to player prefab in the scene
+    public GameObject playerPrefab; // reference to player prefab in the scene
     GameObject playerFighter; // reference to the fighter prefab inside the player prefab
     PlayerScript PCScript; // reference to the player script
     public List<GameObject> allEnemiesList = new List<GameObject>();
@@ -27,7 +27,7 @@ public class EnemyManagerScript : MonoBehaviour
     }
     public void NewGame()
     {
-        PCScript = player.GetComponent<PlayerScript>(); // creates a reference
+        PCScript = playerPrefab.GetComponent<PlayerScript>(); // creates a reference
         playerFighter = PCScript.playerFighter; // creates a reference to the fighter inside the player
         StartCoroutine(spawnEnemiesCoroutine);
     }
@@ -77,15 +77,15 @@ public class EnemyManagerScript : MonoBehaviour
         allEnemiesList.Add(newEnemyWithGhost);
     }
 
-    IEnumerator KeepSpawningEnemies() // spawns an enemy every 3-6 seconds
+    IEnumerator KeepSpawningEnemies() // spawns an enemy every x to y seconds
     {
-        int nextFrame = Time.frameCount;
+        int nextFrame = Time.frameCount + 3 * 60;
         while (true)
         {
             if (Time.frameCount >= nextFrame)
             {
                 SpawnEnemyToTheRightOrLeft();
-                nextFrame = Time.frameCount + (int)(60f * Random.Range(3f, 6f));
+                nextFrame = Time.frameCount + (int)(60f * Random.Range(2f, 8f));
             }
             yield return null;
         }

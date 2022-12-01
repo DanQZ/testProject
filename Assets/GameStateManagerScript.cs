@@ -16,12 +16,15 @@ public class GameStateManagerScript : MonoBehaviour
     public Text scoreCounterText;
     public Text gameOverText;
     public Text highScoreText;
+    public Text chosenCharacterText;
 
     public GameObject MAIN_MENU_UI;
     public GameObject IN_GAME_UI;
     public GameObject GAME_OVER_UI;
     public GameObject CREDITS_UI;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
+
+    public string chosenCharacterType;
 
     void Awake()
     {
@@ -43,33 +46,53 @@ public class GameStateManagerScript : MonoBehaviour
         allEnemies = enemyManagerScript.allEnemiesList;
 
         highScore = 0;
+        chosenCharacterType = "acolyte";
         DisplayUI("main menu");
     }
 
     public void StartNewGame()
     {
         DisplayUI("in game");
-        // makes new player object
-        GameObject newPlayerObject = Instantiate(playerPrefab, transform.position, transform.rotation);
-        currentPlayer = newPlayerObject;
-        PlayerScript newPlayerScript = playerPrefab.GetComponent<PlayerScript>();
+        // makes and returns new player object
 
-        // updates the player fighter and makes reference to the fighter
-        newPlayerScript.gameStateManager = transform.gameObject;
-        newPlayerScript.PCScript = newPlayerScript.playerFighter.GetComponent<FighterScript>();
-        newPlayerScript.PCScript.gameStateManager = transform.gameObject;
-
-        // sets up enemyManager and starts new gam
-        enemyManagerScript.player = newPlayerObject;
+        GameObject newPlayerPrefab = CreatePlayer();
+        // sets up enemyManager and starts new game
+        enemyManagerScript.playerPrefab = newPlayerPrefab;
         enemyManagerScript.NewGame();
 
         // start counting score
         score = 0;
         scoreCounterText.text = "Score: 0";
+        chosenCharacterText.text = "Chosen: " + chosenCharacterType;
     }
 
-    public void UpdateHighScore(){
-        if(score > highScore){
+    public GameObject CreatePlayer(){
+        
+        GameObject newPlayerPrefab = Instantiate(playerPrefab, transform.position, transform.rotation);
+        currentPlayer = newPlayerPrefab;
+        PlayerScript newPlayerScript = playerPrefab.GetComponent<PlayerScript>();
+        FighterScript PFScript = newPlayerScript.playerFighter.GetComponent<FighterScript>();
+
+        // updates the player fighter and makes reference to the fighter
+        newPlayerScript.gameStateManager = transform.gameObject;
+        PFScript.gameStateManager = transform.gameObject;
+        PFScript.SetCharacterType(chosenCharacterType);
+        
+        return newPlayerPrefab;
+    }
+    
+
+    public void SetChosenCharacter(string typeArg)
+    {
+        chosenCharacterType = typeArg;
+        Debug.Log(chosenCharacterType + " class chosen");
+        chosenCharacterText.text = "Chosen: " + chosenCharacterType;
+    }
+
+    public void UpdateHighScore()
+    {
+        if (score > highScore)
+        {
             highScore = score;
         }
         highScoreText.text = "High Score: " + highScore;
@@ -89,7 +112,7 @@ public class GameStateManagerScript : MonoBehaviour
 
     public void GameOver()
     {
-        DisplayUI("game over");    
+        DisplayUI("game over");
         gameOverText.text = "GAME OVER\nScore: " + score;
         enemyManagerScript.StopSpawningEnemies();
     }

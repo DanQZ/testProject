@@ -8,17 +8,17 @@ public class PlayerScript : MonoBehaviour
     Transform PCTran;
     public GameObject stanceHead;
     Transform stanceHeadTran;
-    public FighterScript PCScript;
+    public FighterScript PFScript;
     public GameObject gameStateManager;
 
     void Awake()
     {
         PCTran = playerFighter.transform;
         stanceHeadTran = stanceHead.transform;
-        PCScript = playerFighter.GetComponent<FighterScript>();
-        PCScript.isPlayer = true;
-        PCScript.isGhost = false;
-        StartCoroutine(PCScript.UpdateBasedOnBools());
+        PFScript = playerFighter.GetComponent<FighterScript>();
+        PFScript.isPlayer = true;
+        PFScript.isGhost = false;
+        StartCoroutine(PFScript.InitBasedOnCharSettings());
     }
 
     void MoveHeadIfInput()
@@ -31,55 +31,55 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKey("w") || Input.GetKey("up"))
         {
-            PCScript.MoveHead(1);
+            PFScript.MoveHead(1);
         }
         if (Input.GetKey("s") || Input.GetKey("down"))
         {
-            PCScript.MoveHead(2);
+            PFScript.MoveHead(2);
         }
         if (Input.GetKey("a"))
         {
-            PCScript.MoveHead(3);
+            PFScript.MoveHead(3);
         }
         if (Input.GetKey("d"))
         {
-            PCScript.MoveHead(4);
+            PFScript.MoveHead(4);
         }
 
         if (Input.GetKey("left"))
         {
-            PCScript.Move(transform.right * -1f);
+            PFScript.Move(transform.right * -1f);
         }
         if (Input.GetKey("right"))
         {
-            PCScript.Move(transform.right);
+            PFScript.Move(transform.right);
         }
         if (Input.GetKey("q")) // face left
         {
-            PCScript.TurnTo("left");
+            PFScript.TurnTo("left");
             return;
         }
         if (Input.GetKey("e")) // face right
         {
-            PCScript.TurnTo("right");
+            PFScript.TurnTo("right");
             return;
         }
     }
 
     void AttackIfInput()
     {
-        if (PCScript.IsHeadWithinSectors() && PCScript.controlsEnabled)
+        if (PFScript.IsHeadWithinSectors() && PFScript.controlsEnabled)
         {
             if (Input.GetKey("space"))
             {
-                PCScript.controlsEnabled = false;
-                PCScript.Attack("arms");
+                PFScript.controlsEnabled = false;
+                PFScript.Attack("arms");
                 return;
             }
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                PCScript.controlsEnabled = false;
-                PCScript.Attack("legs");
+                PFScript.controlsEnabled = false;
+                PFScript.Attack("legs");
                 return;
             }
         }
@@ -88,7 +88,7 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (PCScript.controlsEnabled)
+        if (PFScript.controlsEnabled)
         {
             AttackIfInput();
             MoveHeadIfInput();
