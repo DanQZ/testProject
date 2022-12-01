@@ -47,6 +47,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b58ca9c2852c12e4c91616cfedaf0493, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myManagerObject: {fileID: 0}
+  myManagerScript: {fileID: 0}
+  enemyID: 0
   enemyFighter: {fileID: 1498385057246905792}
   ghostFighter: {fileID: 6080608042863873847}
   enemyHeadStance: {fileID: 1074818161165099964}
@@ -68,6 +71,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyCharacter: {fileID: 6080608042863873847}
+  enemyFollower: {fileID: 1498385057246905792}
   stanceHead: {fileID: 0}
   thisFighterScript: {fileID: 0}
   playerFighter: {fileID: 0}

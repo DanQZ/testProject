@@ -5,6 +5,7 @@ using UnityEngine;
 public class DanEnemyScript : MonoBehaviour
 {
     public GameObject enemyCharacter;
+    public GameObject enemyFollower;
     Transform enemyTran;
     public GameObject stanceHead;
     Transform stanceHeadTran;
@@ -108,11 +109,11 @@ public class DanEnemyScript : MonoBehaviour
     }
     void FacePlayer()
     {
-        if (playerFighter.transform.position.x < enemyCharacter.transform.position.x)
+        if (playerFighter.transform.position.x < enemyFollower.transform.position.x)
         {
             thisFighterScript.TurnTo("left");
         }
-        if (playerFighter.transform.position.x > enemyCharacter.transform.position.x)
+        if (playerFighter.transform.position.x > enemyFollower.transform.position.x)
         {
             thisFighterScript.TurnTo("right");
         }
