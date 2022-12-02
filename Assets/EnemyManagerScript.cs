@@ -33,7 +33,6 @@ public class EnemyManagerScript : MonoBehaviour
         numOfEnemiesSpawnedThisGame = 0;
         PCScript = playerPrefab.GetComponent<PlayerScript>(); // creates a reference
         playerFighter = PCScript.playerFighter; // creates a reference to the fighter inside the player
-        StartCoroutine(spawnEnemiesCoroutine);
     }
     public List<GameObject> GetAllEnemiesList()
     {
@@ -45,7 +44,7 @@ public class EnemyManagerScript : MonoBehaviour
         allEnemiesList.RemoveAll(enemy => enemy == null);
     }
 
-    private void ClearAllEnemies()
+    public void ClearAllEnemies()
     {
         foreach (GameObject enemy in allEnemiesList)
         {
@@ -56,6 +55,11 @@ public class EnemyManagerScript : MonoBehaviour
     {
         StopSpawningEnemies();
         ClearAllEnemies();
+    }
+
+    public void StartSpawningEnemies()
+    {
+        StartCoroutine(spawnEnemiesCoroutine);
     }
 
     public void StopSpawningEnemies()

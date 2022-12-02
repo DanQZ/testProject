@@ -7,34 +7,49 @@ public class GameStateManagerScript : MonoBehaviour
 {
     public GameObject playerPrefab;
     private GameObject currentPlayer;
+    private FighterScript currentPFScript;
     public GameObject enemyManager;
 
     public EnemyManagerScript enemyManagerScript;
+
+    public bool gameStarted;
+
+    //tracking scores
     public int score;
     public int highScore;
     public Text scoreCounterText;
     public Text gameOverText;
     public Text highScoreText;
-    public Text chosenCharacterText;
 
+    // in game timer 
+    public int gameStartFrame;
+    public int nextCheckPointFrame;
+    public Text nextCheckPointTimerText;
+
+    // UI objects that have all the necessary UI inside of them
     public GameObject UI_PARENT;
     public GameObject MAIN_MENU_UI;
     public GameObject IN_GAME_UI;
     public GameObject GAME_OVER_UI;
     public GameObject CREDITS_UI;
     public GameObject INSTRUCTIONS_UI;
+    public GameObject CHECKPOINT_UI;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
 
+    // choosing character stuff
     public string chosenCharacterType;
+    public Text chosenCharacterText;
 
     void Awake()
     {
+
         Debug.Log("screen width/height = " + Screen.width + ", " + Screen.height);
         ALL_UI_LIST.Add(MAIN_MENU_UI);
         ALL_UI_LIST.Add(IN_GAME_UI);
         ALL_UI_LIST.Add(GAME_OVER_UI);
         ALL_UI_LIST.Add(CREDITS_UI);
         ALL_UI_LIST.Add(INSTRUCTIONS_UI);
+        ALL_UI_LIST.Add(CHECKPOINT_UI);
 
         transform.position = new Vector3(0f, 0f, 0f);
 
@@ -45,6 +60,7 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript = enemyManager.GetComponent<EnemyManagerScript>();
         enemyManagerScript.gameStateManager = this.gameObject;
 
+        gameStarted = false;
         highScore = 0;
         chosenCharacterType = "acolyte";
         DisplayUI("main menu");
@@ -63,28 +79,74 @@ public class GameStateManagerScript : MonoBehaviour
         // start counting score
         score = 0;
         scoreCounterText.text = "Score: " + score;
+
+        StartNextLevel();
     }
+
     public GameObject CreatePlayer()
     {
         GameObject newPlayerPrefab = Instantiate(playerPrefab, transform.position, transform.rotation);
         currentPlayer = newPlayerPrefab;
         PlayerScript newPlayerScript = currentPlayer.GetComponent<PlayerScript>();
-        FighterScript PFScript = newPlayerScript.playerFighter.GetComponent<FighterScript>();
+        currentPFScript = newPlayerScript.playerFighter.GetComponent<FighterScript>();
 
         // updates the player fighter and makes reference to the fighter
         newPlayerScript.gameStateManager = transform.gameObject;
-        PFScript.gameStateManager = transform.gameObject;
-        PFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
-        PFScript.SetCharacterType(chosenCharacterType);
+        currentPFScript.gameStateManager = transform.gameObject;
+        currentPFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
+        currentPFScript.SetCharacterType(chosenCharacterType);
 
         return newPlayerPrefab;
     }
 
+    private IEnumerator CountDownToNextCheckpoint(float secondsUntil)
+    {
+        int framesUntil = (int)(secondsUntil * 60f);
+        Debug.Log(framesUntil + " frames until next checkpoint");
+        for (int i = 0; i < framesUntil; i++)
+        {
+            yield return null;
+        }
+        EndLevel();
+    }
 
     public void SetChosenCharacter(string typeArg)
     {
         chosenCharacterType = typeArg;
         chosenCharacterText.text = "Chosen: " + chosenCharacterType;
+    }
+
+    public void CheckpointUpgrade(string upgradeArg){
+        switch(upgradeArg){
+            case "health":
+                currentPFScript.maxhp += 10;
+                currentPFScript.hp += 10;
+                currentPFScript.UpdateHealthBar();
+            break;
+            case "energy":
+                currentPFScript.maxEnergy += 20;
+                currentPFScript.UpdateEnergyBar();
+            break;
+            case "damage":
+                currentPFScript.ChangeMultiplier("damage", 0.1f, "add");
+            break;
+        }
+        StartNextLevel();
+    }
+
+    public void EndLevel()
+    {
+        DisplayUI("checkpoint");
+        currentPFScript.TakeHealing(currentPFScript.maxhp / 4);
+        enemyManagerScript.StopSpawningEnemies();
+        enemyManagerScript.ClearAllEnemies();
+    }
+
+    public void StartNextLevel()
+    { // referenced by button objects
+        DisplayUI("in game");
+        enemyManagerScript.StartSpawningEnemies();
+        StartCoroutine(CountDownToNextCheckpoint(10f));
     }
 
     public void UpdateHighScore()
@@ -96,33 +158,23 @@ public class GameStateManagerScript : MonoBehaviour
         highScoreText.text = "High Score: " + highScore;
     }
 
-    public void ExitApplication()
+    public void ExitApplication()// referenced by button objects
     {
         Application.Quit();
     }
 
-    public void EndGame()
+    public void EndGame()// referenced by button objects
     {
         enemyManagerScript.EndGame();
         Destroy(currentPlayer);
         DisplayUI("main menu");
     }
 
-    public void GameOver()
+    public void GameOver() // referenced on an event in FighterScript.Die() not sure why vscode thinks it has 0 references
     {
         DisplayUI("game over");
         gameOverText.text = "GAME OVER\nScore: " + score;
         enemyManagerScript.StopSpawningEnemies();
-    }
-
-    public void ShowCredits()
-    {
-        DisplayUI("credits");
-    }
-
-    public void ShowInstructions()
-    {
-        DisplayUI("instructions");
     }
 
     public void HideAllUI()
@@ -132,31 +184,35 @@ public class GameStateManagerScript : MonoBehaviour
             UIGameObject.SetActive(false);
         }
     }
-
-    void DisplayUI(string buttonSetNameArg)
+    void ScaleUIToScreen()// used very time the ui is changed
     {
+        // this might be an autistic way to do this but whatever it scales it correctly for 16:9 ratio
+        float UIHeightMult = (((float)Screen.height) / 604f);
+        float UIWidthMult = (((float)Screen.width) / 1074f);
+        float ratio = ((float)Screen.width) / ((float)Screen.height);
+        float UIMult = 0f;
+        if (ratio > 1.777f)
+        {
+            UIMult = UIHeightMult;
+        }
+        else
+        {
+            UIMult = UIWidthMult;
+        }
+
+        UI_PARENT.transform.localScale = new Vector3(UIMult, UIMult, 1f);
+
+    }
+    public void DisplayUI(string buttonSetNameArg)
+    {
+        ScaleUIToScreen();
         HideAllUI();
         string buttonSetName = buttonSetNameArg.ToLower();
 
         switch (buttonSetName)
         {
             case "main menu":
-
-                // this might be an autistic way to do this but whatever it scales it correctly for 16:9 ratio
-                float UIHeightMult = (((float)Screen.height) / 604f);
-                float UIWidthMult = (((float)Screen.width) / 1074f);
-                float ratio = ((float)Screen.width) / ((float)Screen.height);
-                float UIMult = 0f;
-                if(ratio > 1.777f){
-                    UIMult = UIHeightMult;
-                }
-                else{
-                    UIMult = UIWidthMult;
-                }
-
-                UI_PARENT.transform.localScale = new Vector3(UIMult, UIMult, 1f);
                 UpdateHighScore();
-
                 MAIN_MENU_UI.SetActive(true);
                 break;
             case "in game":
@@ -171,10 +227,13 @@ public class GameStateManagerScript : MonoBehaviour
             case "instructions":
                 INSTRUCTIONS_UI.SetActive(true);
                 break;
+            case "checkpoint":
+                CHECKPOINT_UI.SetActive(true);
+                break;
         }
     }
 
-    public void AddScore(int toAdd)
+    public void AddScore(int toAdd) // referenced by FighterScript.Die()
     {
         score += toAdd;
         UpdateScore();

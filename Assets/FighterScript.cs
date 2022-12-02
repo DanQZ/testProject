@@ -47,17 +47,31 @@ public class FighterScript : MonoBehaviour
     public Transform orientedTran; // .right is forward no matter what direction the fighter is currently looking in
 
     public string characterType;
-    private float speedMultiplier;
-    private float defaultMoveSpeed;
-    private float moveSpeed;
-    private float powerMultiplier;
-    private int maxhp;
+
+    // health values
+    private int defaultMaxHP;
+    public int maxhp;
     public int hp;
 
+    // energy values
+    private int defaultMaxEnergy;
     public int maxEnergy;
     public int currentEnergy;
     int nextEnergyRegainFrame;
+    private int defaultEnergyPerSecond;
     int energyPerSecond;
+
+    // damage values
+    private float defaultDamageMultiplier;
+    public float damageMultiplier;
+
+    // speed values
+    private float defaultSpeedMultiplier;
+    private float speedMultiplier;
+    private float defaultMoveSpeed;
+    private float moveSpeed;
+
+
     public bool facingRight = true;
     public GameObject fighterAttackArea;
 
@@ -191,7 +205,70 @@ public class FighterScript : MonoBehaviour
     private List<PolygonCollider2D> allPolyCollider2D = new List<PolygonCollider2D>();
     private List<GameObject> allStances = new List<GameObject>();
     //private LineRenderer[] allLineRenderers = new LineRenderer[6];
+    public void ChangeMultiplier(string whichMultiplier, float amount, string operationArg) // so long bc I cant create a reference to a float
+    {
+        float oldMultiplier = -999f;
+        float newMultiplier = -999f;
 
+        bool targetMultiplierFound = false;
+        switch (whichMultiplier)
+        {
+            case "speed":
+                oldMultiplier = speedMultiplier;
+                targetMultiplierFound = true;
+                break;
+            case "damage":
+                oldMultiplier = damageMultiplier;
+                targetMultiplierFound = true;
+                break;
+        }
+
+        if (!targetMultiplierFound)
+        {
+            Debug.Log("INVALID whichMultiplier");
+        }
+
+        bool operationSuccess = false;
+        switch (operationArg)
+        {
+            case "add":
+                newMultiplier = oldMultiplier + amount;
+                operationSuccess = true;
+                break;
+            case "subtract":
+                newMultiplier = oldMultiplier - amount;
+                operationSuccess = true;
+                break;
+            case "mulitply":
+                newMultiplier = oldMultiplier * amount;
+                operationSuccess = true;
+                break;
+            case "divide":
+                newMultiplier = oldMultiplier / amount;
+                operationSuccess = true;
+                break;
+            case "set":
+                newMultiplier = amount;
+                operationSuccess = true;
+                break;
+        }
+
+        if (!operationSuccess)
+        {
+            Debug.Log("INVALID MULTIPLIERNAME");
+        }
+
+
+        switch (whichMultiplier)
+        {
+            case "speed":
+                speedMultiplier = newMultiplier;
+                break;
+            case "power":
+                damageMultiplier = newMultiplier;
+                break;
+        }
+    }
     public void SetTags(string tag) // sets the tags for the collisions
     {
         fighterHead.tag = tag;
@@ -552,10 +629,12 @@ public class FighterScript : MonoBehaviour
 
         HideJointsAndStances();
         EqualizeBodyPartMass(false);
+        defaultMaxHP = 10;
+        defaultMaxEnergy = 100;
         hp = 10;
         maxhp = 10;
         speedMultiplier = 1f;
-        powerMultiplier = 1f;
+        damageMultiplier = 1f;
 
         // defaults to enemy tags
         fighterHead.tag = "Enemy";
@@ -565,7 +644,15 @@ public class FighterScript : MonoBehaviour
         controlsEnabled = true;
         facingRight = true;
 
+        // default stat values 
+        defaultMaxHP = 10;
+        defaultMaxEnergy = 100;
+        defaultEnergyPerSecond = 20;
         defaultMoveSpeed = 4f / 60f; // x units per 60 frames
+
+        defaultDamageMultiplier = 1f;
+        defaultSpeedMultiplier = 1f;
+
         moveSpeed = defaultMoveSpeed * speedMultiplier;
         reach = .75f;
     }
@@ -637,7 +724,7 @@ public class FighterScript : MonoBehaviour
 
         if (isPlayer)
         {
-            Debug.Log("UpdateBasedOnCharSettings sitrep: hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + powerMultiplier);
+            Debug.Log("UpdateBasedOnCharSettings sitrep: hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
         }
         InitClassCombatStats();
     }
@@ -645,43 +732,62 @@ public class FighterScript : MonoBehaviour
     {
         // first sets default values
         speedMultiplier = 1f;
-        powerMultiplier = 1f;
+        damageMultiplier = 1f;
         maxhp = 10;
         hp = 10;
-
+        
         // set number stats
         switch (characterType)
         {
             case "acolyte":
                 Debug.Log("setting acolyte");
-                speedMultiplier = 1f;
-                powerMultiplier = 1f;
-                maxhp = 10;
-                hp = 10;
+
+                defaultMaxHP = 10;
+                defaultMaxEnergy = 100;
+                defaultEnergyPerSecond = 20;
+
+                defaultDamageMultiplier = 1f;
+                defaultSpeedMultiplier = 1f;
                 break;
             case "brawler":
                 Debug.Log("setting brawler");
-                speedMultiplier = 0.8f;
-                powerMultiplier = 1.4f;
-                maxhp = 16;
-                hp = 16;
+
+                defaultMaxHP = 16;
+                defaultMaxEnergy = 100;
+                defaultEnergyPerSecond = 20;
+
+                defaultSpeedMultiplier = 0.8f;
+                defaultDamageMultiplier = 1.4f;
                 break;
             case "trickster":
                 Debug.Log("setting trickster");
-                speedMultiplier = 1.3f;
-                powerMultiplier = .8f;
-                maxhp = 6;
-                hp = 6;
+
+                defaultMaxHP = 6;
+                defaultMaxEnergy = 100;
+                defaultEnergyPerSecond = 20;
+
+                defaultSpeedMultiplier = 1.3f;
+                defaultDamageMultiplier = .8f;
                 break;
         }
 
+        maxhp = defaultMaxHP;
+        hp = maxhp;
+
+        maxEnergy = defaultMaxEnergy;
+        energyPerSecond = defaultEnergyPerSecond;
+        currentEnergy = maxEnergy;
+
+        speedMultiplier = defaultSpeedMultiplier;
+        damageMultiplier = defaultDamageMultiplier;
+        
         if (isPlayer)
         {
             maxhp *= 2;
             hp *= 2;
 
         }
-        Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + powerMultiplier);
+        Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
         moveSpeed = defaultMoveSpeed * speedMultiplier;
     }
     void MoveTowardsDefaultStance()
@@ -977,7 +1083,7 @@ public class FighterScript : MonoBehaviour
         }
         UpdateHealthBar();
     }
-    private void UpdateHealthBar()
+    public void UpdateHealthBar()
     {
         if (healthBar == null)
         {
@@ -1489,7 +1595,7 @@ public class FighterScript : MonoBehaviour
 
         newWarningScript.thingHittingStancePos = strikingStanceObject.transform.position;
         newWarningScript.thingHittingPos = limbObject.transform.position;
-        
+
         // force vector
         newWarningScript.strikeForceVector = ((float)power) * 7f * Vector3.Normalize(targetLocation - startOfBodyPart);
 
@@ -1501,7 +1607,7 @@ public class FighterScript : MonoBehaviour
         Vector3 angles = limbObject.transform.eulerAngles;
         newWarning.transform.eulerAngles = new Vector3(0f, 0f, angles.z + 90f);
         newWarning.transform.localScale = new Vector3(xScale, yScale, 1f);
-        
+
         //set damage
         newWarningScript.attackDamage = power;
 
@@ -1577,8 +1683,8 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator Hook()
     {
-        int energyCost = (int)(10f * powerMultiplier);
-        int power = (int)(6f * powerMultiplier);
+        int energyCost = (int)(10f * damageMultiplier);
+        int power = (int)(6f * damageMultiplier);
         if (currentEnergy < energyCost)
         {
             controlsEnabled = true;
@@ -1625,8 +1731,8 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator JabCombo(string type) // type = "defensive" or "aggressive". defensive is a 2 hit combo, aggressive is a single far jab
     {
-        int energyCost = (int)(8f * powerMultiplier);
-        int power = (int)(3f * powerMultiplier);
+        int energyCost = (int)(8f * damageMultiplier);
+        int power = (int)(3f * damageMultiplier);
         switch (type)
         {
             case "defensive":
@@ -1696,7 +1802,7 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator RoundhouseKick()
     {
-        int energyCost = (int)(30f * powerMultiplier);
+        int energyCost = (int)(30f * damageMultiplier);
         if (currentEnergy < energyCost)
         {
             controlsEnabled = true;
@@ -1708,7 +1814,7 @@ public class FighterScript : MonoBehaviour
             UpdateEnergyBar();
 
         }
-        int power = (int)(8f * powerMultiplier);
+        int power = (int)(8f * damageMultiplier);
         float timeTaken = .25f / speedMultiplier; //seconds
         int framesTaken = (int)(timeTaken * 60);
 
@@ -1756,7 +1862,7 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator FrontKick(string type) // type = "grounded" or "flying"
     {
-        int energyCost = (int)(30f * powerMultiplier);
+        int energyCost = (int)(30f * damageMultiplier);
         int power = 0; // to be set in below switch statement
         bool grounded = true;
         switch (type)
@@ -1782,12 +1888,12 @@ public class FighterScript : MonoBehaviour
         switch (type)
         {
             case "grounded":
-                power = (int)(7f * powerMultiplier);
+                power = (int)(7f * damageMultiplier);
                 grounded = true;
                 stanceTorsoBotActive = true;
                 break;
             case "flying":
-                power = (int)(10f * powerMultiplier);
+                power = (int)(10f * damageMultiplier);
                 grounded = false;
                 SetStances("none");
                 stanceFoot2Active = true;
@@ -1973,8 +2079,8 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator Uppercut()
     {
-        int energyCost = (int)(15f * powerMultiplier);
-        int power = (int)(6f * powerMultiplier);
+        int energyCost = (int)(15f * damageMultiplier);
+        int power = (int)(6f * damageMultiplier);
         if (currentEnergy < energyCost)
         {
             controlsEnabled = true;
