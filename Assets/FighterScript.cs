@@ -205,10 +205,11 @@ public class FighterScript : MonoBehaviour
     private List<PolygonCollider2D> allPolyCollider2D = new List<PolygonCollider2D>();
     private List<GameObject> allStances = new List<GameObject>();
     //private LineRenderer[] allLineRenderers = new LineRenderer[6];
-    public void ChangeMultiplier(string whichMultiplier, float amount, string operationArg) // so long bc I cant create a reference to a float
+    public void ChangeMultiplier(string whichMultiplier, string operationArg, float amount) // so long bc I cant create a reference to a float
     {
-        float oldMultiplier = -999f;
-        float newMultiplier = -999f;
+        //Debug.Log("changing a multiplier");
+        float oldMultiplier = -0f;
+        float newMultiplier = -0f;
 
         bool targetMultiplierFound = false;
         switch (whichMultiplier)
@@ -225,7 +226,7 @@ public class FighterScript : MonoBehaviour
 
         if (!targetMultiplierFound)
         {
-            Debug.Log("INVALID whichMultiplier");
+            Debug.Log("INVALID MULTIPLIER NAME, OPERATION CANCELLED"); return;
         }
 
         bool operationSuccess = false;
@@ -255,7 +256,8 @@ public class FighterScript : MonoBehaviour
 
         if (!operationSuccess)
         {
-            Debug.Log("INVALID MULTIPLIERNAME");
+            Debug.Log("INVALID OPERATION NAME, OPERATION CANCELLED");
+            return;
         }
 
 
@@ -263,9 +265,11 @@ public class FighterScript : MonoBehaviour
         {
             case "speed":
                 speedMultiplier = newMultiplier;
+                Debug.Log("speedmult = " + speedMultiplier);
                 break;
-            case "power":
+            case "damage":
                 damageMultiplier = newMultiplier;
+                Debug.Log("damagemult = " + damageMultiplier);
                 break;
         }
     }
@@ -616,7 +620,7 @@ public class FighterScript : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        Debug.Log("AWAKE");
+        // Debug.Log("AWAKE");
         InitGameObjects();
         InitColliderList();
         SetColliders("combat");
@@ -664,6 +668,14 @@ public class FighterScript : MonoBehaviour
 
         particleControllerScript = particleEffectController.GetComponent<ParticleEffectsController>();
     }
+    public void ReplenishEnergy(){
+        currentEnergy = maxEnergy;
+        UpdateEnergyBar();
+    }
+    public void ReplenishHealth(){
+        hp = maxhp;
+        UpdateHealthBar();
+    }
     void GainEnergy()
     {
         if (Time.frameCount % 60 == 0)
@@ -696,7 +708,7 @@ public class FighterScript : MonoBehaviour
 
     public IEnumerator InitBasedOnCharSettings() // waits a few frames then updates info
     {
-        Debug.Log("starting delay before setting character settings");
+        // Debug.Log("starting delay before setting character settings");
         for (int i = 0; i < 2; i++)
         {
             yield return null;
@@ -724,7 +736,7 @@ public class FighterScript : MonoBehaviour
 
         if (isPlayer)
         {
-            Debug.Log("UpdateBasedOnCharSettings sitrep: hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
+            // Debug.Log("UpdateBasedOnCharSettings sitrep: hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
         }
         InitClassCombatStats();
     }
@@ -735,12 +747,12 @@ public class FighterScript : MonoBehaviour
         damageMultiplier = 1f;
         maxhp = 10;
         hp = 10;
-        
+
         // set number stats
         switch (characterType)
         {
             case "acolyte":
-                Debug.Log("setting acolyte");
+                // Debug.Log("setting acolyte");
 
                 defaultMaxHP = 10;
                 defaultMaxEnergy = 100;
@@ -750,7 +762,7 @@ public class FighterScript : MonoBehaviour
                 defaultSpeedMultiplier = 1f;
                 break;
             case "brawler":
-                Debug.Log("setting brawler");
+                // Debug.Log("setting brawler");
 
                 defaultMaxHP = 16;
                 defaultMaxEnergy = 100;
@@ -760,7 +772,7 @@ public class FighterScript : MonoBehaviour
                 defaultDamageMultiplier = 1.4f;
                 break;
             case "trickster":
-                Debug.Log("setting trickster");
+                // Debug.Log("setting trickster");
 
                 defaultMaxHP = 6;
                 defaultMaxEnergy = 100;
@@ -780,14 +792,14 @@ public class FighterScript : MonoBehaviour
 
         speedMultiplier = defaultSpeedMultiplier;
         damageMultiplier = defaultDamageMultiplier;
-        
+
         if (isPlayer)
         {
             maxhp *= 2;
             hp *= 2;
 
         }
-        Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
+        // Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
         moveSpeed = defaultMoveSpeed * speedMultiplier;
     }
     void MoveTowardsDefaultStance()

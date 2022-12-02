@@ -21,10 +21,9 @@ public class GameStateManagerScript : MonoBehaviour
     public Text gameOverText;
     public Text highScoreText;
 
-    // in game timer 
-    public int gameStartFrame;
-    public int nextCheckPointFrame;
-    public Text nextCheckPointTimerText;
+    // timer text 
+    public Text levelTimerTimeText;
+
 
     // UI objects that have all the necessary UI inside of them
     public GameObject UI_PARENT;
@@ -40,9 +39,11 @@ public class GameStateManagerScript : MonoBehaviour
     public string chosenCharacterType;
     public Text chosenCharacterText;
 
+    IEnumerator pressEnterToContinue;
+    IEnumerator checkpointCountdown;
+
     void Awake()
     {
-
         Debug.Log("screen width/height = " + Screen.width + ", " + Screen.height);
         ALL_UI_LIST.Add(MAIN_MENU_UI);
         ALL_UI_LIST.Add(IN_GAME_UI);
@@ -63,11 +64,30 @@ public class GameStateManagerScript : MonoBehaviour
         gameStarted = false;
         highScore = 0;
         chosenCharacterType = "acolyte";
+
         DisplayUI("main menu");
+        pressEnterToContinue = PressEnterToContinue();
+        StartCoroutine(pressEnterToContinue);
+        checkpointCountdown = CountDownToNextCheckpoint(60f);
+
     }
 
+    public void TogglePressEnterToContinue(bool toggleOn)
+    {
+        if (toggleOn)
+        {
+            StopCoroutine(pressEnterToContinue);
+            pressEnterToContinue = PressEnterToContinue();
+            StartCoroutine(pressEnterToContinue);
+        }
+        else
+        {
+            StopCoroutine(pressEnterToContinue);
+        }
+    }
     public void StartNewGame()
     {
+        TogglePressEnterToContinue(false);
         DisplayUI("in game");
 
         // makes and returns new player object
@@ -82,10 +102,48 @@ public class GameStateManagerScript : MonoBehaviour
 
         StartNextLevel();
     }
+    public void GameOver() // referenced on an event in FighterScript.Die() not sure why vscode thinks it has 0 references
+    {
+        DisplayUI("game over");
+        StopCoroutine(checkpointCountdown);
+        gameOverText.text = "GAME OVER\nScore: " + score;
+        enemyManagerScript.StopSpawningEnemies();
+        TogglePressEnterToContinue(true);
+    }
+    public void EndGame()// referenced by button objects, goes to main menu
+    {
+        enemyManagerScript.EndGame();
+        gameStarted = false;
 
+        Destroy(currentPlayer);
+        DisplayUI("main menu");
+        TogglePressEnterToContinue(true);
+    }
+    public void StartNextLevel()
+    { // referenced by button objects
+        DisplayUI("in game");
+
+        // spawns enemies faster per level
+        enemyManagerScript.IncreaseDifficulty();
+        enemyManagerScript.StartSpawningEnemies();
+
+        checkpointCountdown = CountDownToNextCheckpoint(60f);
+        StartCoroutine(checkpointCountdown); // 60s per level
+        currentPlayer.transform.position = new Vector3(0f, 0f, 0f);
+        currentPFScript.ReplenishEnergy();
+    }
+    public void EndLevel()
+    {
+        DisplayUI("checkpoint");
+        currentPFScript.TakeHealing((int)Mathf.Ceil(((float)currentPFScript.maxhp) / 4f));
+        enemyManagerScript.StopSpawningEnemies();
+        enemyManagerScript.ClearAllEnemies();
+
+        StopCoroutine(checkpointCountdown);
+    }
     public GameObject CreatePlayer()
     {
-        GameObject newPlayerPrefab = Instantiate(playerPrefab, transform.position, transform.rotation);
+        GameObject newPlayerPrefab = Instantiate(playerPrefab, new Vector3(0f, 0f, 0f), transform.rotation);
         currentPlayer = newPlayerPrefab;
         PlayerScript newPlayerScript = currentPlayer.GetComponent<PlayerScript>();
         currentPFScript = newPlayerScript.playerFighter.GetComponent<FighterScript>();
@@ -99,6 +157,28 @@ public class GameStateManagerScript : MonoBehaviour
         return newPlayerPrefab;
     }
 
+    private IEnumerator PressEnterToContinue()
+    {
+        while (true)
+        {
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                if (!gameStarted && MAIN_MENU_UI.activeInHierarchy)
+                {
+                    StartNewGame();
+                    break;
+                }
+                if (GAME_OVER_UI.activeInHierarchy)
+                {
+                    EndGame();
+                    break;
+                }
+            }
+            yield return null;
+        }
+        yield break;
+    }
+
     private IEnumerator CountDownToNextCheckpoint(float secondsUntil)
     {
         int framesUntil = (int)(secondsUntil * 60f);
@@ -106,6 +186,7 @@ public class GameStateManagerScript : MonoBehaviour
         for (int i = 0; i < framesUntil; i++)
         {
             yield return null;
+            levelTimerTimeText.text = "" + ((framesUntil - i) / 60);
         }
         EndLevel();
     }
@@ -116,37 +197,24 @@ public class GameStateManagerScript : MonoBehaviour
         chosenCharacterText.text = "Chosen: " + chosenCharacterType;
     }
 
-    public void CheckpointUpgrade(string upgradeArg){
-        switch(upgradeArg){
+    public void CheckpointUpgrade(string upgradeArg)
+    {
+        switch (upgradeArg)
+        {
             case "health":
-                currentPFScript.maxhp += 10;
-                currentPFScript.hp += 10;
+                currentPFScript.maxhp += 4;
+                currentPFScript.hp += 4;
                 currentPFScript.UpdateHealthBar();
-            break;
+                break;
             case "energy":
                 currentPFScript.maxEnergy += 20;
                 currentPFScript.UpdateEnergyBar();
-            break;
+                break;
             case "damage":
-                currentPFScript.ChangeMultiplier("damage", 0.1f, "add");
-            break;
+                currentPFScript.ChangeMultiplier("damage", "add", 0.1f);
+                break;
         }
         StartNextLevel();
-    }
-
-    public void EndLevel()
-    {
-        DisplayUI("checkpoint");
-        currentPFScript.TakeHealing(currentPFScript.maxhp / 4);
-        enemyManagerScript.StopSpawningEnemies();
-        enemyManagerScript.ClearAllEnemies();
-    }
-
-    public void StartNextLevel()
-    { // referenced by button objects
-        DisplayUI("in game");
-        enemyManagerScript.StartSpawningEnemies();
-        StartCoroutine(CountDownToNextCheckpoint(10f));
     }
 
     public void UpdateHighScore()
@@ -161,20 +229,6 @@ public class GameStateManagerScript : MonoBehaviour
     public void ExitApplication()// referenced by button objects
     {
         Application.Quit();
-    }
-
-    public void EndGame()// referenced by button objects
-    {
-        enemyManagerScript.EndGame();
-        Destroy(currentPlayer);
-        DisplayUI("main menu");
-    }
-
-    public void GameOver() // referenced on an event in FighterScript.Die() not sure why vscode thinks it has 0 references
-    {
-        DisplayUI("game over");
-        gameOverText.text = "GAME OVER\nScore: " + score;
-        enemyManagerScript.StopSpawningEnemies();
     }
 
     public void HideAllUI()
