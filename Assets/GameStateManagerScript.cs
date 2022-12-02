@@ -66,8 +66,7 @@ public class GameStateManagerScript : MonoBehaviour
         chosenCharacterType = "acolyte";
 
         DisplayUI("main menu");
-        pressEnterToContinue = PressEnterToContinue();
-        StartCoroutine(pressEnterToContinue);
+        TogglePressEnterToContinue(true);
         checkpointCountdown = CountDownToNextCheckpoint(60f);
 
     }
@@ -76,7 +75,10 @@ public class GameStateManagerScript : MonoBehaviour
     {
         if (toggleOn)
         {
-            StopCoroutine(pressEnterToContinue);
+            if (pressEnterToContinue != null)
+            {
+                StopCoroutine(pressEnterToContinue);
+            }
             pressEnterToContinue = PressEnterToContinue();
             StartCoroutine(pressEnterToContinue);
         }

@@ -668,11 +668,13 @@ public class FighterScript : MonoBehaviour
 
         particleControllerScript = particleEffectController.GetComponent<ParticleEffectsController>();
     }
-    public void ReplenishEnergy(){
+    public void ReplenishEnergy()
+    {
         currentEnergy = maxEnergy;
         UpdateEnergyBar();
     }
-    public void ReplenishHealth(){
+    public void ReplenishHealth()
+    {
         hp = maxhp;
         UpdateHealthBar();
     }
@@ -2098,27 +2100,39 @@ public class FighterScript : MonoBehaviour
             controlsEnabled = true;
             yield break;
         }
-        float timeTaken = .2f / speedMultiplier; //seconds
-        int framesTaken = (int)(timeTaken * 60);
+        float timeTaken = .25f / speedMultiplier; //seconds
+        int framesTaken = (int)(timeTaken * 60f);
+        int windUpFrames = (int)((float)framesTaken * .3f);
+        int throwingFrames = (int)((float)framesTaken * .7f);
+
         Vector3 attackTarget = GetAttackVector("Uppercut");
 
         yield return attackTarget;
         float distance = Vector3.Distance(attackTarget, stanceHand1Tran.position);
-        float distancePerFrame = distance / framesTaken;
+
+        float windUpDistancePerFrame = .5f / windUpFrames;
+        float punchDistancePerFrame = distance / throwingFrames;
 
         // throw punch animation
-        for (int i = 0; i < framesTaken; i++)
+        for (int i = 0; i < windUpFrames; i++)
         {
-            stanceHeadTran.position += orientedTran.up * distancePerFrame * .4f;
-            stanceHeadTran.position += orientedTran.right * distancePerFrame * .25f;
+            stanceHeadTran.position += Vector3.up * windUpDistancePerFrame;
+            stanceHand1Tran.position -= Vector3.up * windUpDistancePerFrame;// * 2f;
+            yield return null;
+        }
+
+        for (int i = 0; i < throwingFrames; i++)
+        {
+            stanceHeadTran.position += orientedTran.up * punchDistancePerFrame * .4f;
+            stanceHeadTran.position += orientedTran.right * punchDistancePerFrame * .25f;
 
             // punching hand
             stanceHand1Tran.LookAt(attackTarget);
-            stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
+            stanceHand1Tran.position += stanceHand1Tran.forward * punchDistancePerFrame;
 
             // guard hand
             stanceHand2Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
-            stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame * 0.5f;
+            stanceHand2Tran.position += stanceHand2Tran.forward * punchDistancePerFrame * 0.5f;
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
