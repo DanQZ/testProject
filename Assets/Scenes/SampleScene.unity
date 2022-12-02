@@ -1079,7 +1079,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &458392746
 Transform:
   m_ObjectHideFlags: 0
@@ -1373,13 +1373,13 @@ MonoBehaviour:
     m_LineSpacing: 0.8
   m_Text: 'Tips
 
-    -Every 20 seconds you reach a checkpoint and heal 25% hp (rounded
-    up)
+    -Every checkpoint heals 25% hp (rounded up) but also increases
+    enemy spawn rate
 
-    -You have 100 energy, and regenerate 20/s
+    -You start with 100 energy, and regenerate 20/s
 
-    -Kicks are safer and
-    do more damage, but the damage/energy ratio is less efficient'
+    -Kicks
+    are safer and do more damage, but the damage/energy ratio is less efficient'
 --- !u!222 &533056117
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1658,7 +1658,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &580117430
 Transform:
   m_ObjectHideFlags: 0
@@ -4067,7 +4067,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -162, y: 229}
+  m_AnchoredPosition: {x: -110.7, y: 229}
   m_SizeDelta: {x: 1642.2, y: 279.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1291490193
@@ -5255,7 +5255,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1750285888
 Transform:
   m_ObjectHideFlags: 0
@@ -5753,7 +5753,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2051840214
 Transform:
   m_ObjectHideFlags: 0
