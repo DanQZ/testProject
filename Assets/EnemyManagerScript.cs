@@ -21,15 +21,20 @@ public class EnemyManagerScript : MonoBehaviour
     private IEnumerator spawnEnemiesCoroutine;
     private int enemiesSpawnedThisFrame;
 
+    public int difficultyLevel;
+
     // Start is called before the first frame update
 
     void Start()
     {
-        spawnEnemiesCoroutine = KeepSpawningEnemies();
+        difficultyLevel = 0;
+        spawnEnemiesCoroutine = KeepSpawningEnemies(5f, 10f); // begins with long intervals
         numOfEnemiesSpawnedThisGame = 0;
     }
+
     public void NewGame()
     {
+        difficultyLevel = 0;
         numOfEnemiesSpawnedThisGame = 0;
         PCScript = playerPrefab.GetComponent<PlayerScript>(); // creates a reference
         playerFighter = PCScript.playerFighter; // creates a reference to the fighter inside the player
@@ -57,8 +62,34 @@ public class EnemyManagerScript : MonoBehaviour
         ClearAllEnemies();
     }
 
+    public void IncreaseDifficulty()
+    {
+        // in case it is still running
+        StopCoroutine(spawnEnemiesCoroutine);
+
+        // every level, average enemy spawn interval goes down 1 second
+        float rangeMinSeconds = 5f - ((float)difficultyLevel);
+        float rangeMaxSeconds = 10f - ((float)difficultyLevel);
+        
+        // prevents enemies from spawning more than once per second
+        if (rangeMinSeconds < 1f)
+        {
+            rangeMinSeconds = 1f;
+        }
+        if (rangeMaxSeconds < 1f)
+        {
+            rangeMaxSeconds = 1f;
+        }
+        // new spawn intervals
+        spawnEnemiesCoroutine = KeepSpawningEnemies(rangeMinSeconds, rangeMaxSeconds);
+        difficultyLevel++;
+    }
+
     public void StartSpawningEnemies()
     {
+        // in case it is still running
+        StopCoroutine(spawnEnemiesCoroutine);
+
         StartCoroutine(spawnEnemiesCoroutine);
     }
 
@@ -102,15 +133,20 @@ public class EnemyManagerScript : MonoBehaviour
         numOfEnemiesSpawnedThisGame++;
     }
 
-    IEnumerator KeepSpawningEnemies() // spawns an enemy every x to y seconds
+    IEnumerator KeepSpawningEnemies(float rangeMinArgSeconds, float rangeMaxArgSeconds) // spawns an enemy every x to y seconds
     {
+        float rangeMin = rangeMinArgSeconds;
+        float rangeMax = rangeMaxArgSeconds;
         int nextFrame = Time.frameCount + 3 * 60;
         while (true)
         {
             if (Time.frameCount >= nextFrame)
             {
                 SpawnEnemyToTheRightOrLeft();
-                nextFrame = Time.frameCount + (int)(60f * Random.Range(2f, 8f));
+                nextFrame = Time.frameCount
+                    + (int)(
+                        60f * Random.Range(rangeMin, rangeMax)
+                        );
             }
             yield return null;
         }
