@@ -170,17 +170,17 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.IncreaseDifficulty();
         enemyManagerScript.StartSpawningEnemies();
 
-        StartCountingDownCheckpoint(5f);
+        StartCountingDownCheckpoint(60f);
 
         currentPlayer.transform.position = new Vector3(0f, 0f, 0f);
         currentPFScript.ReplenishEnergy();
     }
     public void EndLevel()
     {
-        DisplayUI("checkpoint");
         currentPFScript.TakeHealing((int)Mathf.Ceil(((float)currentPFScript.maxhp) / 4f));
         enemyManagerScript.StopSpawningEnemies();
         enemyManagerScript.ClearAllEnemies();
+        DisplayUI("checkpoint");
 
         StopCoroutine(checkpointCountdown);
     }
@@ -353,7 +353,7 @@ public class GameStateManagerScript : MonoBehaviour
 
         characterStatsText.text = "Current Stats" + "\n"
             + "hp: " + cpfs.hp + "/" + cpfs.maxhp + "\n"
-            + "max energy: " + cpfs.currentEnergy + "\n"
+            + "max energy: " + cpfs.maxEnergy + "\n"
             + "energy/second: " + cpfs.energyPerSecond + "\n"
             + "arm power: " + cpfs.armPower + "\n"
             + "leg power: " + cpfs.legPower + "\n"

@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PathCreation;
 
 // to do
 /*
@@ -811,7 +810,7 @@ public class FighterScript : MonoBehaviour
                 speedMultiplierDefault = 1.3f;
 
                 armPowerDefault = .8f;
-                legPowerDefault = 1f;
+                legPowerDefault = 1.1f;
                 break;
         }
 
