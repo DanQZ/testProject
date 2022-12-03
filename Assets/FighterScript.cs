@@ -12,6 +12,8 @@ using PathCreation;
 
 public class FighterScript : MonoBehaviour
 {
+    public GameObject parentObject;
+    public Rigidbody2D parentRB;
     public GameObject particleEffectController;
     ParticleEffectsController particleControllerScript;
     public GameObject gameStateManager;
@@ -59,17 +61,20 @@ public class FighterScript : MonoBehaviour
     public int currentEnergy;
     int nextEnergyRegainFrame;
     private int defaultEnergyPerSecond;
-    int energyPerSecond;
+    public int energyPerSecond;
+    public bool gainEnergyOn;
 
     // damage values
-    private float defaultDamageMultiplier;
-    public float damageMultiplier;
+    private float armPowerDefault;
+    public float armPower;
+    private float legPowerDefault;
+    public float legPower;
 
     // speed values
-    private float defaultSpeedMultiplier;
-    private float speedMultiplier;
+    private float speedMultiplierDefault;
+    public float speedMultiplier;
     private float defaultMoveSpeed;
-    private float moveSpeed;
+    public float moveSpeed;
 
 
     public bool facingRight = true;
@@ -205,6 +210,8 @@ public class FighterScript : MonoBehaviour
     private List<PolygonCollider2D> allPolyCollider2D = new List<PolygonCollider2D>();
     private List<GameObject> allStances = new List<GameObject>();
     //private LineRenderer[] allLineRenderers = new LineRenderer[6];
+
+    private List<GameObject> allExistingAttacks = new List<GameObject>();
     public void ChangeMultiplier(string whichMultiplier, string operationArg, float amount) // so long bc I cant create a reference to a float
     {
         //Debug.Log("changing a multiplier");
@@ -218,8 +225,12 @@ public class FighterScript : MonoBehaviour
                 oldMultiplier = speedMultiplier;
                 targetMultiplierFound = true;
                 break;
-            case "damage":
-                oldMultiplier = damageMultiplier;
+            case "leg power":
+                oldMultiplier = legPower;
+                targetMultiplierFound = true;
+                break;
+            case "arm power":
+                oldMultiplier = armPower;
                 targetMultiplierFound = true;
                 break;
         }
@@ -266,10 +277,15 @@ public class FighterScript : MonoBehaviour
             case "speed":
                 speedMultiplier = newMultiplier;
                 Debug.Log("speedmult = " + speedMultiplier);
+                moveSpeed = defaultMoveSpeed * speedMultiplier;
                 break;
-            case "damage":
-                damageMultiplier = newMultiplier;
-                Debug.Log("damagemult = " + damageMultiplier);
+            case "leg power":
+                legPower = newMultiplier;
+                Debug.Log("leg power is now " + legPower);
+                break;
+            case "arm power":
+                armPower = newMultiplier;
+                Debug.Log("arm power is now " + armPower);
                 break;
         }
     }
@@ -633,12 +649,6 @@ public class FighterScript : MonoBehaviour
 
         HideJointsAndStances();
         EqualizeBodyPartMass(false);
-        defaultMaxHP = 10;
-        defaultMaxEnergy = 100;
-        hp = 10;
-        maxhp = 10;
-        speedMultiplier = 1f;
-        damageMultiplier = 1f;
 
         // defaults to enemy tags
         fighterHead.tag = "Enemy";
@@ -649,16 +659,26 @@ public class FighterScript : MonoBehaviour
         facingRight = true;
 
         // default stat values 
-        defaultMaxHP = 10;
+        defaultMaxHP = 100;
         defaultMaxEnergy = 100;
+        gainEnergyOn = true;
         defaultEnergyPerSecond = 20;
         defaultMoveSpeed = 4f / 60f; // x units per 60 frames
 
-        defaultDamageMultiplier = 1f;
-        defaultSpeedMultiplier = 1f;
+        armPower = 1f;
+        armPowerDefault = 1f;
+        legPowerDefault = 1f;
+        legPowerDefault = 1f;
+
+        speedMultiplierDefault = 1f;
 
         moveSpeed = defaultMoveSpeed * speedMultiplier;
         reach = .75f;
+
+        if (headLimb.transform.position.z != 0f)
+        {
+            Debug.Log("head spawned in wrong z value");
+        }
     }
     void Start()
     {
@@ -667,11 +687,21 @@ public class FighterScript : MonoBehaviour
         groundLevel = Mathf.Min(foot1DefaultVector.y, foot2DefaultVector.y); // keep this in Start()
 
         particleControllerScript = particleEffectController.GetComponent<ParticleEffectsController>();
+        parentObject = transform.parent.gameObject;
+        parentRB = parentObject.GetComponent<Rigidbody2D>();
+    }
+    public void ChangeEnergy(int amount)
+    {
+        currentEnergy += amount;
+        if (currentEnergy > maxEnergy)
+        {
+            currentEnergy = maxEnergy;
+        }
+        UpdateEnergyBar();
     }
     public void ReplenishEnergy()
     {
-        currentEnergy = maxEnergy;
-        UpdateEnergyBar();
+        ChangeEnergy(maxEnergy);
     }
     public void ReplenishHealth()
     {
@@ -680,17 +710,13 @@ public class FighterScript : MonoBehaviour
     }
     void GainEnergy()
     {
+        if (!gainEnergyOn)
+        {
+            return;
+        }
         if (Time.frameCount % 60 == 0)
         {
-            if (currentEnergy < maxEnergy)
-            {
-                currentEnergy += energyPerSecond;
-                if (currentEnergy > maxEnergy)
-                {
-                    currentEnergy = maxEnergy;
-                }
-                UpdateEnergyBar();
-            }
+            ChangeEnergy(energyPerSecond);
         }
     }
     void Update()
@@ -702,10 +728,9 @@ public class FighterScript : MonoBehaviour
             MoveTowardsDefaultStance();
         }
     }
-    public void SetCharacterType(string typeArg)
+    public void SetCharacterType(string typeArg) // do this as soon as the fighter is created and InitBasedOnCharSettings does the rest
     {
         characterType = typeArg.ToLower();
-        Debug.Log("fighter is now " + characterType);
     }
 
     public IEnumerator InitBasedOnCharSettings() // waits a few frames then updates info
@@ -746,63 +771,70 @@ public class FighterScript : MonoBehaviour
     {
         // first sets default values
         speedMultiplier = 1f;
-        damageMultiplier = 1f;
-        maxhp = 10;
-        hp = 10;
+        legPower = 1f;
+        maxhp = 100;
+        hp = 100;
 
         // set number stats
         switch (characterType)
         {
             case "acolyte":
                 // Debug.Log("setting acolyte");
-
-                defaultMaxHP = 10;
+                defaultMaxHP = 100;
                 defaultMaxEnergy = 100;
                 defaultEnergyPerSecond = 20;
 
-                defaultDamageMultiplier = 1f;
-                defaultSpeedMultiplier = 1f;
+                speedMultiplierDefault = 1f;
+
+                armPowerDefault = 1f;
+                legPowerDefault = 1f;
                 break;
             case "brawler":
                 // Debug.Log("setting brawler");
 
-                defaultMaxHP = 16;
+                defaultMaxHP = 160;
                 defaultMaxEnergy = 100;
                 defaultEnergyPerSecond = 20;
 
-                defaultSpeedMultiplier = 0.8f;
-                defaultDamageMultiplier = 1.4f;
+                speedMultiplierDefault = 0.8f;
+
+                armPowerDefault = 1.4f;
+                legPowerDefault = 1.2f;
                 break;
             case "trickster":
                 // Debug.Log("setting trickster");
 
-                defaultMaxHP = 6;
+                defaultMaxHP = 60;
                 defaultMaxEnergy = 100;
                 defaultEnergyPerSecond = 20;
 
-                defaultSpeedMultiplier = 1.3f;
-                defaultDamageMultiplier = .8f;
+                speedMultiplierDefault = 1.3f;
+
+                armPowerDefault = .8f;
+                legPowerDefault = 1f;
                 break;
         }
 
         maxhp = defaultMaxHP;
-        hp = maxhp;
+        ReplenishHealth();
 
         maxEnergy = defaultMaxEnergy;
         energyPerSecond = defaultEnergyPerSecond;
-        currentEnergy = maxEnergy;
+        ReplenishEnergy();
 
-        speedMultiplier = defaultSpeedMultiplier;
-        damageMultiplier = defaultDamageMultiplier;
+        speedMultiplier = speedMultiplierDefault;
+        moveSpeed = defaultMoveSpeed * speedMultiplier;
+        armPower = armPowerDefault;
+        legPower = legPowerDefault;
 
         if (isPlayer)
         {
             maxhp *= 2;
             hp *= 2;
-
         }
         // Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
-        moveSpeed = defaultMoveSpeed * speedMultiplier;
+        UpdateHealthBar();
+        UpdateEnergyBar();
     }
     void MoveTowardsDefaultStance()
     //only happens with controlsEnabled. moves at speed towards default positions of hands and feet
@@ -1368,24 +1400,61 @@ public class FighterScript : MonoBehaviour
                 break;
         }
     }
-    public void MoveHead(Vector3 direction)
+    public void MoveHeadInDirection(Vector3 direction)
     {
         stanceHeadTran.position += Vector3.Normalize(direction) * moveSpeed;
+    }
+    public void MoveHeadAtPosition(Vector3 targetPosition)
+    {
+        Vector3 targetPos2D = new Vector3(targetPosition.x, targetPosition.y, 0f);
+        if (targetPos2D.x > transform.position.x + reach)
+        {
+            targetPos2D = new Vector3(transform.position.x + reach, targetPos2D.y, 0f);
+        }
+        if (targetPos2D.x < transform.position.x - reach)
+        {
+            targetPos2D = new Vector3(transform.position.x - reach, targetPos2D.y, 0f);
+        }
+
+
+        if (targetPos2D.y > transform.position.y + reach)
+        {
+            targetPos2D = new Vector3(targetPos2D.x, transform.position.y + reach, 0f);
+        }
+        if (targetPos2D.y < transform.position.y - reach)
+        {
+            targetPos2D = new Vector3(targetPos2D.x, transform.position.y - reach, 0f);
+        }
+
+        stanceHeadTran.LookAt(targetPos2D);
+        Vector3 moveVector = stanceHeadTran.forward * moveSpeed;
+        Vector3 newHeadPosition = stanceHeadTran.position + moveVector;
+
+        if (moveSpeed >= Vector3.Distance(stanceHeadTran.position, targetPos2D) && IsPositionWithinSectors(targetPos2D))
+        {
+            return;
+        }
+
+        stanceHeadTran.position += moveVector;
     }
     public void MoveHeadTowardsSector(int sector)
     {
         // 0 1 2 = bottom back, bottom, bottom forward
         // 3 4 5 = center back, true center, center forward
         // 6 7 8 = top back, top, top forard
-        MoveHead(GetHeadDirectionToSector(sector));
+        MoveHeadInDirection(GetHeadDirectionToSector(sector));
     }
     public bool IsHeadWithinSectors() // checks if head is within boundaries
     {
-        if (stanceHeadTran.position.x > transform.position.x + reach || stanceHeadTran.position.y > transform.position.y + reach)
+        return IsPositionWithinSectors(stanceHeadTran.position);
+    }
+    public bool IsPositionWithinSectors(Vector3 posVector) // checks if head is within boundaries
+    {
+        if (posVector.x > transform.position.x + reach || posVector.y > transform.position.y + reach)
         {
             return false;
         }
-        if (stanceHeadTran.position.x < transform.position.x - reach || stanceHeadTran.position.y < transform.position.y - reach)
+        if (posVector.x < transform.position.x - reach || posVector.y < transform.position.y - reach)
         {
             return false;
         }
@@ -1480,6 +1549,10 @@ public class FighterScript : MonoBehaviour
     }
     public void TurnTo(string direction)
     {
+        if (!controlsEnabled)
+        {
+            return;
+        }
         // only turns if it is not already facing the direction
         if (
             (direction == "right" && facingRight)
@@ -1583,7 +1656,8 @@ public class FighterScript : MonoBehaviour
         //Debug.Log(sectors[sector] + " attack");
     }
     private void StrikeThisLocation(
-        int power,
+        int damage,
+        float pushMultiplier, // multiplies damage by this for force vector
         Vector3 targetLocation, // attack area spawn will be averaged with startOfBodyPart
         Vector3 startOfBodyPart, // strike direction is determined by this and targetLocation
         GameObject strikingStanceObject, // the stance object of the limb
@@ -1604,6 +1678,9 @@ public class FighterScript : MonoBehaviour
             (targetLocation + startOfBodyPart) / 2f,
             transform.rotation);
 
+        newWarning.transform.parent = transform.parent; // so that it moves with parent but not with itself 
+
+
         AttackAreaScript newWarningScript = newWarning.GetComponent<AttackAreaScript>();
         newWarningScript.creator = this.gameObject;
 
@@ -1611,7 +1688,7 @@ public class FighterScript : MonoBehaviour
         newWarningScript.thingHittingPos = limbObject.transform.position;
 
         // force vector
-        newWarningScript.strikeForceVector = ((float)power) * 7f * Vector3.Normalize(targetLocation - startOfBodyPart);
+        newWarningScript.strikeForceVector = pushMultiplier * ((float)damage) * Vector3.Normalize(targetLocation - startOfBodyPart);
 
         //particle effect stuff
         newWarningScript.particleEffectController = particleEffectController;
@@ -1623,7 +1700,7 @@ public class FighterScript : MonoBehaviour
         newWarning.transform.localScale = new Vector3(xScale, yScale, 1f);
 
         //set damage
-        newWarningScript.attackDamage = power;
+        newWarningScript.attackDamage = damage;
 
         if (isGhost) // is the ghost of an enemy, creates visble attack area and warning, invokes creation of visible warning after framesUntilStrike frames
         {
@@ -1638,6 +1715,19 @@ public class FighterScript : MonoBehaviour
             newWarningScript.UpdateSprites();
             return;
         }
+    }
+
+    public IEnumerator ParentWasPushed()
+    {
+        while (Vector3.Magnitude(parentRB.velocity) > 0f)
+        {
+            transform.position += new Vector3(
+                parentRB.velocity.x / 60f,
+                parentRB.velocity.y / 60f,
+                0f);
+            yield return null;
+        }
+        Debug.Log("parent has stopped moving");
     }
     IEnumerator KeepHandsInPlace()
     {
@@ -1697,8 +1787,9 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator Hook()
     {
-        int energyCost = (int)(10f * damageMultiplier);
-        int power = (int)(6f * damageMultiplier);
+        int energyCost = (int)(10f * armPower);
+        int damage = (int)(60f * armPower);
+        float pushMultiplier = 1f;
         if (currentEnergy < energyCost)
         {
             controlsEnabled = true;
@@ -1706,8 +1797,7 @@ public class FighterScript : MonoBehaviour
         }
         else
         {
-            currentEnergy -= energyCost;
-            UpdateEnergyBar();
+            ChangeEnergy(0 - energyCost);
         }
         float timeTaken = .2f / speedMultiplier; //seconds
         int framesTaken = (int)(timeTaken * 60);
@@ -1732,7 +1822,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(power, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1f);
+        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1.5f);
 
         // return to default stance fast before regaining control
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -1745,8 +1835,9 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator JabCombo(string type) // type = "defensive" or "aggressive". defensive is a 2 hit combo, aggressive is a single far jab
     {
-        int energyCost = (int)(8f * damageMultiplier);
-        int power = (int)(3f * damageMultiplier);
+        int energyCost = (int)(8f * armPower);
+        int damage = (int)(30f * armPower);
+        float pushMultiplier = 1f;
         switch (type)
         {
             case "defensive":
@@ -1763,8 +1854,7 @@ public class FighterScript : MonoBehaviour
         }
         else
         {
-            currentEnergy -= energyCost;
-            UpdateEnergyBar();
+            ChangeEnergy(0 - energyCost);
         }
 
         Vector3 attackTarget = GetAttackVector("Jab" + type);
@@ -1792,7 +1882,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(power, attackTarget, jointElbow2Tran.position, stanceHand2, lowerArm2, 1f, 1f);
+        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointElbow2Tran.position, stanceHand2, lowerArm2, 1f, 1.5f);
 
         // pull jabbing hand back
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -1814,9 +1904,66 @@ public class FighterScript : MonoBehaviour
         }
         //Debug.Log("controls re-enabled");
     }
+    IEnumerator Uppercut()
+    {
+        int energyCost = (int)(15f * armPower);
+        int damage = (int)(60f * armPower);
+        float pushMultiplier = 1f;
+        if (currentEnergy < energyCost)
+        {
+            controlsEnabled = true;
+            yield break;
+        }
+        float timeTaken = .25f / speedMultiplier; //seconds
+        int framesTaken = (int)(timeTaken * 60f);
+        int windUpFrames = (int)((float)framesTaken * .3f);
+        int throwingFrames = (int)((float)framesTaken * .7f);
+
+        Vector3 attackTarget = GetAttackVector("Uppercut");
+
+        yield return attackTarget;
+        float distance = Vector3.Distance(attackTarget, stanceHand1Tran.position);
+
+        float windUpDistancePerFrame = .5f / windUpFrames;
+        float punchDistancePerFrame = distance / throwingFrames;
+
+        // throw punch animation
+        for (int i = 0; i < windUpFrames; i++)
+        {
+            stanceHeadTran.position += Vector3.up * windUpDistancePerFrame;
+            stanceHand1Tran.position -= Vector3.up * windUpDistancePerFrame;// * 2f;
+            yield return null;
+        }
+
+        for (int i = 0; i < throwingFrames; i++)
+        {
+            stanceHeadTran.position += orientedTran.up * punchDistancePerFrame * .4f;
+            stanceHeadTran.position += orientedTran.right * punchDistancePerFrame * .25f;
+
+            // punching hand
+            stanceHand1Tran.LookAt(attackTarget);
+            stanceHand1Tran.position += stanceHand1Tran.forward * punchDistancePerFrame;
+
+            // guard hand
+            stanceHand2Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
+            stanceHand2Tran.position += stanceHand2Tran.forward * punchDistancePerFrame * 0.5f;
+            upperArm1Tran.position = jointElbow1Tran.position;
+            yield return null;
+        }
+        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1.5f);
+
+        // return to default stance fast before regaining control
+        while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
+        {
+            MoveTowardsDefaultStance();
+            MoveTowardsDefaultStance();
+            yield return null;
+        }
+        controlsEnabled = true;
+    }
     IEnumerator RoundhouseKick()
     {
-        int energyCost = (int)(30f * damageMultiplier);
+        int energyCost = (int)(30f * legPower);
         if (currentEnergy < energyCost)
         {
             controlsEnabled = true;
@@ -1824,11 +1971,11 @@ public class FighterScript : MonoBehaviour
         }
         else
         {
-            currentEnergy -= energyCost;
-            UpdateEnergyBar();
+            ChangeEnergy(0 - energyCost);
 
         }
-        int power = (int)(8f * damageMultiplier);
+        int damage = (int)(80f * legPower);
+        float pushMultiplier = .4f;
         float timeTaken = .25f / speedMultiplier; //seconds
         int framesTaken = (int)(timeTaken * 60);
 
@@ -1863,7 +2010,7 @@ public class FighterScript : MonoBehaviour
 
             yield return null;
         }
-        StrikeThisLocation(power, attackTarget, jointKnee1Tran.position, stanceFoot1, calf1, 2f, 1f);
+        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointKnee1Tran.position, stanceFoot1, calf1, 2f, 1f);
         stanceTorsoBotActive = false;
 
         while (Vector3.Distance(kickingFootTran.position, foot1DefaultVector) > .25f)
@@ -1876,8 +2023,9 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator FrontKick(string type) // type = "grounded" or "flying"
     {
-        int energyCost = (int)(30f * damageMultiplier);
-        int power = 0; // to be set in below switch statement
+        int energyCost = (int)(30f * legPower);
+        int damage = 0; // to be set in below switch statement
+        float pushMultiplier = 2f;
         bool grounded = true;
         switch (type)
         {
@@ -1895,19 +2043,21 @@ public class FighterScript : MonoBehaviour
         }
         else
         {
-            currentEnergy -= energyCost;
-            UpdateEnergyBar();
+            ChangeEnergy(0 - energyCost);
         }
 
+        float range = 0f;
         switch (type)
         {
             case "grounded":
-                power = (int)(7f * damageMultiplier);
+                damage = (int)(70f * legPower);
+                range = 4f;
                 grounded = true;
                 stanceTorsoBotActive = true;
                 break;
             case "flying":
-                power = (int)(10f * damageMultiplier);
+                damage = (int)(100f * legPower);
+                range = 3f;
                 grounded = false;
                 SetStances("none");
                 stanceFoot2Active = true;
@@ -1916,7 +2066,6 @@ public class FighterScript : MonoBehaviour
                 stanceHand2Active = true;
                 break;
         }
-        float range = 4.5f;
         float raiseFootTime = .15f;
 
         float timeTaken = .25f / speedMultiplier; //seconds
@@ -1985,7 +2134,7 @@ public class FighterScript : MonoBehaviour
             yield return null;
         }
         SetStances("combat");
-        StrikeThisLocation(power, kickingFootTran.position, jointKnee2Tran.position, stanceFoot2, calf2, 2f, 1f);
+        StrikeThisLocation(damage, pushMultiplier, kickingFootTran.position, jointKnee2Tran.position, stanceFoot2, calf2, 2f, 1f);
 
         while (Vector3.Distance(kickingFootTran.position, foot2DefaultVector) > .25f)
         {
@@ -2067,8 +2216,7 @@ public class FighterScript : MonoBehaviour
         }
         else
         {
-            currentEnergy -= energyCost;
-            UpdateEnergyBar();
+            ChangeEnergy(0 - energyCost);
         }
 
         controlsEnabled = false;
@@ -2091,75 +2239,22 @@ public class FighterScript : MonoBehaviour
         yield return StartCoroutine(JumpingFrontKickPart2(10f));
         yield return null;
     }
-    IEnumerator Uppercut()
-    {
-        int energyCost = (int)(15f * damageMultiplier);
-        int power = (int)(6f * damageMultiplier);
-        if (currentEnergy < energyCost)
-        {
-            controlsEnabled = true;
-            yield break;
-        }
-        float timeTaken = .25f / speedMultiplier; //seconds
-        int framesTaken = (int)(timeTaken * 60f);
-        int windUpFrames = (int)((float)framesTaken * .3f);
-        int throwingFrames = (int)((float)framesTaken * .7f);
-
-        Vector3 attackTarget = GetAttackVector("Uppercut");
-
-        yield return attackTarget;
-        float distance = Vector3.Distance(attackTarget, stanceHand1Tran.position);
-
-        float windUpDistancePerFrame = .5f / windUpFrames;
-        float punchDistancePerFrame = distance / throwingFrames;
-
-        // throw punch animation
-        for (int i = 0; i < windUpFrames; i++)
-        {
-            stanceHeadTran.position += Vector3.up * windUpDistancePerFrame;
-            stanceHand1Tran.position -= Vector3.up * windUpDistancePerFrame;// * 2f;
-            yield return null;
-        }
-
-        for (int i = 0; i < throwingFrames; i++)
-        {
-            stanceHeadTran.position += orientedTran.up * punchDistancePerFrame * .4f;
-            stanceHeadTran.position += orientedTran.right * punchDistancePerFrame * .25f;
-
-            // punching hand
-            stanceHand1Tran.LookAt(attackTarget);
-            stanceHand1Tran.position += stanceHand1Tran.forward * punchDistancePerFrame;
-
-            // guard hand
-            stanceHand2Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
-            stanceHand2Tran.position += stanceHand2Tran.forward * punchDistancePerFrame * 0.5f;
-            upperArm1Tran.position = jointElbow1Tran.position;
-            yield return null;
-        }
-        StrikeThisLocation(power, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1.5f);
-
-        // return to default stance fast before regaining control
-        while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
-        {
-            MoveTowardsDefaultStance();
-            MoveTowardsDefaultStance();
-            yield return null;
-        }
-        controlsEnabled = true;
-    }
     IEnumerator GroundSlam()
     {
         controlsEnabled = false;
 
-        int power = 8;
-        if (currentEnergy < maxEnergy)
+        int damage = 60;
+        float pushMultiplier = 2.5f;
+        int energyCost = 100;
+        if (currentEnergy < 100)
         {
             controlsEnabled = true;
             yield break;
         }
         else
         {
-            currentEnergy = 0;
+            ChangeEnergy(0 - energyCost);
+            gainEnergyOn = false;
         }
 
         float timeTakenWindUp = 0.3f;
@@ -2248,15 +2343,16 @@ public class FighterScript : MonoBehaviour
             if (!enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript.airborne)
             {
                 FighterScript targetFighterScript = enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript;
-                damagerScript.attackDamage = power;
+                damagerScript.attackDamage = damage;
                 damagerScript.DirectlyDamage(
                     targetFighterScript,
-                    power,
-                    Vector3.up * 50f + Vector3.Normalize(targetFighterScript.transform.position - transform.position) * 50f);
+                    damage,
+                    Vector3.up * damage + Vector3.Normalize(targetFighterScript.transform.position - transform.position) * damage * pushMultiplier);
             }
         }
         Destroy(directDamager);
 
+        gainEnergyOn = true;
         controlsEnabled = true;
     }
 }

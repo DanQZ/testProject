@@ -10,7 +10,7 @@ public class PlayerScript : MonoBehaviour
     Transform stanceHeadTran;
     public FighterScript PFScript;
     public GameObject gameStateManager;
-
+    public bool controlWithMouse;
     void Awake()
     {
         PCTran = playerFighter.transform;
@@ -19,9 +19,9 @@ public class PlayerScript : MonoBehaviour
         PFScript.isPlayer = true;
         PFScript.isGhost = false;
         StartCoroutine(PFScript.InitBasedOnCharSettings());
+        controlWithMouse = false; // defaults to one
     }
-
-    void MoveHeadIfInput()
+    void MoveIfInputWASD()
     //WASD moves head within allowed boundaries of size range
     {
         float playerX = PCTran.position.x;
@@ -66,7 +66,7 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
-    void AttackIfInput()
+    void AttackIfInputWASD()
     {
         if (PFScript.IsHeadWithinSectors() && PFScript.controlsEnabled)
         {
@@ -91,13 +91,80 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
+    void MoveIfInputMouse()
+    //WASD moves head within allowed boundaries of size range
+    {
+        Vector3 mouseVector = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        PFScript.MoveHeadAtPosition(mouseVector);
+
+        if (Input.GetKey("a"))
+        {
+            PFScript.Move(transform.right * -1f);
+        }
+        if (Input.GetKey("d"))
+        {
+            PFScript.Move(transform.right);
+        }
+        if (Input.GetKey("q")) // face left
+        {
+            PFScript.TurnTo("left");
+            return;
+        }
+        if (Input.GetKey("e")) // face right
+        {
+            PFScript.TurnTo("right");
+            return;
+        }
+    }
+    void AttackIfInputMouse()
+    {
+        if (PFScript.IsHeadWithinSectors() && PFScript.controlsEnabled)
+        {
+            if (Input.GetKey(KeyCode.Mouse0))
+            {
+                PFScript.controlsEnabled = false;
+                PFScript.Attack("arms");
+                return;
+            }
+            if (Input.GetKey(KeyCode.Mouse1))
+            {
+                PFScript.controlsEnabled = false;
+                PFScript.Attack("legs");
+                return;
+            }
+            if (Input.GetKey("f"))
+            {
+                PFScript.controlsEnabled = false;
+                PFScript.Attack("groundslam");
+                return;
+            }
+        }
+    }
+    void MouseControls()
+    {
+        AttackIfInputMouse();
+        MoveIfInputMouse();
+    }
+    void WASDControls()
+    {
+        AttackIfInputWASD();
+        MoveIfInputWASD();
+    }
     // Update is called once per frame
     void Update()
     {
         if (PFScript.controlsEnabled)
         {
-            AttackIfInput();
-            MoveHeadIfInput();
+
+            // turn these into coroutines later
+            if (controlWithMouse)
+            {
+                MouseControls();
+            }
+            else
+            {
+                WASDControls();
+            }
         }
     }
 }

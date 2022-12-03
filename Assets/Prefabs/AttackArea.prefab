@@ -212,14 +212,14 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6061490844802025200}
-  m_BodyType: 2
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_AngularDrag: 0
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -238,9 +238,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lifespan: 60
+  particleEffectController: {fileID: 0}
+  particleControllerScript: {fileID: 0}
   incomingCircle: {fileID: 853157815649759981}
   warning: {fileID: 6061490844486511566}
-  strikeDirection: {x: 0, y: 0, z: 0}
+  strikeForceVector: {x: 0, y: 0, z: 0}
+  thingHittingPos: {x: 0, y: 0, z: 0}
+  thingHittingStancePos: {x: 0, y: 0, z: 0}
+  thingHit: {fileID: 0}
+  thingHitObjectRoot: {fileID: 0}
   attackDamage: 0
   creator: {fileID: 0}
   creatorType: 

@@ -56,7 +56,7 @@ public class EnemyManagerScript : MonoBehaviour
             Destroy(enemy);
         }
     }
-    public void EndGame()
+    public void GameEnded()
     {
         StopSpawningEnemies();
         ClearAllEnemies();
@@ -70,7 +70,7 @@ public class EnemyManagerScript : MonoBehaviour
         // every level, average enemy spawn interval goes down 1 second
         float rangeMinSeconds = 5f - ((float)difficultyLevel);
         float rangeMaxSeconds = 10f - ((float)difficultyLevel);
-        
+
         // prevents enemies from spawning more than once per second
         if (rangeMinSeconds < 1f)
         {
@@ -118,11 +118,29 @@ public class EnemyManagerScript : MonoBehaviour
         newEGScript.myManagerObject = transform.gameObject;
         newEGScript.myManagerScript = transform.gameObject.GetComponent<EnemyManagerScript>();
 
-        // the enemy AI referencing 
-        DanEnemyScript newEnemyScript = newEnemyWithGhost.GetComponent<DanEnemyScript>();
-        newEnemyScript.playerFighter = playerFighter;
-        newEnemyScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
 
+        // the enemy AI referencing (replace with the other AI script here)
+        DanEnemyScript newEnemyAIScript = newEnemyWithGhost.GetComponent<DanEnemyScript>();
+        newEnemyAIScript.playerFighter = playerFighter;
+        newEnemyAIScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
+
+        int randomNum = (int)Random.Range(0, 3f);
+        string newEnemyType = "acolyte";
+        switch (randomNum)
+        {
+            case 0:
+                newEnemyType = "acolyte";
+                break;
+            case 1:
+                newEnemyType = "brawler";
+                break;
+            case 2:
+                newEnemyType = "trickster";
+                break;
+        }
+        newEGScript.ghostFighterScript.SetCharacterType(newEnemyType);
+        newEGScript.enemyFighterScript.SetCharacterType(newEnemyType);
+        
         // the non-ghost part 
         FighterScript newEGSFighterScript = newEGScript.enemyFighter.GetComponent<FighterScript>();
 

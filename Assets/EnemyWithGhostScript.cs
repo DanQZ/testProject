@@ -98,17 +98,17 @@ public class EnemyWithGhostScript : MonoBehaviour
 
         while (true)
         {
-            enemyFighterTran.position = bodPosQ.Dequeue();
-            enemyHeadStanceTran.position = headPosQ.Dequeue();
+            enemyFighterTran.localPosition = bodPosQ.Dequeue();
+            enemyHeadStanceTran.localPosition = headPosQ.Dequeue();
 
-            enemyTorsoTopStanceTran.position = torsoTopPosQ.Dequeue();
-            enemyTorsoBotStanceTran.position = torsoBotPosQ.Dequeue();
+            enemyTorsoTopStanceTran.localPosition = torsoTopPosQ.Dequeue();
+            enemyTorsoBotStanceTran.localPosition = torsoBotPosQ.Dequeue();
 
-            enemyHand1StanceTran.position = hand1PosQ.Dequeue();
-            enemyHand2StanceTran.position = hand2PosQ.Dequeue();
+            enemyHand1StanceTran.localPosition = hand1PosQ.Dequeue();
+            enemyHand2StanceTran.localPosition = hand2PosQ.Dequeue();
 
-            enemyFoot1StanceTran.position = foot1PosQ.Dequeue();
-            enemyFoot2StanceTran.position = foot2PosQ.Dequeue();
+            enemyFoot1StanceTran.localPosition = foot1PosQ.Dequeue();
+            enemyFoot2StanceTran.localPosition = foot2PosQ.Dequeue();
 
             bool toFaceRight = facingRightQ.Dequeue();
             enemyFighterScript.currentEnergy = currentEnergyQ.Dequeue();
@@ -128,17 +128,17 @@ public class EnemyWithGhostScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        bodPosQ.Enqueue(ghostFighterTran.position);
-        headPosQ.Enqueue(ghostHeadStanceTran.position);
+        bodPosQ.Enqueue(ghostFighterTran.localPosition);
+        headPosQ.Enqueue(ghostHeadStanceTran.localPosition);
 
-        torsoTopPosQ.Enqueue(ghostFighterScript.stanceTorsoTopTran.position);
-        torsoBotPosQ.Enqueue(ghostFighterScript.stanceTorsoBotTran.position);
+        torsoTopPosQ.Enqueue(ghostFighterScript.stanceTorsoTopTran.localPosition);
+        torsoBotPosQ.Enqueue(ghostFighterScript.stanceTorsoBotTran.localPosition);
 
-        hand1PosQ.Enqueue(ghostFighterScript.stanceHand1Tran.position);
-        hand2PosQ.Enqueue(ghostFighterScript.stanceHand2Tran.position);
+        hand1PosQ.Enqueue(ghostFighterScript.stanceHand1Tran.localPosition);
+        hand2PosQ.Enqueue(ghostFighterScript.stanceHand2Tran.localPosition);
 
-        foot1PosQ.Enqueue(ghostFighterScript.stanceFoot1Tran.position);
-        foot2PosQ.Enqueue(ghostFighterScript.stanceFoot2Tran.position);
+        foot1PosQ.Enqueue(ghostFighterScript.stanceFoot1Tran.localPosition);
+        foot2PosQ.Enqueue(ghostFighterScript.stanceFoot2Tran.localPosition);
 
         facingRightQ.Enqueue(ghostFighterScript.facingRight);
         currentEnergyQ.Enqueue(ghostFighterScript.currentEnergy);

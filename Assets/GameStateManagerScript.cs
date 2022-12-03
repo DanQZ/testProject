@@ -32,12 +32,17 @@ public class GameStateManagerScript : MonoBehaviour
     public GameObject GAME_OVER_UI;
     public GameObject CREDITS_UI;
     public GameObject INSTRUCTIONS_UI;
+    public GameObject OPTIONS_UI;
     public GameObject CHECKPOINT_UI;
+    public GameObject UPDATELOG_UI;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
 
     // choosing character stuff
     public string chosenCharacterType;
     public Text chosenCharacterText;
+    public Text characterStatsText;
+
+    public string selectedControls;
 
     IEnumerator pressEnterToContinue;
     IEnumerator checkpointCountdown;
@@ -50,7 +55,9 @@ public class GameStateManagerScript : MonoBehaviour
         ALL_UI_LIST.Add(GAME_OVER_UI);
         ALL_UI_LIST.Add(CREDITS_UI);
         ALL_UI_LIST.Add(INSTRUCTIONS_UI);
+        ALL_UI_LIST.Add(OPTIONS_UI);
         ALL_UI_LIST.Add(CHECKPOINT_UI);
+        ALL_UI_LIST.Add(UPDATELOG_UI);
 
         transform.position = new Vector3(0f, 0f, 0f);
 
@@ -61,35 +68,69 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript = enemyManager.GetComponent<EnemyManagerScript>();
         enemyManagerScript.gameStateManager = this.gameObject;
 
+        selectedControls = "wasd";
         gameStarted = false;
         highScore = 0;
         chosenCharacterType = "acolyte";
 
         DisplayUI("main menu");
-        TogglePressEnterToContinue(true);
         checkpointCountdown = CountDownToNextCheckpoint(60f);
 
     }
 
-    public void TogglePressEnterToContinue(bool toggleOn)
+    void Update()
     {
-        if (toggleOn)
+        if (Input.GetKeyUp(KeyCode.Return)) // must be GetKeyUp or it will keep doing it
         {
-            if (pressEnterToContinue != null)
+            if (!gameStarted && MAIN_MENU_UI.activeInHierarchy) // these need te be Invoke or stuff gets weird (some bullshit that happens because it all happens on the same frame)
             {
-                StopCoroutine(pressEnterToContinue);
+                Debug.Log("enter pressed on main menu, starting game");
+                StartNewGame();
+                return;
+                //Invoke("StartNewGame", 0.1f);
             }
-            pressEnterToContinue = PressEnterToContinue();
-            StartCoroutine(pressEnterToContinue);
+            if (gameStarted && GAME_OVER_UI.activeInHierarchy)
+            {
+                Debug.Log("enter pressed on gameover, ending game");
+                EndGame();
+                return;
+                //Invoke("EndGame", 0.1f);
+            }
         }
-        else
+
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            StopCoroutine(pressEnterToContinue);
+            if (!MAIN_MENU_UI.activeInHierarchy)
+            {
+                if (!gameStarted) // somewhere within the menus 
+                {
+                    DisplayUI("main menu");
+                }
+                if (gameStarted)
+                {
+                    EndGame();
+                }
+            }
         }
     }
+
+    private void ResetCheckpointCountdown(float seconds)
+    {
+        if (checkpointCountdown != null)
+        {
+            StopCoroutine(checkpointCountdown);
+        }
+        checkpointCountdown = CountDownToNextCheckpoint(seconds);
+    }
+
+    private void StartCountingDownCheckpoint(float seconds)
+    {
+        ResetCheckpointCountdown(seconds);
+        StartCoroutine(checkpointCountdown);
+    }
+
     public void StartNewGame()
     {
-        TogglePressEnterToContinue(false);
         DisplayUI("in game");
 
         // makes and returns new player object
@@ -101,25 +142,25 @@ public class GameStateManagerScript : MonoBehaviour
         // start counting score
         score = 0;
         scoreCounterText.text = "Score: " + score;
-
+        gameStarted = true;
         StartNextLevel();
     }
     public void GameOver() // referenced on an event in FighterScript.Die() not sure why vscode thinks it has 0 references
     {
+        ResetCheckpointCountdown(60f);
+
         DisplayUI("game over");
-        StopCoroutine(checkpointCountdown);
         gameOverText.text = "GAME OVER\nScore: " + score;
         enemyManagerScript.StopSpawningEnemies();
-        TogglePressEnterToContinue(true);
     }
     public void EndGame()// referenced by button objects, goes to main menu
     {
-        enemyManagerScript.EndGame();
-        gameStarted = false;
+        enemyManagerScript.GameEnded();
+        ResetCheckpointCountdown(60f);
 
+        gameStarted = false;
         Destroy(currentPlayer);
         DisplayUI("main menu");
-        TogglePressEnterToContinue(true);
     }
     public void StartNextLevel()
     { // referenced by button objects
@@ -129,8 +170,8 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.IncreaseDifficulty();
         enemyManagerScript.StartSpawningEnemies();
 
-        checkpointCountdown = CountDownToNextCheckpoint(60f);
-        StartCoroutine(checkpointCountdown); // 60s per level
+        StartCountingDownCheckpoint(5f);
+
         currentPlayer.transform.position = new Vector3(0f, 0f, 0f);
         currentPFScript.ReplenishEnergy();
     }
@@ -142,6 +183,15 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.ClearAllEnemies();
 
         StopCoroutine(checkpointCountdown);
+    }
+
+    public void SetControlsWASD()
+    {
+        selectedControls = "wasd";
+    }
+    public void SetControlsMouse()
+    {
+        selectedControls = "mouse";
     }
     public GameObject CreatePlayer()
     {
@@ -156,29 +206,18 @@ public class GameStateManagerScript : MonoBehaviour
         currentPFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
         currentPFScript.SetCharacterType(chosenCharacterType);
 
-        return newPlayerPrefab;
-    }
-
-    private IEnumerator PressEnterToContinue()
-    {
-        while (true)
+        // there might be more control schemes later idk
+        switch (selectedControls.ToLower())
         {
-            if (Input.GetKeyDown(KeyCode.Return))
-            {
-                if (!gameStarted && MAIN_MENU_UI.activeInHierarchy)
-                {
-                    StartNewGame();
-                    break;
-                }
-                if (GAME_OVER_UI.activeInHierarchy)
-                {
-                    EndGame();
-                    break;
-                }
-            }
-            yield return null;
+            case "wasd":
+                newPlayerScript.controlWithMouse = false;
+                break;
+            case "mouse":
+                newPlayerScript.controlWithMouse = true;
+                break;
         }
-        yield break;
+
+        return newPlayerPrefab;
     }
 
     private IEnumerator CountDownToNextCheckpoint(float secondsUntil)
@@ -201,19 +240,31 @@ public class GameStateManagerScript : MonoBehaviour
 
     public void CheckpointUpgrade(string upgradeArg)
     {
-        switch (upgradeArg)
+        switch (upgradeArg.ToLower())
         {
             case "health":
-                currentPFScript.maxhp += 4;
-                currentPFScript.hp += 4;
+                currentPFScript.maxhp += 30;
+                currentPFScript.hp += 30;
                 currentPFScript.UpdateHealthBar();
                 break;
             case "energy":
                 currentPFScript.maxEnergy += 20;
                 currentPFScript.UpdateEnergyBar();
                 break;
-            case "damage":
-                currentPFScript.ChangeMultiplier("damage", "add", 0.1f);
+            case "arm power":
+                currentPFScript.ChangeMultiplier("arm power", "add", 0.1f);
+                break;
+            case "leg power":
+                currentPFScript.ChangeMultiplier("leg power", "add", 0.1f);
+                break;
+            case "energyregen":
+                currentPFScript.energyPerSecond += 5;
+                break;
+            case "movespeed":
+                currentPFScript.ChangeMultiplier("speed", "add", 0.1f);
+                break;
+            case "heal":
+                currentPFScript.ReplenishHealth();
                 break;
         }
         StartNextLevel();
@@ -280,13 +331,33 @@ public class GameStateManagerScript : MonoBehaviour
             case "credits":
                 CREDITS_UI.SetActive(true);
                 break;
+            case "options":
+                OPTIONS_UI.SetActive(true);
+                break;
             case "instructions":
                 INSTRUCTIONS_UI.SetActive(true);
                 break;
             case "checkpoint":
+                UpdateStatsText();
                 CHECKPOINT_UI.SetActive(true);
                 break;
+            case "update log":
+                UPDATELOG_UI.SetActive(true);
+                break;
         }
+    }
+
+    private void UpdateStatsText()
+    {
+        FighterScript cpfs = currentPFScript;
+
+        characterStatsText.text = "Current Stats" + "\n"
+            + "hp: " + cpfs.hp + "/" + cpfs.maxhp + "\n"
+            + "max energy: " + cpfs.currentEnergy + "\n"
+            + "energy/second: " + cpfs.energyPerSecond + "\n"
+            + "arm power: " + cpfs.armPower + "\n"
+            + "leg power: " + cpfs.legPower + "\n"
+            + "speed: " + cpfs.speedMultiplier + "\n";
     }
 
     public void AddScore(int toAdd) // referenced by FighterScript.Die()

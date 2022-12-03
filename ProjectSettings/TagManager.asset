@@ -15,7 +15,7 @@ TagManager:
   - Water
   - UI
   - EnemyAttack
-  - 
+  - FighterPlayerParent
   - 
   - 
   - 
@@ -67,4 +67,7 @@ TagManager:
     locked: 0
   - name: UI
     uniqueID: 20434451
+    locked: 0
+  - name: Borders
+    uniqueID: 1109593449
     locked: 0

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4371373301746999774}
   - component: {fileID: 7649292729557365598}
   - component: {fileID: 7670198058456960826}
+  - component: {fileID: -6477955280859667301}
   m_Layer: 0
   m_Name: EnemyWithGhost
   m_TagString: Untagged
@@ -47,6 +48,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b58ca9c2852c12e4c91616cfedaf0493, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  myManagerObject: {fileID: 0}
+  myManagerScript: {fileID: 0}
+  enemyID: 0
   enemyFighter: {fileID: 1498385057246905792}
   ghostFighter: {fileID: 6080608042863873847}
   enemyHeadStance: {fileID: 1074818161165099964}
@@ -72,6 +76,27 @@ MonoBehaviour:
   thisFighterScript: {fileID: 0}
   playerFighter: {fileID: 0}
   playerHeadTran: {fileID: 0}
+--- !u!50 &-6477955280859667301
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8461294743135604799}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 10
+  m_LinearDrag: 10
+  m_AngularDrag: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1001 &1164533929551451301
 PrefabInstance:
   m_ObjectHideFlags: 0

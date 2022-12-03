@@ -120,7 +120,7 @@ public class AttackAreaScript : MonoBehaviour
 
         bool someoneGotHit = false;
 
-        if (creatorType == "enemy" && collision.gameObject.tag == "Player")// enemy hits player
+        if (creatorType == "enemy" && thingHit.tag == "Player")// enemy hits player
         {
             someoneGotHit = true;
             warningSprite.color = Color.blue;
@@ -128,12 +128,11 @@ public class AttackAreaScript : MonoBehaviour
             FighterScript playerFS = thingHitObjectRoot.GetComponent<PlayerScript>().PFScript;
             guyHitScript = playerFS;
         }
-        if (creatorType == "player" && collision.gameObject.tag == "Enemy") // player hits enemy
+        if (creatorType == "player" && thingHit.tag == "Enemy") // player hits enemy
         {
             someoneGotHit = true;
-            FighterScript danEnemyFS = collision.gameObject.transform.parent.parent.GetComponent<FighterScript>();
-            guyHitScript = danEnemyFS;
-            GameObject collisionObject = collision.gameObject;
+            FighterScript enemyFS = thingHit.transform.parent.parent.GetComponent<FighterScript>();
+            guyHitScript = enemyFS;
             collided = true;
         }
         if (!someoneGotHit)
@@ -160,7 +159,7 @@ public class AttackAreaScript : MonoBehaviour
     {
         if (guyHitScript.hp <= 0)
         {
-            LaunchAwayThingHit(strikeForceVector);
+            LaunchAwayThingHitBcItDied();
             guyHitScript.Die();
             // in the case we kill an enemy, delete the ghost 
             if (guyHitScript.headLimb.tag == "Enemy")
@@ -175,21 +174,63 @@ public class AttackAreaScript : MonoBehaviour
                 return;
             }
         }
+        else
+        {
+            PushAwayGuyHit();
+        }
         Destroy(this.gameObject);
     }
 
 
-    void LaunchAwayThingHit(Vector3 forceVector)
+    void LaunchAwayThingHitBcItDied()
     {
         guyHitScript.SetRagdoll(true);
         Rigidbody2D rb2d = GetRigidbody2DOfObject(thingHit);
         if (rb2d != null)
         {
-            rb2d.AddForce(forceVector, ForceMode2D.Impulse);
+            rb2d.AddForce(strikeForceVector / 1.5f, ForceMode2D.Impulse);
         }
         else
         {
             Debug.Log("no rigidbody found in gameobject or parent of gameobject");
+        }
+    }
+
+    void PushAwayGuyHit()
+    {
+        Rigidbody2D rb2dTarget = null;
+        GameObject enemyWithGhostParent = null;
+
+        if (thingHit.tag == "Enemy")
+        {
+            // push both the enemyGhost and enemy
+            enemyWithGhostParent = guyHitScript.gameObject.transform.parent.gameObject;
+            rb2dTarget = enemyWithGhostParent.GetComponent<Rigidbody2D>();
+            Debug.Log("pushing enemy away");
+        }
+        if (thingHit.tag == "Player")
+        {
+            GameObject playerObject = guyHitScript.gameObject.transform.parent.gameObject;
+            rb2dTarget = playerObject.GetComponent<Rigidbody2D>();
+            Debug.Log("pushing player away");
+        }
+
+        Vector3 xForce = new Vector3(strikeForceVector.x, 0f, 0f);
+        if (rb2dTarget != null)
+        {
+            rb2dTarget.AddForce(xForce, ForceMode2D.Impulse);
+        }
+        else
+        {
+            Debug.Log("no rigidbody found for non-killing push");
+        }
+
+        guyHitScript.StartCoroutine(guyHitScript.ParentWasPushed());
+        
+        if(thingHit.tag == "Enemy"){
+            FighterScript ghostFighterScript = enemyWithGhostParent.GetComponent<EnemyWithGhostScript>().ghostFighterScript;
+
+            ghostFighterScript.StartCoroutine(ghostFighterScript.ParentWasPushed());
         }
     }
 
@@ -198,10 +239,12 @@ public class AttackAreaScript : MonoBehaviour
         Rigidbody2D objectRB = gObject.GetComponent<Rigidbody2D>();
         if (objectRB != null)
         {
+            // limbs have their own objectRBs
             return objectRB;
         }
         else
         {
+            // because the head is slightly different because Im a dumbass 
             return gObject.transform.parent.gameObject.GetComponent<Rigidbody2D>();
         }
     }
