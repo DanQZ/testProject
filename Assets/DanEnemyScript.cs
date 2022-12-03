@@ -172,12 +172,12 @@ public class DanEnemyScript : MonoBehaviour
 
     IEnumerator GoToSectorThenAttack(int sector, string attackWith)
     {
-        while (thisFighterScript.GetHeadSector() != sector && thisFighterScript.controlsEnabled)
+        while (thisFighterScript.GetHeadSector() != sector && thisFighterScript.notInAttackAnimation)
         {
             thisFighterScript.MoveHeadTowardsSector(sector);
             yield return null;
         }
-        if (thisFighterScript.controlsEnabled)
+        if (thisFighterScript.notInAttackAnimation)
         {
             thisFighterScript.Attack(attackWith);
         }

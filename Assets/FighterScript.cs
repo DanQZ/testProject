@@ -164,7 +164,7 @@ public class FighterScript : MonoBehaviour
 
     public float reach; // distance the fighterHead can move from fighter object position
 
-    public bool controlsEnabled = true; // enabled, fighter can move head around + limbs move to default positions. disable when in an animation
+    public bool notInAttackAnimation = true; // enabled, fighter can move head around + limbs move to default positions. disable when in an animation
     public bool ragdolling = true; // if true, fighter cannot do ANYTHING outside of rigidbody physics 
 
     float expectedElbowDistanceToNeck1;
@@ -654,7 +654,7 @@ public class FighterScript : MonoBehaviour
         torsoTop.tag = "Enemy";
         torsoBottom.tag = "Enemy";
 
-        controlsEnabled = true;
+        notInAttackAnimation = true;
         facingRight = true;
 
         // default stat values 
@@ -722,7 +722,7 @@ public class FighterScript : MonoBehaviour
     {
         GainEnergy();
         MoveAndDrawBody(); // for some reason important this is called first
-        if (controlsEnabled) // if the fighter is not currently in an animation
+        if (notInAttackAnimation) // if the fighter is not currently in an animation
         {
             MoveTowardsDefaultStance();
         }
@@ -810,7 +810,7 @@ public class FighterScript : MonoBehaviour
                 speedMultiplierDefault = 1.3f;
 
                 armPowerDefault = .8f;
-                legPowerDefault = 1.1f;
+                legPowerDefault = .9f;
                 break;
         }
 
@@ -1086,7 +1086,7 @@ public class FighterScript : MonoBehaviour
         if (ragdoll)
         {
             //Debug.Log("ragdoll set true");
-            controlsEnabled = false;
+            notInAttackAnimation = false;
             EnableGravity(true);
             EqualizeBodyPartMass(true);
             SetColliders("ragdoll");
@@ -1095,7 +1095,7 @@ public class FighterScript : MonoBehaviour
         else
         {
             //Debug.Log("ragdoll set false");
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             EnableGravity(false);
             EqualizeBodyPartMass(false);
             SetColliders("combat");
@@ -1301,7 +1301,7 @@ public class FighterScript : MonoBehaviour
         // on head movement completion, change the transform and return to monke
         if (limb == "head")
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
         }
     }
     public Vector3 GetSectorPosition(int sector)
@@ -1366,6 +1366,11 @@ public class FighterScript : MonoBehaviour
     }
     public void MoveHead(int direction)
     {
+        float toMoveSpeed = moveSpeed;
+        if (!notInAttackAnimation)
+        {
+            toMoveSpeed /= 3f;
+        }
         float playerX = transform.position.x;
         float playerY = transform.position.y;
         float playerHeadX = stanceHeadTran.position.x;
@@ -1374,27 +1379,27 @@ public class FighterScript : MonoBehaviour
         switch (direction)
         {
             case 1:
-                if (playerHeadY + moveSpeed < playerY + reach)
+                if (playerHeadY + toMoveSpeed < playerY + reach)
                 {
-                    stanceHeadTran.position += Vector3.up * moveSpeed;
+                    stanceHeadTran.position += Vector3.up * toMoveSpeed;
                 }
                 break;
             case 2:
-                if (playerHeadY - moveSpeed > playerY - reach)
+                if (playerHeadY - toMoveSpeed > playerY - reach)
                 {
-                    stanceHeadTran.position += Vector3.down * moveSpeed;
+                    stanceHeadTran.position += Vector3.down * toMoveSpeed;
                 }
                 break;
             case 3:
-                if (playerHeadX - moveSpeed > playerX - reach)
+                if (playerHeadX - toMoveSpeed > playerX - reach)
                 {
-                    stanceHeadTran.position += Vector3.left * moveSpeed;
+                    stanceHeadTran.position += Vector3.left * toMoveSpeed;
                 }
                 break;
             case 4:
-                if (playerHeadX + moveSpeed < playerX + reach)
+                if (playerHeadX + toMoveSpeed < playerX + reach)
                 {
-                    stanceHeadTran.position += Vector3.right * moveSpeed;
+                    stanceHeadTran.position += Vector3.right * toMoveSpeed;
                 }
                 break;
         }
@@ -1530,7 +1535,7 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator GoToCenterXAndTurn()
     {
-        controlsEnabled = false;
+        notInAttackAnimation = false;
 
         float directionMultiplier = orientedTran.position.x - stanceHeadTran.position.x;
         Vector3 movementVector = transform.right * directionMultiplier * moveSpeed;
@@ -1543,12 +1548,12 @@ public class FighterScript : MonoBehaviour
         }
         SwapHingeAngles();
         TurnBody();
-        controlsEnabled = true;
+        notInAttackAnimation = true;
         //Debug.Log("facing right: " + facingRight);
     }
     public void TurnTo(string direction)
     {
-        if (!controlsEnabled)
+        if (!notInAttackAnimation)
         {
             return;
         }
@@ -1574,7 +1579,7 @@ public class FighterScript : MonoBehaviour
         "center back", "true center", "center forward",
         "top back", "top", "top forward"
         };
-        controlsEnabled = false;
+        notInAttackAnimation = false;
 
         if (attackType == "groundslam")
         {
@@ -1786,12 +1791,12 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator Hook()
     {
-        int energyCost = (int)(10f * armPower);
-        int damage = (int)(60f * armPower);
+        int energyCost = (int)(20f * armPower);
+        int damage = (int)(50f * armPower);
         float pushMultiplier = 1f;
         if (currentEnergy < energyCost)
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             yield break;
         }
         else
@@ -1800,24 +1805,35 @@ public class FighterScript : MonoBehaviour
         }
         float timeTaken = .2f / speedMultiplier; //seconds
         int framesTaken = (int)(timeTaken * 60);
+        int windUpFrames = (int)((float)framesTaken * .3f);
+        int throwPunchFrames = (int)((float)framesTaken * .7f);
         Vector3 attackTarget = GetAttackVector("Hook");
 
         yield return attackTarget;
-        float distance = Vector3.Distance(attackTarget, stanceHand1Tran.position);
-        float distancePerFrame = distance / framesTaken;
+
+        // wind up animation
+        Vector3 handWindUpTarget = stanceHand1Tran.position - orientedTran.right * 0.5f;
+        Vector3 handStartPos = stanceHand1Tran.position;
+        for (int i = 0; i < windUpFrames; i++)
+        {
+            stanceHeadTran.position += orientedTran.right * moveSpeed;
+            stanceHand1Tran.position = Vector3.Lerp(handStartPos, handWindUpTarget, ((float)i) / ((float)windUpFrames));
+            yield return null;
+        }
+
 
         // throw punch animation
-        for (int i = 0; i < framesTaken; i++)
+        Vector3 throwStartPos = stanceHand1Tran.position;
+        for (int i = 0; i < throwPunchFrames; i++)
         {
-            stanceHeadTran.position += orientedTran.right * distancePerFrame * .4f;
+            stanceHeadTran.position += orientedTran.right * moveSpeed;
 
             // punching hand
-            stanceHand1Tran.LookAt(attackTarget);
-            stanceHand1Tran.position += stanceHand1Tran.forward * distancePerFrame;
+            stanceHand1Tran.position = Vector3.Lerp(throwStartPos, attackTarget, (((float)i)) / ((float)throwPunchFrames));
 
             // guard hand
             stanceHand2Tran.LookAt(stanceHeadTran.position + orientedTran.right * 1f);
-            stanceHand2Tran.position += stanceHand2Tran.forward * distancePerFrame * 0.5f;
+            stanceHand2Tran.position += stanceHand2Tran.forward * moveSpeed * 0.5f;
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
@@ -1830,25 +1846,25 @@ public class FighterScript : MonoBehaviour
             MoveTowardsDefaultStance();
             yield return null;
         }
-        controlsEnabled = true;
+        notInAttackAnimation = true;
     }
     IEnumerator JabCombo(string type) // type = "defensive" or "aggressive". defensive is a 2 hit combo, aggressive is a single far jab
     {
-        int energyCost = (int)(8f * armPower);
-        int damage = (int)(30f * armPower);
+        int energyCost = (int)(15f * armPower);
+        int damage = (int)(25f * armPower);
         float pushMultiplier = 1f;
         switch (type)
         {
             case "defensive":
-                energyCost = 8;
+                energyCost = 10;
                 break;
             case "aggressive":
-                energyCost = 25;
+                energyCost = 15;
                 break;
         }
         if (currentEnergy < energyCost)
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             yield break;
         }
         else
@@ -1881,7 +1897,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointElbow2Tran.position, stanceHand2, lowerArm2, 1f, 1.5f);
+        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointElbow2Tran.position, stanceHand2, lowerArm2, 1f, 1.25f);
 
         // pull jabbing hand back
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -1899,7 +1915,7 @@ public class FighterScript : MonoBehaviour
         }
         if (type == "aggressive") // end animation if aggressive
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
         }
         //Debug.Log("controls re-enabled");
     }
@@ -1910,7 +1926,7 @@ public class FighterScript : MonoBehaviour
         float pushMultiplier = 1f;
         if (currentEnergy < energyCost)
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             yield break;
         }
         float timeTaken = .25f / speedMultiplier; //seconds
@@ -1949,7 +1965,7 @@ public class FighterScript : MonoBehaviour
             upperArm1Tran.position = jointElbow1Tran.position;
             yield return null;
         }
-        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1.5f);
+        StrikeThisLocation(damage, pushMultiplier, attackTarget, jointElbow1Tran.position, stanceHand1, lowerArm1, 1f, 1.25f);
 
         // return to default stance fast before regaining control
         while (Vector3.Distance(stanceHand2Tran.position, hand2DefaultVector) > 0.1f)
@@ -1958,14 +1974,14 @@ public class FighterScript : MonoBehaviour
             MoveTowardsDefaultStance();
             yield return null;
         }
-        controlsEnabled = true;
+        notInAttackAnimation = true;
     }
     IEnumerator RoundhouseKick()
     {
         int energyCost = (int)(30f * legPower);
         if (currentEnergy < energyCost)
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             yield break;
         }
         else
@@ -2017,7 +2033,7 @@ public class FighterScript : MonoBehaviour
             MoveTowardsDefaultStance();
             yield return null;
         }
-        controlsEnabled = true;
+        notInAttackAnimation = true;
         //Debug.Log("controls re-enabled");
     }
     IEnumerator FrontKick(string type) // type = "grounded" or "flying"
@@ -2037,7 +2053,7 @@ public class FighterScript : MonoBehaviour
         }
         if (currentEnergy < energyCost)
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             yield break;
         }
         else
@@ -2121,33 +2137,41 @@ public class FighterScript : MonoBehaviour
                 );
             }
 
-
             kickingFootTran.LookAt(attackTarget);
             kickingFootTran.position += kickingFootTran.forward * kickDistancePerFrame;
 
-            // guarding
-            Vector3 hand1Guard = stanceHeadTran.position + orientedTran.right * 1f;
-            float distance = Vector3.Distance(hand1Guard, stanceHand1Tran.position);
+            // swinging hand down
+            Vector3 hand1Guard = stanceHeadTran.position - orientedTran.up * 1.5f + orientedTran.right * .25f;
+            
+            // guarding hand up
+            Vector3 hand2Guard = stanceHeadTran.position + orientedTran.right * 1f;
+
+            float hand1distance = Vector3.Distance(hand1Guard, stanceHand1Tran.position);
             stanceHand1Tran.LookAt(hand1Guard);
-            stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(kickDistancePerFrame * distance, moveSpeed);
+            stanceHand1Tran.position += stanceHand1Tran.forward * Mathf.Max(moveSpeed * hand1distance, moveSpeed);
+            
+            float distance = Vector3.Distance(hand2Guard, stanceHand2Tran.position);
+            stanceHand2Tran.LookAt(hand2Guard);
+            stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(moveSpeed * distance, moveSpeed);
+
             yield return null;
         }
         SetStances("combat");
-        StrikeThisLocation(damage, pushMultiplier, kickingFootTran.position, jointKnee2Tran.position, stanceFoot2, calf2, 2f, 1f);
+        StrikeThisLocation(damage, pushMultiplier, kickingFootTran.position, jointKnee2Tran.position, stanceFoot2, calf2, 1.5f, 1f);
 
         while (Vector3.Distance(kickingFootTran.position, foot2DefaultVector) > .25f)
         {
             MoveTowardsDefaultStance();
             yield return null;
         }
-        controlsEnabled = true;
+        notInAttackAnimation = true;
         //Debug.Log("controls re-enabled");
     }
     IEnumerator JumpingFrontKickPart2(float jumpSpeed)
     {
         IEnumerator handStanceCoroutine = KeepHandsInPlace();
         StartCoroutine(handStanceCoroutine);
-        controlsEnabled = false;
+        notInAttackAnimation = false;
         airborne = true;
         while (stanceHeadTran.position.y <= transform.position.y + reach)
         {
@@ -2165,7 +2189,7 @@ public class FighterScript : MonoBehaviour
 
         // flying front kick
         StartCoroutine(FrontKick("flying"));
-        controlsEnabled = false;
+        notInAttackAnimation = false;
 
         Vector3 jumpPos = transform.position;
         float y = transform.position.y;
@@ -2210,7 +2234,7 @@ public class FighterScript : MonoBehaviour
         // no power listed here, rather it is listed on the front kick
         if (currentEnergy < energyCost)
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             yield break;
         }
         else
@@ -2218,7 +2242,7 @@ public class FighterScript : MonoBehaviour
             ChangeEnergy(0 - energyCost);
         }
 
-        controlsEnabled = false;
+        notInAttackAnimation = false;
         int sector = GetHeadSector();
 
         // move head to top forward section
@@ -2240,14 +2264,14 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator GroundSlam()
     {
-        controlsEnabled = false;
+        notInAttackAnimation = false;
 
         int damage = 60;
         float pushMultiplier = 2.5f;
         int energyCost = 100;
         if (currentEnergy < 100)
         {
-            controlsEnabled = true;
+            notInAttackAnimation = true;
             yield break;
         }
         else
@@ -2352,6 +2376,6 @@ public class FighterScript : MonoBehaviour
         Destroy(directDamager);
 
         gainEnergyOn = true;
-        controlsEnabled = true;
+        notInAttackAnimation = true;
     }
 }

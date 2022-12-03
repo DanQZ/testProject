@@ -158,7 +158,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -273, y: -92}
+  m_AnchoredPosition: {x: 275, y: -92}
   m_SizeDelta: {x: 1449.42, y: 1600.53}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &27968623
@@ -2317,13 +2317,13 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '60 hp
+  m_Text: '120 hp
 
     130% speed
 
     80% arm power
 
-    110% leg power
+    90% leg power
 
 '
 --- !u!222 &574419370
@@ -2726,7 +2726,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -0.362}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 12.5, y: -44.8}
+  m_AnchoredPosition: {x: 5.6, y: -46}
   m_SizeDelta: {x: 733.76, y: 408.63}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &707132364
@@ -2762,7 +2762,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '160 hp
+  m_Text: '320 hp
 
     80% speed
 
@@ -2890,7 +2890,7 @@ RectTransform:
   m_Children:
   - {fileID: 1047436166}
   m_Father: {fileID: 2117680133}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -4128,7 +4128,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '100 hp
+  m_Text: '200 hp
 
     100% speed
 
@@ -4214,7 +4214,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Alpha 1.3
+  m_Text: Alpha 1.4
 --- !u!222 &999226798
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5608,6 +5608,88 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1211477457}
+  m_CullTransparentMesh: 1
+--- !u!1 &1239509558
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1239509559}
+  - component: {fileID: 1239509561}
+  - component: {fileID: 1239509560}
+  m_Layer: 0
+  m_Name: UpdateNotes2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1239509559
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1239509558}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1.0649236}
+  m_LocalScale: {x: 0.3177268, y: 0.3177268, z: 0.3177268}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2117680133}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -206, y: -92}
+  m_SizeDelta: {x: 1449.42, y: 1600.53}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1239509560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1239509558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 48
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 0
+    m_MaxSize: 48
+    m_Alignment: 0
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: 'Alpha 1.4
+
+    -Refined some animations'
+--- !u!222 &1239509561
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1239509558}
   m_CullTransparentMesh: 1
 --- !u!1 &1251712102
 GameObject:
@@ -8709,6 +8791,7 @@ Transform:
   m_Children:
   - {fileID: 442670112}
   - {fileID: 27968622}
+  - {fileID: 1239509559}
   - {fileID: 779334058}
   m_Father: {fileID: 517110078}
   m_RootOrder: 7

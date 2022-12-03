@@ -68,23 +68,23 @@ public class PlayerScript : MonoBehaviour
 
     void AttackIfInputWASD()
     {
-        if (PFScript.IsHeadWithinSectors() && PFScript.controlsEnabled)
+        if (PFScript.IsHeadWithinSectors() && PFScript.notInAttackAnimation)
         {
             if (Input.GetKey("space"))
             {
-                PFScript.controlsEnabled = false;
+                PFScript.notInAttackAnimation = false;
                 PFScript.Attack("arms");
                 return;
             }
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                PFScript.controlsEnabled = false;
+                PFScript.notInAttackAnimation = false;
                 PFScript.Attack("legs");
                 return;
             }
             if (Input.GetKey("f"))
             {
-                PFScript.controlsEnabled = false;
+                PFScript.notInAttackAnimation = false;
                 PFScript.Attack("groundslam");
                 return;
             }
@@ -118,23 +118,23 @@ public class PlayerScript : MonoBehaviour
     }
     void AttackIfInputMouse()
     {
-        if (PFScript.IsHeadWithinSectors() && PFScript.controlsEnabled)
+        if (PFScript.IsHeadWithinSectors() && PFScript.notInAttackAnimation)
         {
             if (Input.GetKey(KeyCode.Mouse0))
             {
-                PFScript.controlsEnabled = false;
+                PFScript.notInAttackAnimation = false;
                 PFScript.Attack("arms");
                 return;
             }
             if (Input.GetKey(KeyCode.Mouse1))
             {
-                PFScript.controlsEnabled = false;
+                PFScript.notInAttackAnimation = false;
                 PFScript.Attack("legs");
                 return;
             }
             if (Input.GetKey("f"))
             {
-                PFScript.controlsEnabled = false;
+                PFScript.notInAttackAnimation = false;
                 PFScript.Attack("groundslam");
                 return;
             }
@@ -153,7 +153,7 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (PFScript.controlsEnabled)
+        //if (PFScript.controlsEnabled)
         {
 
             // turn these into coroutines later
