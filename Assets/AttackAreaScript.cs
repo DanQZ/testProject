@@ -17,7 +17,6 @@ public class AttackAreaScript : MonoBehaviour
     public Vector3 strikeForceVector;
 
     public Vector3 thingHittingPos; // these are used for particle system showing attack hit
-    public Vector3 thingHittingStancePos;
 
     public GameObject thingHit;
     public GameObject thingHitObjectRoot;
@@ -34,8 +33,8 @@ public class AttackAreaScript : MonoBehaviour
         switch (creatorType)
         {
             case "player":
-                warningSprite.enabled = false;
-                incomingCircleSprite.enabled = false;
+                //warningSprite.enabled = false;
+                //incomingCircleSprite.enabled = false;
                 break;
             case "enemy":
                 warningSprite.enabled = true;
@@ -167,8 +166,8 @@ public class AttackAreaScript : MonoBehaviour
                 // use objectRoot because we want to destroy the entire enemy gameObject
                 thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().StopAllCoroutines();
                 thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().enabled = false;
-                thingHitObjectRoot.GetComponent<DanEnemyScript>().StopAllCoroutines();
-                thingHitObjectRoot.GetComponent<DanEnemyScript>().enabled = false;
+                thingHitObjectRoot.GetComponent<DanEnemyAI>().StopAllCoroutines();
+                thingHitObjectRoot.GetComponent<DanEnemyAI>().enabled = false;
                 Destroy(thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().ghostFighter);
                 Destroy(this.gameObject);
                 return;
@@ -188,7 +187,7 @@ public class AttackAreaScript : MonoBehaviour
         Rigidbody2D rb2d = GetRigidbody2DOfObject(thingHit);
         if (rb2d != null)
         {
-            rb2d.AddForce(strikeForceVector / 1.5f, ForceMode2D.Impulse);
+            rb2d.AddForce(strikeForceVector / 2f, ForceMode2D.Impulse);
         }
         else
         {
