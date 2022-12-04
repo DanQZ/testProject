@@ -68,8 +68,8 @@ public class EnemyManagerScript : MonoBehaviour
         StopCoroutine(spawnEnemiesCoroutine);
 
         // every level, average enemy spawn interval goes down 1 second
-        float rangeMinSeconds = 5f - ((float)difficultyLevel);
-        float rangeMaxSeconds = 10f - ((float)difficultyLevel);
+        float rangeMinSeconds = 10f - ((float)difficultyLevel);
+        float rangeMaxSeconds = 20f - ((float)difficultyLevel);
 
         // prevents enemies from spawning more than once per second
         if (rangeMinSeconds < 1f)
@@ -120,7 +120,7 @@ public class EnemyManagerScript : MonoBehaviour
 
 
         // the enemy AI referencing (replace with the other AI script here)
-        DanEnemyScript newEnemyAIScript = newEnemyWithGhost.GetComponent<DanEnemyScript>();
+        DanEnemyAI newEnemyAIScript = newEnemyWithGhost.GetComponent<DanEnemyAI>();
         newEnemyAIScript.playerFighter = playerFighter;
         newEnemyAIScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
 
@@ -140,7 +140,7 @@ public class EnemyManagerScript : MonoBehaviour
         }
         newEGScript.ghostFighterScript.SetCharacterType(newEnemyType);
         newEGScript.enemyFighterScript.SetCharacterType(newEnemyType);
-        
+
         // the non-ghost part 
         FighterScript newEGSFighterScript = newEGScript.enemyFighter.GetComponent<FighterScript>();
 
@@ -160,7 +160,11 @@ public class EnemyManagerScript : MonoBehaviour
         {
             if (Time.frameCount >= nextFrame)
             {
-                SpawnEnemyToTheRightOrLeft();
+                int numberOfEnemies = (int)Random.Range(1f, 1f + (float)difficultyLevel);
+                for (int i = 0; i < numberOfEnemies; i++)
+                {
+                    SpawnEnemyToTheRightOrLeft();
+                }
                 nextFrame = Time.frameCount
                     + (int)(
                         60f * Random.Range(rangeMin, rangeMax)

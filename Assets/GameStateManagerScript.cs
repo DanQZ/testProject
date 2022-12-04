@@ -170,7 +170,7 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.IncreaseDifficulty();
         enemyManagerScript.StartSpawningEnemies();
 
-        StartCountingDownCheckpoint(60f);
+        StartCountingDownCheckpoint(30f);
 
         currentPlayer.transform.position = new Vector3(0f, 0f, 0f);
         currentPFScript.ReplenishEnergy();

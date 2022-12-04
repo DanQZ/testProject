@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DanEnemyScript : MonoBehaviour
+public class DanEnemyAI : MonoBehaviour
 {
-    public GameObject enemyCharacter;
+    public GameObject enemyGhost;
     public GameObject enemyFollower;
     Transform enemyTran;
     public GameObject stanceHead;
     Transform stanceHeadTran;
-    public FighterScript thisFighterScript; // script of the ghost fighter
+    public FighterScript thisGhostScript; // script of the ghost fighter
     public GameObject playerFighter;
     public Transform playerHeadTran;
     int attackTimer;
@@ -30,16 +30,17 @@ public class DanEnemyScript : MonoBehaviour
             yield return null;
         }
         enemyState = "keepDistance";
-        thisFighterScript = enemyCharacter.gameObject.GetComponent<FighterScript>();
+        EnemyStateRandomizer();
+
+        thisGhostScript = enemyGhost.gameObject.GetComponent<FighterScript>();
         playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHeadTran;
-        stanceHead = thisFighterScript.stanceHead;
+        stanceHead = thisGhostScript.stanceHead;
         stanceHeadTran = stanceHead.transform;
         attackInterval = (int)Random.Range(45, 75);
         attackTimer = Time.frameCount + attackInterval;
         stateInterval = (int)Random.Range(150f, 200f);
         stateTimer = Time.frameCount + stateInterval;
         rangeChangeInterval = (int)Random.Range(60, 80);
-        EnemyStateRandomizer();
         StartCoroutine(RealUpdateAfterSeconds(0.1f));
     }
 
@@ -82,7 +83,7 @@ public class DanEnemyScript : MonoBehaviour
     void EnemyStateRandomizer()
     {
         float randomized = Random.Range(0f, 1f);
-        if (randomized < .75f)
+        if (randomized < .5f)
         {
             enemyState = "attack";
         }
@@ -111,37 +112,37 @@ public class DanEnemyScript : MonoBehaviour
     {
         if (playerFighter.transform.position.x < enemyFollower.transform.position.x)
         {
-            thisFighterScript.TurnTo("left");
+            thisGhostScript.TurnTo("left");
         }
         if (playerFighter.transform.position.x > enemyFollower.transform.position.x)
         {
-            thisFighterScript.TurnTo("right");
+            thisGhostScript.TurnTo("right");
         }
     }
     void MoveTowardsTargetDistance()
     {
         distanceToPlayer = Mathf.Abs(enemyFollower.transform.position.x - playerFighter.transform.position.x);
         FacePlayer();
-        if (thisFighterScript.facingRight) // facing right
+        if (thisGhostScript.facingRight) // facing right
         {
             if (distanceToPlayer > targetDistanceToPlayer)
             {
-                thisFighterScript.Move(Vector3.right);
+                thisGhostScript.Move(Vector3.right);
             }
             if (distanceToPlayer < targetDistanceToPlayer)
             {
-                thisFighterScript.Move(-1f * Vector3.right);
+                thisGhostScript.Move(-1f * Vector3.right);
             }
         }
-        if (!thisFighterScript.facingRight) // facing left
+        if (!thisGhostScript.facingRight) // facing left
         {
             if (distanceToPlayer < targetDistanceToPlayer)
             {
-                thisFighterScript.Move(Vector3.right);
+                thisGhostScript.Move(Vector3.right);
             }
             if (distanceToPlayer > targetDistanceToPlayer)
             {
-                thisFighterScript.Move(-1f * Vector3.right);
+                thisGhostScript.Move(-1f * Vector3.right);
             }
         }
     }
@@ -172,14 +173,14 @@ public class DanEnemyScript : MonoBehaviour
 
     IEnumerator GoToSectorThenAttack(int sector, string attackWith)
     {
-        while (thisFighterScript.GetHeadSector() != sector && thisFighterScript.notInAttackAnimation)
+        while (thisGhostScript.GetHeadSector() != sector && thisGhostScript.notInAttackAnimation)
         {
-            thisFighterScript.MoveHeadTowardsSector(sector);
+            thisGhostScript.MoveHeadTowardsSector(sector);
             yield return null;
         }
-        if (thisFighterScript.notInAttackAnimation)
+        if (thisGhostScript.notInAttackAnimation)
         {
-            thisFighterScript.Attack(attackWith);
+            thisGhostScript.Attack(attackWith);
         }
     }
 }

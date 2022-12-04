@@ -22,6 +22,10 @@ public class EnemyWithGhostScript : MonoBehaviour
     Transform enemyHand2StanceTran;
     Transform enemyFoot1StanceTran;
     Transform enemyFoot2StanceTran;
+    Transform enemyCustomElbow1Tran;
+    Transform enemyCustomElbow2Tran;
+    Transform enemyCustomKnee1Tran;
+    Transform enemyCustomKnee2Tran;
     public FighterScript enemyFighterScript;
     public FighterScript ghostFighterScript;
     public GameObject playerFighter;
@@ -47,10 +51,19 @@ public class EnemyWithGhostScript : MonoBehaviour
     Queue<Vector3> foot2PosQ = new Queue<Vector3>();
     Queue<bool> facingRightQ = new Queue<bool>();
     Queue<int> currentEnergyQ = new Queue<int>();
+    Queue<bool> drawNormalElbow1 = new Queue<bool>();
+    Queue<bool> drawNormalElbow2 = new Queue<bool>();
+    Queue<bool> drawNormalKnee1 = new Queue<bool>();
+    Queue<bool> drawNormalKnee2 = new Queue<bool>();
+    Queue<Vector3> customKnee1Q = new Queue<Vector3>();
+    Queue<Vector3> customKnee2Q = new Queue<Vector3>();
+    Queue<Vector3> customElbow1Q = new Queue<Vector3>();
+    Queue<Vector3> customElbow2Q = new Queue<Vector3>();
 
     private IEnumerator realEnemyActionsCoroutine;
 
-    public void StopAll(){
+    public void StopAll()
+    {
         Destroy(ghostFighter);
         StopCoroutine(realEnemyActionsCoroutine);
     }
@@ -87,9 +100,13 @@ public class EnemyWithGhostScript : MonoBehaviour
 
         enemyFoot1StanceTran = enemyFighterScript.stanceFoot1Tran;
         enemyFoot2StanceTran = enemyFighterScript.stanceFoot2Tran;
+
         
-        enemyID = myManagerScript.numOfEnemiesSpawnedThisGame;
-    }
+        enemyFoot1StanceTran = enemyFighterScript.customElbow1Tran;
+        enemyFoot2StanceTran = enemyFighterScript.customElbow2Tran;
+        enemyFoot1StanceTran = enemyFighterScript.customKnee1Tran;
+        enemyFoot2StanceTran = enemyFighterScript.customKnee2Tran;
+}
 
     IEnumerator RealEnemyActions()
     {
@@ -109,6 +126,19 @@ public class EnemyWithGhostScript : MonoBehaviour
 
             enemyFoot1StanceTran.localPosition = foot1PosQ.Dequeue();
             enemyFoot2StanceTran.localPosition = foot2PosQ.Dequeue();
+
+            enemyCustomElbow1Tran.localPosition = customElbow1Q.Dequeue();
+            enemyCustomElbow2Tran.localPosition = customElbow2Q.Dequeue();
+            
+            enemyCustomKnee1Tran.localPosition = customKnee1Q.Dequeue();
+            enemyCustomKnee2Tran.localPosition = customKnee2Q.Dequeue();
+
+            enemyFighterScript.drawNormalElbow1 = drawNormalElbow1.Dequeue();
+            enemyFighterScript.drawNormalElbow2 = drawNormalElbow2.Dequeue();
+            enemyFighterScript.drawNormalKnee1 = drawNormalKnee1.Dequeue();
+            enemyFighterScript.drawNormalKnee2 = drawNormalKnee2.Dequeue();
+
+
 
             bool toFaceRight = facingRightQ.Dequeue();
             enemyFighterScript.currentEnergy = currentEnergyQ.Dequeue();
@@ -142,5 +172,15 @@ public class EnemyWithGhostScript : MonoBehaviour
 
         facingRightQ.Enqueue(ghostFighterScript.facingRight);
         currentEnergyQ.Enqueue(ghostFighterScript.currentEnergy);
+
+        drawNormalElbow1.Enqueue(ghostFighterScript.drawNormalElbow1);
+        drawNormalElbow2.Enqueue(ghostFighterScript.drawNormalElbow2);
+        drawNormalKnee1.Enqueue(ghostFighterScript.drawNormalKnee1);
+        drawNormalKnee2.Enqueue(ghostFighterScript.drawNormalKnee2);
+
+        customElbow1Q.Enqueue(ghostFighterScript.customElbow1Tran.localPosition);
+        customElbow2Q.Enqueue(ghostFighterScript.customElbow2Tran.localPosition);
+        customKnee1Q.Enqueue(ghostFighterScript.customKnee1Tran.localPosition);
+        customKnee2Q.Enqueue(ghostFighterScript.customKnee2Tran.localPosition);
     }
 }

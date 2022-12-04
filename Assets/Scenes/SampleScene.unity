@@ -5682,7 +5682,18 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Alpha 1.4
 
-    -Refined some animations'
+    -Added high roundhouse
+
+    -Added knee attack
+
+    -Adjusted
+    some animations
+
+    -Can move head at reduced speed during attack animations
+
+    -HOLY
+    SHIT AFTER LIKE 6 HOURS OF WORK PURELY ON FIXING THE BUGGY ARM ANIMATION I SORT
+    OF FIXED IT fml '
 --- !u!222 &1239509561
 CanvasRenderer:
   m_ObjectHideFlags: 0
