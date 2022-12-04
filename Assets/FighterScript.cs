@@ -753,24 +753,50 @@ public class FighterScript : MonoBehaviour
 
         while (true)
         {
-            HingeJoint2D hingeJointRef = lowerArm1Hinge;
-            if (hingeJointRef.jointAngle < hingeJointRef.limits.min - lenience || hingeJointRef.jointAngle > hingeJointRef.limits.max + lenience)
+            if (Time.frameCount % 30 == 0 && notInAttackAnimation)
             {
-                // for some reason needs orientedTran.localScale.x idk why
-                hingeJointRef.gameObject.transform.right = -1f * transform.localScale.x * (hingeJointRef.gameObject.transform.position - jointKnee1Tran.position);
-                Debug.Log("arm " + 1 + ": " + hingeJointRef.jointAngle + " in limits " + hingeJointRef.limits.min + "/" + hingeJointRef.limits.max);
-            }
-            hingeJointRef = lowerArm2Hinge;
+                HingeJoint2D hingeJointRef = lowerArm2Hinge;
+                Transform jointObjectTrans = hingeJointRef.gameObject.transform;
 
-            if (hingeJointRef.jointAngle < hingeJointRef.limits.min - lenience || hingeJointRef.jointAngle > hingeJointRef.limits.max + lenience)
-            {
-                // for some reason needs orientedTran.localScale.x idk why
-                hingeJointRef.gameObject.transform.right = -1f * transform.localScale.x * (hingeJointRef.gameObject.transform.position - jointKnee1Tran.position);
                 Debug.Log("arm " + 2 + ": " + hingeJointRef.jointAngle + " in limits " + hingeJointRef.limits.min + "/" + hingeJointRef.limits.max);
+
+                if (hingeJointRef.jointAngle < hingeJointRef.limits.min || hingeJointRef.jointAngle > hingeJointRef.limits.max)
+                {
+                    if (hingeJointRef.jointAngle < hingeJointRef.limits.min)
+                    {
+                        Debug.Log("arm 2 lower than min");
+                    }
+                    else
+                    {
+                        Debug.Log("arm 2 higher than max");
+                    }
+                    // for some reason needs -1f * orientedTran.localScale.x idk why
+                    StartCoroutine(UnfuckArm2());
+                    //jointObjectTrans.right = -1f * orientedTran.localScale.x * (jointObjectTrans.position - jointKnee1Tran.position);
+                }
             }
 
             yield return null;
         }
+    }
+
+    IEnumerator UnfuckArm2()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            Vector3 hand2Guard = stanceHeadTran.position + orientedTran.right * -1.5f - orientedTran.up * 2f;
+            float distanceHand2 = Vector3.Distance(hand2Guard, stanceHand2Tran.position);
+            stanceHand2Tran.LookAt(hand2Guard);
+            stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(moveSpeed * distanceHand2 * 2f, moveSpeed / 2f);
+            yield return null;
+        }
+        /*
+                Vector3 orig = jointElbow2Tran.transform.position;
+                Vector3 startDir = new Vector3(2f, 0f, 0f);
+                Vector3 endDir = new Vector3(-1f, 2f, 0f);
+                lowerArm2Hinge.enabled = false;
+                lowerArm2Tran.right = jointElbow2Tran.position - stanceHand2Tran.position;
+                lowerArm2Hinge.enabled = true;*/
     }
 
     void Update()
@@ -1851,14 +1877,14 @@ public class FighterScript : MonoBehaviour
             case "roundhousekickhigh":
                 output =
                     stanceHeadTran.position
-                    + orientedTran.right * 3f;
+                    + orientedTran.right * 4f;
                 break;
             case "pushkick": // dynamically changing thing
                 break;
             case "knee":
                 output = jointPelvis2Tran.localPosition
-                + transform.right * 1f
-                - transform.up * .1f;
+                + transform.right * .5f
+                - transform.up * 0.2f;
                 break;
         }
         return output;
@@ -1939,7 +1965,6 @@ public class FighterScript : MonoBehaviour
                 0f);
             yield return null;
         }
-        Debug.Log("parent has stopped moving");
     }
     IEnumerator KeepHandsInPlace()
     {
@@ -2210,9 +2235,9 @@ public class FighterScript : MonoBehaviour
         Vector3 bodyMoveVelocity = new Vector3(0f, 0f, 0f);
         if (type == "high")
         {
-            headMoveVelocity = orientedTran.right * moveSpeed * -2f - orientedTran.up * moveSpeed / 2f;
+            headMoveVelocity = orientedTran.right * moveSpeed * -2f - orientedTran.up * moveSpeed / 1.33f;
             torsoMoveVelocity = new Vector3(0f, 0f, 0f);
-            bodyMoveVelocity = orientedTran.right * distancePerFrame * 0.2f;
+            bodyMoveVelocity = orientedTran.right * distancePerFrame * 0.3f;
         }
 
         // kick animation
@@ -2257,13 +2282,18 @@ public class FighterScript : MonoBehaviour
         StrikeThisLocation(damage, pushMultiplier, attackTarget, customKnee1Tran.position, stanceFoot1, calf1, 1f, 2f);
         stanceTorsoBotActive = false;
 
-        while (Vector3.Distance(kickingFootTran.position, foot1DefaultPos) > .25f)
+        float returnFrames = (int)(22f / speedMultiplier);
+        float returnSpeedMult = (float)framesTaken / returnFrames;
+
+        for (int i = 0; i < returnFrames; i++) // tested number of frames on acolyte
         {
             MoveTowardsDefaultStance();
             customKnee1Tran.position = (jointPelvis1Tran.position + kickingFootTran.position) / 2f;
-            stanceHeadTran.position -= headMoveVelocity * .75f;
-            stanceTorsoBotTran.position -= torsoMoveVelocity;
-            transform.position -= bodyMoveVelocity;
+
+            stanceHeadTran.position -= headMoveVelocity * returnSpeedMult;
+            stanceHand2Tran.position += orientedTran.right * moveSpeed * 1f - orientedTran.up * moveSpeed * 2f;
+            stanceTorsoBotTran.position -= torsoMoveVelocity * returnSpeedMult;
+            transform.position -= bodyMoveVelocity * returnSpeedMult;
             yield return null;
         }
 
