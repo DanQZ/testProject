@@ -12,8 +12,8 @@ using UnityEngine;
 public class FighterScript : MonoBehaviour
 {
     // selection of moves
-    public string[] armAttacks;
-    public string[] legAttacks;
+    public string[] armMoveset = new string[9];
+    public string[] legMoveset = new string[9];
     public string specialAttack;
 
     public GameObject parentObject;
@@ -300,6 +300,27 @@ public class FighterScript : MonoBehaviour
                 Debug.Log("arm power is now " + armPower);
                 break;
         }
+    }
+    public void InitDefaultMoveset(){
+        legMoveset[0] = "flyingkick";
+        legMoveset[1] = "flyingkick";
+        legMoveset[2] = "knee";
+        legMoveset[3] = "pushkick";
+        legMoveset[4] = "roundhousekick";
+        legMoveset[5] = "roundhousekick";
+        legMoveset[6] = "pushkick";
+        legMoveset[7] = "roundhousekickhigh";
+        legMoveset[8] = "roundhousekickhigh";
+    
+        armMoveset[0] = "uppercut";
+        armMoveset[1] = "uppercut";
+        armMoveset[2] = "uppercut";
+        armMoveset[3] = "hook";
+        armMoveset[4] = "hook";
+        armMoveset[5] = "jabaggressive";
+        armMoveset[6] = "hook";
+        armMoveset[7] = "hook";
+        armMoveset[8] = "jabcombo";
     }
     public void SetTags(string tag) // sets the tags for the collisions
     {
@@ -681,6 +702,8 @@ public class FighterScript : MonoBehaviour
         HideJointsAndStances();
         EqualizeBodyPartMass(false);
 
+        InitDefaultMoveset();
+
         // defaults to enemy tags
         fighterHead.tag = "Enemy";
         torsoTop.tag = "Enemy";
@@ -780,14 +803,15 @@ public class FighterScript : MonoBehaviour
         }
     }
 
-    IEnumerator UnfuckArm2()
+    IEnumerator UnfuckArm2() // just try not to fuck it up to begin with bc this looks weird
     {
         for (int i = 0; i < 10; i++)
         {
-            Vector3 hand2Guard = stanceHeadTran.position + orientedTran.right * -1.5f - orientedTran.up * 2f;
-            float distanceHand2 = Vector3.Distance(hand2Guard, stanceHand2Tran.position);
+           Vector3 hand2Guard = stanceHeadTran.position + orientedTran.right * 1f;
+
+            float distance = Vector3.Distance(hand2Guard, stanceHand2Tran.position);
             stanceHand2Tran.LookAt(hand2Guard);
-            stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(moveSpeed * distanceHand2 * 2f, moveSpeed / 2f);
+            stanceHand2Tran.position += stanceHand2Tran.forward * Mathf.Max(moveSpeed * distance, moveSpeed);
             yield return null;
         }
         /*
@@ -1362,6 +1386,10 @@ public class FighterScript : MonoBehaviour
     }
     public void Die()
     {
+        drawNormalElbow1 = true;
+        drawNormalElbow2 = true;
+        drawNormalKnee1 = true;
+        drawNormalKnee2 = true;
         Destroy(healthBar);
         Destroy(healthBarBackground);
         Destroy(energyBar);
@@ -1681,7 +1709,14 @@ public class FighterScript : MonoBehaviour
         StartCoroutine(GoToCenterXAndTurn());
         MoveAndDrawBody();
     }
-
+    public void ApplyNewMoveset(string[] newArmMoveset, string[] newLegMoveset)
+    {
+        for (int i = 0; i < 9; i++)
+        {
+            armMoveset[i] = newArmMoveset[i];
+            legMoveset[i] = newLegMoveset[i];
+        }
+    }
     public void Attack(string attackType) // attackType = "arms" or "legs"
     {
         string[] sectors = {
@@ -1698,77 +1733,67 @@ public class FighterScript : MonoBehaviour
         }
 
         int sector = GetHeadSector();
-        //Debug.Log("Attacking from " + transform.position.x + "," + transform.position.y);
-        //Debug.Log("Head at " + stanceHeadTran.position.x + "," + stanceHeadTran.position.y);
-        switch (attackType) // attackType is either arms or legs attack
+
+        for(int i = 0; i < 9; i++){
+            Debug.Log("arm attack index " + i + "= "+armMoveset[i]);
+            Debug.Log("leg attack index " + i + "="+ legMoveset[i]);
+        }
+        switch (attackType)
         {
             case "arms":
-                switch (sector)
-                {
-                    case 0: // bottom back
-                        StartCoroutine(Uppercut());
-                        break;
-                    case 1: // bottom 
-                        StartCoroutine(Uppercut());
-                        break;
-                    case 2: // bottom forward
-                        StartCoroutine(Uppercut());
-                        break;
-                    case 3: // center back
-                        StartCoroutine(Hook());
-                        break;
-                    case 4: // center 
-                        StartCoroutine(Hook());
-                        break;
-                    case 5: // center forward
-                        StartCoroutine(JabCombo("aggressive"));
-                        break;
-                    case 6: // top back
-                        StartCoroutine(Hook());
-                        break;
-                    case 7:  // top middle
-                        StartCoroutine(Hook());
-                        break;
-                    case 8: // top forward
-                        StartCoroutine(JabCombo("defensive"));
-                        break;
-                }
+                UseSelectedMove("arms", armMoveset[sector]);
                 break;
             case "legs":
-                switch (sector)
-                {
-                    case 0: // bottom back
-                        StartCoroutine(Knee("flying"));
-                        break;
-                    case 1: // bottom 
-                        StartCoroutine(Knee("flying"));
-                        break;
-                    case 2: // bottom forward
-                        StartCoroutine(Knee("grounded"));
-                        break;
-                    case 3: // center back
-                        StartCoroutine(PushKick("grounded"));
-                        break;
-                    case 4: // center 
-                        StartCoroutine(RoundhouseKick("straight"));
-                        break;
-                    case 5: // center forward
-                        StartCoroutine(RoundhouseKick("straight"));
-                        break;
-                    case 6: // top back
-                        StartCoroutine(PushKick("grounded"));
-                        break;
-                    case 7:  // top middle
-                        StartCoroutine(RoundhouseKick("high"));
-                        break;
-                    case 8: // top forward
-                        StartCoroutine(RoundhouseKick("high"));
-                        break;
-                }
+                UseSelectedMove("legs", legMoveset[sector]);
                 break;
         }
-        //Debug.Log(sectors[sector] + " attack");
     }
+    public void UseSelectedMove(string armsOrLegs, string attackName)
+    {
+        switch (armsOrLegs)
+        {
+            case "arms":
+                switch (attackName)
+                {
+                    case "hook":
+                        StartCoroutine(Hook(false));
+                        return;
+                    case "jabcombo":
+                        StartCoroutine(JabCombo("combo"));
+                        return;
+                    case "jabaggressive":
+                        StartCoroutine(JabCombo("aggressive"));
+                        return;
+                    case "uppercut":
+                        StartCoroutine(Uppercut());
+                        return;
+                }
+                Debug.Log(attackName + " does not exist for arm attacks");
+                return;
+            case "legs":
+                switch (attackName)
+                {
+                    case "roundhousekick":
+                        StartCoroutine(RoundhouseKick("straight"));
+                        return;
+                    case "roundhousekickhigh":
+                        StartCoroutine(RoundhouseKick("high"));
+                        return;
+                    case "knee":
+                        StartCoroutine(Knee("grounded"));
+                        return;
+                    case "pushkick":
+                        StartCoroutine(PushKick("grounded"));
+                        return;
+                    case "flyingkick":
+                        StartCoroutine(FlyingKick());
+                        return;
+                }
+                Debug.Log(attackName + " does not exist for leg attack");
+                return;
+        }
+    }
+
     public float[] GetAttackInfo(string name)
     {
         float[] output = new float[4]; // output = [damage, knockback multiplier, energy cost, normal time taken]
@@ -1784,10 +1809,16 @@ public class FighterScript : MonoBehaviour
                 energyCost = 15f * armPower;
                 timeTaken = .25f;
                 break;
-            case "jab":
+            case "jabaggressive":
                 damage = 25f * armPower;
                 pushMultiplier = 3f;
                 energyCost = 13f * armPower;
+                timeTaken = .12f;
+                break;
+            case "jabcombo":
+                damage = 25f * armPower;
+                pushMultiplier = 3f;
+                energyCost = 25f * armPower;
                 timeTaken = .12f;
                 break;
             case "roundhousekick":
@@ -1811,7 +1842,7 @@ public class FighterScript : MonoBehaviour
             case "flyingkick":
                 damage = 90f * legPower;
                 pushMultiplier = 2f;
-                energyCost = 75f * legPower;
+                energyCost = 70f * legPower;
                 timeTaken = .35f;
                 break;
             case "uppercut":
@@ -1853,7 +1884,7 @@ public class FighterScript : MonoBehaviour
                     + orientedTran.right * 3.75f
                     - transform.up * .25f;
                 break;
-            case "jabdefensive":
+            case "jabcombo":
                 output =
                     stanceHand2Tran.position
                     + orientedTran.right * 1.2f;
@@ -1983,12 +2014,15 @@ public class FighterScript : MonoBehaviour
         }
     }
 
-    IEnumerator Hook()
+    IEnumerator Hook(bool partOfCombo) // true means no energy cost
     {
         float[] info = GetAttackInfo("hook");
         int damage = (int)(info[0]);
         float pushMultiplier = info[1];
         int energyCost = (int)(info[2]);
+        if(partOfCombo){
+            energyCost = 0;
+        }
         float timeTaken = info[3]; //seconds
 
         if (currentEnergy < energyCost)
@@ -2047,9 +2081,9 @@ public class FighterScript : MonoBehaviour
         }
         notInAttackAnimation = true;
     }
-    IEnumerator JabCombo(string type) // type = "defensive" or "aggressive". defensive is a 2 hit combo, aggressive is a single far jab
+    IEnumerator JabCombo(string type) // type = "combo" or "aggressive". combo is a 2 hit combo, aggressive is a single far jab
     {
-        float[] info = GetAttackInfo("jab");
+        float[] info = GetAttackInfo("jab" + type);
         int damage = (int)(info[0]);
         float pushMultiplier = info[1];
         int energyCost = (int)info[2];
@@ -2078,7 +2112,7 @@ public class FighterScript : MonoBehaviour
 
 
         Vector3 headMoveVector = orientedTran.right * headDistancePerFrame;
-        if (type == "defensive")
+        if (type == "combo")
             headMoveVector = -1f * orientedTran.right * headDistancePerFrame;
 
         // jab animation
@@ -2112,10 +2146,10 @@ public class FighterScript : MonoBehaviour
             }
         }
 
-        // start hook if defensive
-        if (type == "defensive")
+        // start hook if combo
+        if (type == "combo")
         {
-            yield return StartCoroutine(Hook());
+            yield return StartCoroutine(Hook(true));
             yield return null;
         }
         if (type == "aggressive") // end animation if aggressive
@@ -2683,7 +2717,7 @@ public class FighterScript : MonoBehaviour
         gainEnergyOn = true;
         notInAttackAnimation = true;
     }
-    IEnumerator Knee(string type)
+    IEnumerator Knee(string type) // grounded or flying
     {
         float[] info = GetAttackInfo("knee");
         int damage = (int)info[0];
