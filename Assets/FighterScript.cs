@@ -2285,15 +2285,24 @@ public class FighterScript : MonoBehaviour
         float returnFrames = (int)(22f / speedMultiplier);
         float returnSpeedMult = (float)framesTaken / returnFrames;
 
+        // set up not moving foot
+        Vector3 origFoot2Pos = stanceFoot2Tran.position;
+
         for (int i = 0; i < returnFrames; i++) // tested number of frames on acolyte
         {
             MoveTowardsDefaultStance();
+
+            // draw leg correctly
             customKnee1Tran.position = (jointPelvis1Tran.position + kickingFootTran.position) / 2f;
 
+            // go back to place
             stanceHeadTran.position -= headMoveVelocity * returnSpeedMult;
             stanceHand2Tran.position += orientedTran.right * moveSpeed * 1f - orientedTran.up * moveSpeed * 2f;
             stanceTorsoBotTran.position -= torsoMoveVelocity * returnSpeedMult;
             transform.position -= bodyMoveVelocity * returnSpeedMult;
+
+            // keep foot in place
+            stanceFoot2Tran.position = origFoot2Pos;
             yield return null;
         }
 
