@@ -59,8 +59,8 @@ public class GameStateManagerScript : MonoBehaviour
     IEnumerator pressEnterToContinue;
     IEnumerator checkpointCountdown;
 
-    string[] selectedMovesetLegs = new string[9];
-    string[] selectedMovesetArms = new string[9];
+    string[] currentMovesetLegs = new string[9];
+    string[] currentMovesetArms = new string[9];
     public List<GameObject> sectorButtons = new List<GameObject>();
     public List<GameObject> moveButtons = new List<GameObject>();
 
@@ -93,11 +93,12 @@ public class GameStateManagerScript : MonoBehaviour
         highScore = 0;
         chosenCharacterType = "acolyte";
         selectedSectorToChange = -1;
-        editingWhichMoveset = "arms";
+        editingWhichMoveset = "legs";
         selectedMoveToAdd = "none";
 
         FillMoveList();
         SetDefaultMoveset();
+        ChangeWhatMovesetToEdit();
 
         ShowBackground(false);
         DisplayUI("main menu");
@@ -314,8 +315,8 @@ public class GameStateManagerScript : MonoBehaviour
         currentPFScript.gameStateManager = transform.gameObject;
         currentPFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
         currentPFScript.SetCharacterType(chosenCharacterType);
-        currentPFScript.ApplyNewMoveset(selectedMovesetArms, selectedMovesetLegs);
-
+        
+        ApplyNewMovesetToPlayer();
         // there might be more control schemes later idk
         switch (selectedControls.ToLower())
         {
@@ -328,6 +329,11 @@ public class GameStateManagerScript : MonoBehaviour
         }
 
         return newPlayerPrefab;
+    }
+
+    public void ApplyNewMovesetToPlayer()
+    {
+        currentPFScript.ApplyNewMoveset(currentMovesetArms, currentMovesetLegs);
     }
 
     private IEnumerator CountDownToNextCheckpoint(float secondsUntil)
@@ -492,25 +498,25 @@ public class GameStateManagerScript : MonoBehaviour
 
     private void SetDefaultMoveset()
     {
-        selectedMovesetLegs[0] = "flyingkick";
-        selectedMovesetLegs[1] = "flyingkick";
-        selectedMovesetLegs[2] = "knee";
-        selectedMovesetLegs[3] = "pushkick";
-        selectedMovesetLegs[4] = "roundhousekick";
-        selectedMovesetLegs[5] = "roundhousekick";
-        selectedMovesetLegs[6] = "pushkick";
-        selectedMovesetLegs[7] = "roundhousekickhigh";
-        selectedMovesetLegs[8] = "roundhousekickhigh";
+        currentMovesetLegs[0] = "flyingkick";
+        currentMovesetLegs[1] = "flyingkick";
+        currentMovesetLegs[2] = "knee";
+        currentMovesetLegs[3] = "pushkick";
+        currentMovesetLegs[4] = "roundhousekick";
+        currentMovesetLegs[5] = "roundhousekick";
+        currentMovesetLegs[6] = "pushkick";
+        currentMovesetLegs[7] = "roundhousekick";
+        currentMovesetLegs[8] = "roundhousekickhigh";
 
-        selectedMovesetArms[0] = "uppercut";
-        selectedMovesetArms[1] = "uppercut";
-        selectedMovesetArms[2] = "uppercut";
-        selectedMovesetArms[3] = "hook";
-        selectedMovesetArms[4] = "hook";
-        selectedMovesetArms[5] = "jabaggressive";
-        selectedMovesetArms[6] = "hook";
-        selectedMovesetArms[7] = "hook";
-        selectedMovesetArms[8] = "jabcombo";
+        currentMovesetArms[0] = "uppercut";
+        currentMovesetArms[1] = "uppercut";
+        currentMovesetArms[2] = "uppercut";
+        currentMovesetArms[3] = "hook";
+        currentMovesetArms[4] = "hook";
+        currentMovesetArms[5] = "jabaggressive";
+        currentMovesetArms[6] = "hook";
+        currentMovesetArms[7] = "hook";
+        currentMovesetArms[8] = "jabcombo";
     }
 
     // a bunch of code to change the attacks of the player object
@@ -518,7 +524,7 @@ public class GameStateManagerScript : MonoBehaviour
     {
         selectedSectorToChange = sectorArg;
         Debug.Log("selected to change " + GetSectorName(sectorArg));
-        sectorButtonOutline.transform.position = sectorButtons[sectorArg].transform.position;
+        ChangeSectorToSelectedMove(selectedMoveToAdd);
     }
 
     public void SelectMove(string moveNameArg)
@@ -545,18 +551,19 @@ public class GameStateManagerScript : MonoBehaviour
         Debug.Log(availableSectorString);
         foreach (int sector in moveInput.availableSectors)
         {
-            Debug.Log("adding highlight");
             GameObject newHighlight = Instantiate(
                 sectorButtonOutline,
                 sectorButtons[sector].transform.position,
                 transform.rotation);
-            newHighlight.transform.parent = sectorHighlightParent.transform;
+            newHighlight.transform.SetParent(sectorHighlightParent.transform);
             newHighlight.transform.localScale = new Vector3(1.51f, 1.42f, 1.85f); // weird canvas bullshittery
         }
     }
 
     private void UpdateCurrentSectorMovesText()
     {
+
+        selectedMovesetText.text = "Editing moveset: " + editingWhichMoveset;
         foreach (Transform child in sectorTextParent.transform)
         {
             Destroy(child.gameObject);
@@ -571,10 +578,10 @@ public class GameStateManagerScript : MonoBehaviour
             switch (editingWhichMoveset)
             {
                 case "arms":
-                    newText.GetComponent<Text>().text = selectedMovesetArms[i];
+                    newText.GetComponent<Text>().text = currentMovesetArms[i];
                     break;
                 case "legs":
-                    newText.GetComponent<Text>().text = selectedMovesetLegs[i];
+                    newText.GetComponent<Text>().text = currentMovesetLegs[i];
                     break;
                 case "special":
                     break;
@@ -625,7 +632,6 @@ public class GameStateManagerScript : MonoBehaviour
             case "special":
                 break;
         }
-
         UpdateCurrentSectorMovesText();
     }
 
@@ -634,14 +640,15 @@ public class GameStateManagerScript : MonoBehaviour
         switch (editingWhichMoveset)
         {
             case "arms":
-                selectedMovesetArms[selectedSectorToChange] = moveName;
+                currentMovesetArms[selectedSectorToChange] = moveName;
                 break;
             case "legs":
-                selectedMovesetLegs[selectedSectorToChange] = moveName;
+                currentMovesetLegs[selectedSectorToChange] = moveName;
                 break;
             case "special":
                 break;
         }
+        UpdateCurrentSectorMovesText();
 
     }
     private string GetSectorName(int sector)
@@ -650,31 +657,31 @@ public class GameStateManagerScript : MonoBehaviour
         switch (sector)
         {
             case 0:
-                output += "low back";
+                output = sector + ", low back";
                 break;
             case 1:
-                output += "low center";
+                output = sector + ", low center";
                 break;
             case 2:
-                output += "low front";
+                output = sector + ", low front";
                 break;
             case 3:
-                output += "center back";
+                output = sector + ", center back";
                 break;
             case 4:
-                output += "center center";
+                output = sector + ", center center";
                 break;
             case 5:
-                output += "center forward";
+                output = sector + ", center forward";
                 break;
             case 6:
-                output += "high back";
+                output = sector + ", high back";
                 break;
             case 7:
-                output += "high center";
+                output = sector + ", high center";
                 break;
             case 8:
-                output += "high forward";
+                output = sector + ", high forward";
                 break;
         }
         return output;

@@ -207,14 +207,14 @@ public class FighterScript : MonoBehaviour
     private HingeJoint2D torsoTopHinge;
     private HingeJoint2D torsoBottomHinge;
     private HingeJoint2D upperArm1Hinge;
-    private HingeJoint2D lowerArm1Hinge;
     private HingeJoint2D upperArm2Hinge;
+    private HingeJoint2D lowerArm1Hinge;
     private HingeJoint2D lowerArm2Hinge;
     private HingeJoint2D thigh1Hinge;
     private HingeJoint2D calf1Hinge;
     private HingeJoint2D thigh2Hinge;
     private HingeJoint2D calf2Hinge;
-    private HingeJoint2D[] allHinges = new HingeJoint2D[8];
+    private List<HingeJoint2D> allHinges = new List<HingeJoint2D>();
     private TrailRenderer[] allTrails = new TrailRenderer[8];
     private List<GameObject> allBodyParts = new List<GameObject>();
     private List<LineRenderer> allLineRenderers = new List<LineRenderer>();
@@ -309,7 +309,7 @@ public class FighterScript : MonoBehaviour
         legMoveset[4] = "roundhousekick";
         legMoveset[5] = "roundhousekick";
         legMoveset[6] = "pushkick";
-        legMoveset[7] = "roundhousekickhigh";
+        legMoveset[7] = "roundhousekick";
         legMoveset[8] = "roundhousekickhigh";
     
         armMoveset[0] = "uppercut";
@@ -461,18 +461,19 @@ public class FighterScript : MonoBehaviour
         calf1Hinge = calf1.GetComponent<HingeJoint2D>();
         thigh2Hinge = thigh2.GetComponent<HingeJoint2D>();
         calf2Hinge = calf2.GetComponent<HingeJoint2D>();
-        allHinges[0] = (torsoTopHinge);
-        allHinges[1] = (torsoBottomHinge);
-        allHinges[2] = (upperArm1Hinge);
-        allHinges[3] = (upperArm2Hinge);
-        // I DONT KNOW WHY BUT FOR SOME REASON FLIPPING THE ANGLES ON THE LOWER ARM HINGES FLIPS THEM THE WRONG WAY WHEN YOU TURN AROUND?????????
-        //allHinges[4] = (lowerArm1Hinge);
-        //allHinges[5] = (lowerArm2Hinge);
+        allHinges.Add(torsoTopHinge);
+        allHinges.Add(torsoBottomHinge);
+        allHinges.Add(upperArm1Hinge);
+        allHinges.Add(upperArm2Hinge);
 
-        allHinges[4] = (thigh1Hinge);
-        allHinges[5] = (thigh2Hinge);
-        allHinges[6] = (calf1Hinge);
-        allHinges[7] = (calf2Hinge);
+        allHinges.Add(thigh1Hinge);
+        allHinges.Add(thigh2Hinge);
+        allHinges.Add(calf1Hinge);
+        allHinges.Add(calf2Hinge);
+        
+        // I DONT KNOW WHY BUT FOR SOME REASON FLIPPING THE ANGLES ON THE LOWER ARM HINGES FLIPS THEM THE WRONG WAY WHEN YOU TURN AROUND?????????
+        //allHinges[8] = (lowerArm1Hinge);
+        //allHinges.Add(lowerArm2Hinge);
 
         foreach (HingeJoint2D hingeJoint in allHinges)
         {
@@ -743,7 +744,7 @@ public class FighterScript : MonoBehaviour
         particleControllerScript = particleEffectController.GetComponent<ParticleEffectsController>();
         parentObject = transform.parent.gameObject;
         parentRB = parentObject.GetComponent<Rigidbody2D>();
-        StartCoroutine(FindAndFixBrokenArmHinges(10f));
+        //StartCoroutine(FindAndFixBrokenArmHinges(10f));
     }
 
     void KeepZPositionAtZero()
@@ -1043,7 +1044,7 @@ public class FighterScript : MonoBehaviour
         }
         else
         {
-            stanceHand2Tran.position = lowerArm1Tran.position;
+            stanceHand2Tran.position = lowerArm2Tran.position;
         }
 
 
@@ -1638,7 +1639,7 @@ public class FighterScript : MonoBehaviour
     }
     public void SwapHingeAngles()
     {
-        foreach (var hinge in allHinges)
+        foreach (HingeJoint2D hinge in allHinges)
         {
             JointAngleLimits2D newLimits = hinge.limits;
             newLimits.min = 0 - hinge.limits.min;
@@ -1679,8 +1680,8 @@ public class FighterScript : MonoBehaviour
             stanceHeadTran.position += movementVector;
             yield return null;
         }
-        SwapHingeAngles();
         TurnBody();
+        SwapHingeAngles();
         notInAttackAnimation = true;
         //Debug.Log("facing right: " + facingRight);
     }
@@ -1734,10 +1735,6 @@ public class FighterScript : MonoBehaviour
 
         int sector = GetHeadSector();
 
-        for(int i = 0; i < 9; i++){
-            Debug.Log("arm attack index " + i + "= "+armMoveset[i]);
-            Debug.Log("leg attack index " + i + "="+ legMoveset[i]);
-        }
         switch (attackType)
         {
             case "arms":
