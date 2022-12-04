@@ -83,7 +83,7 @@ public class DanEnemyAI : MonoBehaviour
     void EnemyStateRandomizer()
     {
         float randomized = Random.Range(0f, 1f);
-        if (randomized < .5f)
+        if (randomized < 0.75f) // chance to attack state
         {
             enemyState = "attack";
         }

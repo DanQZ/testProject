@@ -9221,6 +9221,13 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Alpha 1.4
 
+    -Added moveset customizer
+
+    -Fixed mouse movement
+
+    -Some
+    HUD and UI improvements
+
     -Added high roundhouse
 
     -Added knee attack
@@ -9230,9 +9237,8 @@ MonoBehaviour:
 
     -Can move head at reduced speed during attack animations
 
-    -HOLY
-    SHIT AFTER LIKE 6 HOURS OF WORK PURELY ON FIXING THE BUGGY ARM ANIMATION I SORT
-    OF FIXED IT fml '
+    -Temporary
+    ugly arm position fix'
 --- !u!222 &1239509561
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -9740,7 +9746,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1266465019}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ddc35e7912c06f4ab87f94881edb9d2, type: 3}
   m_Name: 
@@ -15001,13 +15007,14 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 0.8
-  m_Text: "\n \r\nPUNCHES - Fast, low energy, short range, low knockback\nLow = uppercut,
-    powerful but low range\nTop front = punch combo, fast but inaccurate\nMiddle/back
-    = hook\r, all rounded\nMiddle front = jab\r, fast and ranged but weak\n\n\rKICKS
-    - high range and damage, high energy, slow\nMiddle/front = roundhouse, high damage,
-    low knockback\nBack = push kick, longer range\r, high knockback\nLow = flying
-    kick, extremely high damage, very high energy cost\n\nSPECIAL\nF: Ground slam
-    - 100 energy, 60 damage (fixed) to all enemies on screen and pushes them away"
+  m_Text: "\n \r\nPUNCHES - Fast, low energy, short range, low knockback\nUppercut
+    - powerful but low range\nPunch combo - fast but inaccurate\nHook\r - all rounded\nJab\r
+    - fast and ranged but weak\n\n\rKICKS - high range and damage, high energy, slow\nRoundhouse
+    - all rounded, low knockback\nPush kick - longer range\r, high knockback\nFlying
+    kick -extremely high damage, very high energy cost\nHigh roundhouse - high damage,
+    large head movement\nKnee - very fast, high damage, low range\n\nSPECIAL\nF:
+    Ground slam - 100 energy, 60 damage (fixed) to all enemies on screen and pushes
+    them away"
 --- !u!222 &2105655327
 CanvasRenderer:
   m_ObjectHideFlags: 0

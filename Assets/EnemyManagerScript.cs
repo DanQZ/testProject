@@ -156,11 +156,13 @@ public class EnemyManagerScript : MonoBehaviour
         float rangeMin = rangeMinArgSeconds;
         float rangeMax = rangeMaxArgSeconds;
         int nextFrame = Time.frameCount + 3 * 60;
+        float levelsPerExtraEnemySpawn = 2f;
         while (true)
         {
             if (Time.frameCount >= nextFrame)
             {
-                int numberOfEnemies = (int)Random.Range(1f, 1f + (float)difficultyLevel);
+                int numberOfEnemies = (int)Random.Range(1f, 1f + (float)difficultyLevel/levelsPerExtraEnemySpawn); // every 2 levels it can spawn 1 more enemy at once
+
                 for (int i = 0; i < numberOfEnemies; i++)
                 {
                     SpawnEnemyToTheRightOrLeft();
