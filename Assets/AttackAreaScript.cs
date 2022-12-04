@@ -33,8 +33,8 @@ public class AttackAreaScript : MonoBehaviour
         switch (creatorType)
         {
             case "player":
-                //warningSprite.enabled = false;
-                //incomingCircleSprite.enabled = false;
+                warningSprite.enabled = false;
+                incomingCircleSprite.enabled = false;
                 break;
             case "enemy":
                 warningSprite.enabled = true;
@@ -49,6 +49,8 @@ public class AttackAreaScript : MonoBehaviour
         creatorType = "NONE";
         warningSprite = warning.GetComponent<SpriteRenderer>();
         incomingCircleSprite = incomingCircle.GetComponent<SpriteRenderer>();
+        
+        warningSprite.color = new Color(255f, 0f, 0f, .25f);
     }
 
     void Start()

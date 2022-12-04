@@ -632,14 +632,18 @@ MonoBehaviour:
   jointRib2: {fileID: 2549439916532019997}
   drawNormalElbow1: 1
   jointElbow1: {fileID: 8510693007039366176}
+  customElbow1Tran: {fileID: 0}
   drawNormalElbow2: 1
   jointElbow2: {fileID: 4779061237057088913}
+  customElbow2Tran: {fileID: 0}
   jointPelvis1: {fileID: 3724005744166876197}
   jointPelvis2: {fileID: 6813237430869127543}
   drawNormalKnee1: 1
   jointKnee1: {fileID: 7965582905986259975}
+  customKnee1Tran: {fileID: 0}
   drawNormalKnee2: 1
   jointKnee2: {fileID: 4366064033495988859}
+  customKnee2Tran: {fileID: 0}
   stanceHead: {fileID: 2216831066565490457}
   stanceHeadTran: {fileID: 0}
   stanceHand1: {fileID: 4182374574973924239}
@@ -1463,7 +1467,7 @@ Transform:
   m_Children:
   - {fileID: 2946222512598556475}
   m_Father: {fileID: 5966041613155349636}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 59.103}
 --- !u!50 &121943191571453115
 Rigidbody2D:
@@ -1843,7 +1847,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5966041613155349636}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 46.866}
 --- !u!50 &8832308643795378288
 Rigidbody2D:
@@ -2426,8 +2430,8 @@ HingeJoint2D:
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_AutoConfigureConnectedAnchor: 0
-  m_Anchor: {x: 1.085591, y: -0.030298728}
-  m_ConnectedAnchor: {x: 0.0026724113, y: 0.08669999}
+  m_Anchor: {x: 1.0021757, y: -0.029634738}
+  m_ConnectedAnchor: {x: 0.014562155, y: 0.0044911085}
   m_UseMotor: 0
   m_Motor:
     m_MotorSpeed: 0
@@ -3799,7 +3803,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4779061237057088913}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.086, y: -0.029, z: 0}
+  m_LocalPosition: {x: 1.003, y: -0.032, z: 0}
   m_LocalScale: {x: 1.2086278, y: 1.1787242, z: 0.84974}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4101,8 +4105,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4175231304805384660}
-  - {fileID: 3043695263595004546}
   - {fileID: 4572764869001815753}
+  - {fileID: 3043695263595004546}
   - {fileID: 6498526971179874053}
   m_Father: {fileID: 351865938992779618}
   m_RootOrder: 3

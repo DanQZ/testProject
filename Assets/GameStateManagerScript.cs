@@ -35,6 +35,7 @@ public class GameStateManagerScript : MonoBehaviour
     public GameObject OPTIONS_UI;
     public GameObject CHECKPOINT_UI;
     public GameObject UPDATELOG_UI;
+    public GameObject SELECTSTYLE_UI;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
 
     // choosing character stuff
@@ -47,6 +48,10 @@ public class GameStateManagerScript : MonoBehaviour
     IEnumerator pressEnterToContinue;
     IEnumerator checkpointCountdown;
 
+    int selectedAttackSectorToChange;
+    string[] selectedMovesetLegs = new string[9];
+    string[] selectedMovesetArms = new string[9];
+
     void Awake()
     {
         Debug.Log("screen width/height = " + Screen.width + ", " + Screen.height);
@@ -58,6 +63,7 @@ public class GameStateManagerScript : MonoBehaviour
         ALL_UI_LIST.Add(OPTIONS_UI);
         ALL_UI_LIST.Add(CHECKPOINT_UI);
         ALL_UI_LIST.Add(UPDATELOG_UI);
+        ALL_UI_LIST.Add(SELECTSTYLE_UI);
 
         transform.position = new Vector3(0f, 0f, 0f);
 
@@ -72,6 +78,7 @@ public class GameStateManagerScript : MonoBehaviour
         gameStarted = false;
         highScore = 0;
         chosenCharacterType = "acolyte";
+        selectedAttackSectorToChange = -1;
 
         DisplayUI("main menu");
         checkpointCountdown = CountDownToNextCheckpoint(60f);
@@ -161,6 +168,17 @@ public class GameStateManagerScript : MonoBehaviour
         gameStarted = false;
         Destroy(currentPlayer);
         DisplayUI("main menu");
+    }
+    private void SetDefaultMoveset()
+    {
+        selectedMovesetLegs[0] = "flyingkick";
+        selectedMovesetLegs[1] = "flyingkick";
+        selectedMovesetLegs[2] = "knee";
+        selectedMovesetLegs[0] = "flyingkick";
+        selectedMovesetLegs[0] = "flyingkick";
+        selectedMovesetLegs[0] = "flyingkick";
+        selectedMovesetLegs[0] = "flyingkick";
+        selectedMovesetLegs[0] = "flyingkick";
     }
     public void StartNextLevel()
     { // referenced by button objects
@@ -344,6 +362,9 @@ public class GameStateManagerScript : MonoBehaviour
             case "update log":
                 UPDATELOG_UI.SetActive(true);
                 break;
+            case "select style":
+                SELECTSTYLE_UI.SetActive(true);
+                break;
         }
     }
 
@@ -369,5 +390,59 @@ public class GameStateManagerScript : MonoBehaviour
     void UpdateScore()
     {
         scoreCounterText.text = "Score: " + score;
+    }
+
+
+    // a bunch of code to change the attacks of the player object
+    public void SelectSector(int sector, string type) // 0 = bot back, 1 = bot center, bot forward, center back etc.
+    {
+        string selectedType = "";
+        switch (type)
+        {
+            case "arms":
+                selectedType = "arms";
+                break;
+            case "legs":
+                selectedType = "legs";
+                break;
+        }
+        selectedAttackSectorToChange = sector;
+        Debug.Log("selected to change " + selectedType + " " + GetSectorName(sector));
+    }
+
+    private string GetSectorName(int sector)
+    {
+        switch (sector)
+        {
+            case 0:
+                return "low back";
+            case 1:
+                return "low center";
+            case 2:
+                return "low front";
+            case 3:
+                return "center back";
+            case 4:
+                return "center center";
+            case 5:
+                return "center forward";
+            case 6:
+                return "high back";
+            case 7:
+                return "high center";
+            case 8:
+                return "high forward";
+        }
+        return "NOT A VALID SECTOR INPUT";
+    }
+
+    public void ChangeSectorTo(int sector, string type, string attackID)
+    {
+
+    }
+
+    private void UpdateMovesetButtons()
+    {
+
     }
 }

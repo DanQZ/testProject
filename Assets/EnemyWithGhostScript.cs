@@ -102,10 +102,10 @@ public class EnemyWithGhostScript : MonoBehaviour
         enemyFoot2StanceTran = enemyFighterScript.stanceFoot2Tran;
 
         
-        enemyFoot1StanceTran = enemyFighterScript.customElbow1Tran;
-        enemyFoot2StanceTran = enemyFighterScript.customElbow2Tran;
-        enemyFoot1StanceTran = enemyFighterScript.customKnee1Tran;
-        enemyFoot2StanceTran = enemyFighterScript.customKnee2Tran;
+        enemyCustomElbow1Tran = enemyFighterScript.customElbow1Tran;
+        enemyCustomElbow2Tran = enemyFighterScript.customElbow2Tran;
+        enemyCustomKnee1Tran = enemyFighterScript.customKnee1Tran;
+        enemyCustomKnee2Tran = enemyFighterScript.customKnee2Tran;
 }
 
     IEnumerator RealEnemyActions()
