@@ -22,7 +22,7 @@ public class GameStateManagerScript : MonoBehaviour
 
     public EnemyManagerScript enemyManagerScript;
 
-    public bool gameStarted;
+    public bool inGame;
 
     //tracking scores
     public int score;
@@ -89,7 +89,7 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.gameStateManager = this.gameObject;
 
         selectedControls = "wasd";
-        gameStarted = false;
+        inGame = false;
         highScore = 0;
         chosenCharacterType = "acolyte";
         selectedSectorToChange = -1;
@@ -191,14 +191,14 @@ public class GameStateManagerScript : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.Return)) // must be GetKeyUp or it will keep doing it
         {
-            if (!gameStarted && MAIN_MENU_UI.activeInHierarchy) // these need te be Invoke or stuff gets weird (some bullshit that happens because it all happens on the same frame)
+            if (!inGame && MAIN_MENU_UI.activeInHierarchy) // these need te be Invoke or stuff gets weird (some bullshit that happens because it all happens on the same frame)
             {
                 Debug.Log("enter pressed on main menu, starting game");
                 StartNewGame();
                 return;
                 //Invoke("StartNewGame", 0.1f);
             }
-            if (gameStarted && GAME_OVER_UI.activeInHierarchy)
+            if (inGame && GAME_OVER_UI.activeInHierarchy)
             {
                 Debug.Log("enter pressed on gameover, ending game");
                 EndGame();
@@ -211,11 +211,11 @@ public class GameStateManagerScript : MonoBehaviour
         {
             if (!MAIN_MENU_UI.activeInHierarchy)
             {
-                if (!gameStarted) // somewhere within the menus 
+                if (!inGame) // somewhere within the menus 
                 {
                     DisplayUI("main menu");
                 }
-                if (gameStarted)
+                if (inGame)
                 {
                     EndGame();
                 }
@@ -250,7 +250,7 @@ public class GameStateManagerScript : MonoBehaviour
         // start counting score
         score = 0;
         scoreCounterText.text = "Score: " + score;
-        gameStarted = true;
+        inGame = true;
         StartNextLevel();
     }
     public void GameOver() // referenced on an event in FighterScript.Die() not sure why vscode thinks it has 0 references
@@ -267,7 +267,7 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.GameEnded();
         ResetCheckpointCountdown(60f);
 
-        gameStarted = false;
+        inGame = false;
         Destroy(currentPlayer);
         DisplayUI("main menu");
     }
@@ -294,7 +294,16 @@ public class GameStateManagerScript : MonoBehaviour
 
         StopCoroutine(checkpointCountdown);
     }
+    public void EnterTrainingLevel(){
+        DisplayUI("in game");
+        // makes and returns new player object
+        currentPlayer = CreatePlayer();
 
+        // start counting score
+        score = 0;
+        scoreCounterText.text = "Training";
+        inGame = true;
+    }
     public void SetControlsWASD()
     {
         selectedControls = "wasd";

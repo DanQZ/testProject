@@ -33,8 +33,8 @@ public class AttackAreaScript : MonoBehaviour
         switch (creatorType)
         {
             case "player":
-                warningSprite.enabled = false;
-                incomingCircleSprite.enabled = false;
+                //warningSprite.enabled = false;
+               // incomingCircleSprite.enabled = false;
                 break;
             case "enemy":
                 warningSprite.enabled = true;
@@ -66,7 +66,7 @@ public class AttackAreaScript : MonoBehaviour
 
         if (creatorType != "player")
         {
-            StartCoroutine(CircleShrink());
+            StartCoroutine(CircleGrow());
         }
 
     }
@@ -90,14 +90,14 @@ public class AttackAreaScript : MonoBehaviour
         }
     }
 
-    IEnumerator CircleShrink()
+    IEnumerator CircleGrow()
     {
         float scale = 0f;
         float transparency = 0f;
         for (int time = 0; time < lifespan; time++)
         {
             scale -= 1f / lifespan;
-            transparency += 0.5f / lifespan;
+            transparency = (float)(time) / lifespan * 255f;
             incomingCircle.transform.localScale = new Vector3(scale, scale, scale);
             incomingCircleSprite.color = new Color(255f, 0f, 0f, transparency);
             yield return null;
