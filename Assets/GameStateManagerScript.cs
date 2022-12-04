@@ -474,6 +474,7 @@ public class GameStateManagerScript : MonoBehaviour
                 UPDATELOG_UI.SetActive(true);
                 break;
             case "select style":
+                selectedMoveToAdd = "none";
                 PurgeOldHighlights();
                 UpdateCurrentSectorMovesText();
                 SELECTSTYLE_UI.SetActive(true);
@@ -533,6 +534,9 @@ public class GameStateManagerScript : MonoBehaviour
     {
         selectedSectorToChange = sectorArg;
         Debug.Log("selected to change " + GetSectorName(sectorArg));
+        if(selectedMoveToAdd == "none"){
+            return;
+        }
         ChangeSectorToSelectedMove(selectedMoveToAdd);
     }
 
@@ -571,7 +575,6 @@ public class GameStateManagerScript : MonoBehaviour
 
     private void UpdateCurrentSectorMovesText()
     {
-
         selectedMovesetText.text = "Editing moveset: " + editingWhichMoveset;
         foreach (Transform child in sectorTextParent.transform)
         {
@@ -615,6 +618,8 @@ public class GameStateManagerScript : MonoBehaviour
 
     public void ChangeWhatMovesetToEdit()
     {
+        PurgeOldHighlights();
+        selectedMoveToAdd = "none";
         switch (editingWhichMoveset)
         {
             case "arms":
