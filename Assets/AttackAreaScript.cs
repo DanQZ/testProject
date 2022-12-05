@@ -21,12 +21,13 @@ public class AttackAreaScript : MonoBehaviour
     public GameObject thingHit;
     public GameObject thingHitObjectRoot;
     bool despawnNextFrame = false;
-    public int attackDamage;
+    public float attackDamage;
     public GameObject creator;
     public string creatorType;
     PolygonCollider2D myCollider;
     bool collided = false;
-    private FighterScript guyHitScript = null;
+    private FighterScript guyHitScript = null; // created upon collision 
+    public FighterScript guyHittingScript = null; // set when created by fighterscript
 
     public void UpdateSprites()
     {
@@ -34,7 +35,7 @@ public class AttackAreaScript : MonoBehaviour
         {
             case "player":
                 //warningSprite.enabled = false;
-               // incomingCircleSprite.enabled = false;
+                // incomingCircleSprite.enabled = false;
                 break;
             case "enemy":
                 warningSprite.enabled = true;
@@ -49,7 +50,7 @@ public class AttackAreaScript : MonoBehaviour
         creatorType = "NONE";
         warningSprite = warning.GetComponent<SpriteRenderer>();
         incomingCircleSprite = incomingCircle.GetComponent<SpriteRenderer>();
-        
+
         warningSprite.color = new Color(255f, 0f, 0f, .25f);
     }
 
@@ -124,22 +125,40 @@ public class AttackAreaScript : MonoBehaviour
         if (creatorType == "enemy" && thingHit.tag == "Player")// enemy hits player
         {
             someoneGotHit = true;
-            warningSprite.color = Color.blue;
             collided = true;
             FighterScript playerFS = thingHitObjectRoot.GetComponent<PlayerScript>().PFScript;
             guyHitScript = playerFS;
+            PlayerIsHitExtraEffects();
         }
         if (creatorType == "player" && thingHit.tag == "Enemy") // player hits enemy
         {
             someoneGotHit = true;
+            collided = true;
             FighterScript enemyFS = thingHit.transform.parent.parent.GetComponent<FighterScript>();
             guyHitScript = enemyFS;
-            collided = true;
+            EnemyIsHitExtraEffects();
         }
         if (!someoneGotHit)
         {
             return;
         }
+
+        /*
+        // this code halves damage if guy hit is facing the guy hitting
+        float hitDirection = guyHitScript.gameObject.transform.position.x - guyHittingScript.gameObject.transform.position.x; 
+        // positive = from left to right, negative = right to left
+
+        if(hitDirection >= 0){
+            if(!guyHitScript.facingRight){
+                attackDamage /= 2f;
+            }
+        }
+        else{
+            if(guyHitScript.facingRight){
+                attackDamage /= 2f;
+            }
+        }
+        */
 
         guyHitScript.TakeDamage(attackDamage);
         PlayAttackEffect();
@@ -160,20 +179,17 @@ public class AttackAreaScript : MonoBehaviour
     {
         if (guyHitScript.hp <= 0)
         {
-            LaunchAwayThingHitBcItDied();
-            guyHitScript.Die();
             // in the case we kill an enemy, delete the ghost 
             if (guyHitScript.headLimb.tag == "Enemy")
             {
-                // use objectRoot because we want to destroy the entire enemy gameObject
-                thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().StopAllCoroutines();
-                thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().enabled = false;
-                thingHitObjectRoot.GetComponent<DanEnemyAI>().StopAllCoroutines();
-                thingHitObjectRoot.GetComponent<DanEnemyAI>().enabled = false;
-                Destroy(thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().ghostFighter);
-                Destroy(this.gameObject);
-                return;
+                EnemyDeathProtocol();
             }
+            else
+            {
+                PlayerDeathProtocol();
+            }
+            LaunchAwayThingHitBcItDied();
+            guyHitScript.Die();
         }
         else
         {
@@ -181,7 +197,49 @@ public class AttackAreaScript : MonoBehaviour
         }
         Destroy(this.gameObject);
     }
+    void EnemyIsHitExtraEffects()
+    {
+        //vampirism perk
+        int vampirismLevel = guyHittingScript.vampirismLevel;
+        if (vampirismLevel > 0)
+        {
+            guyHittingScript.TakeHealing(attackDamage * (0.1f + vampirismLevel * 0.01f));
+        }
 
+        // poisoner perk
+        int poisonerLevel = guyHittingScript.poisonerLevel;
+        if (poisonerLevel > 0)
+        {
+            guyHitScript.isPoisonedEffect = Mathf.Max(poisonerLevel, guyHitScript.isPoisonedEffect); // weaker poison does not override more powerful
+        }
+
+        // lightning perk
+        int lightningLevel = guyHittingScript.lightningLevel;
+        if (lightningLevel > 0)
+        {
+
+        }
+    }
+    void EnemyDeathProtocol()
+    {
+        // use objectRoot because we want to destroy the entire enemy gameObject
+        thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().StopAllCoroutines();
+        thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().enabled = false;
+        thingHitObjectRoot.GetComponent<DanEnemyAI>().StopAllCoroutines();
+        thingHitObjectRoot.GetComponent<DanEnemyAI>().enabled = false;
+        Destroy(thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().ghostFighter);
+        Destroy(this.gameObject);
+        return;
+    }
+
+    void PlayerIsHitExtraEffects()
+    {
+
+    }
+    void PlayerDeathProtocol()
+    {
+
+    }
 
     void LaunchAwayThingHitBcItDied()
     {
@@ -207,13 +265,13 @@ public class AttackAreaScript : MonoBehaviour
             // push both the enemyGhost and enemy
             enemyWithGhostParent = guyHitScript.gameObject.transform.parent.gameObject;
             rb2dTarget = enemyWithGhostParent.GetComponent<Rigidbody2D>();
-            Debug.Log("pushing enemy away");
+            //Debug.Log("pushing enemy away");
         }
         if (thingHit.tag == "Player")
         {
             GameObject playerObject = guyHitScript.gameObject.transform.parent.gameObject;
             rb2dTarget = playerObject.GetComponent<Rigidbody2D>();
-            Debug.Log("pushing player away");
+            //Debug.Log("pushing player away");
         }
 
         Vector3 xForce = new Vector3(strikeForceVector.x, 0f, 0f);
@@ -227,8 +285,9 @@ public class AttackAreaScript : MonoBehaviour
         }
 
         guyHitScript.StartCoroutine(guyHitScript.ParentWasPushed());
-        
-        if(thingHit.tag == "Enemy"){
+
+        if (thingHit.tag == "Enemy")
+        {
             FighterScript ghostFighterScript = enemyWithGhostParent.GetComponent<EnemyWithGhostScript>().ghostFighterScript;
 
             ghostFighterScript.StartCoroutine(ghostFighterScript.ParentWasPushed());
@@ -250,12 +309,13 @@ public class AttackAreaScript : MonoBehaviour
         }
     }
 
-    public void DirectlyDamage(FighterScript fighterScript, int damage, Vector3 forceVector)
+    public void DirectlyDamage(FighterScript fighterScript, float damage, Vector3 forceVector)
     {
         fighterScript.TakeDamage(damage);
         guyHitScript = fighterScript;
         strikeForceVector = forceVector;
         SetThingHit(fighterScript.headLimb);
+        EnemyIsHitExtraEffects();
         CheckIfThingHitIsDead();
     }
 }
