@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class GameStateManagerScript : MonoBehaviour
 {
+    public GameObject checkpointUpgradeButtons;
+
     public GameObject armMovesetButtons;
     public GameObject legMovesetButtons;
     public GameObject sectorTextParent;
@@ -65,7 +67,7 @@ public class GameStateManagerScript : MonoBehaviour
     public List<GameObject> moveButtons = new List<GameObject>();
 
     public List<Move> allMoves = new List<Move>();
-    public List<SpecialAbility>allSpecialAiblities = new List<SpecialAbility>();
+    public List<SpecialAbility> allSpecialAiblities = new List<SpecialAbility>();
 
     void Awake()
     {
@@ -188,8 +190,9 @@ public class GameStateManagerScript : MonoBehaviour
         }
     }
 
-    public struct SpecialAbility{
-        
+    public struct SpecialAbility
+    {
+
         public string abilityName;
         public int abilityLevel;
         public SpecialAbility(string nameArg)
@@ -304,7 +307,8 @@ public class GameStateManagerScript : MonoBehaviour
 
         StopCoroutine(checkpointCountdown);
     }
-    public void EnterTrainingLevel(){
+    public void EnterTrainingLevel()
+    {
         DisplayUI("in game");
         // makes and returns new player object
         currentPlayer = CreatePlayer();
@@ -334,7 +338,7 @@ public class GameStateManagerScript : MonoBehaviour
         currentPFScript.gameStateManager = transform.gameObject;
         currentPFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
         currentPFScript.SetCharacterType(chosenCharacterType);
-        
+
         ApplyNewMovesetToPlayer();
         // there might be more control schemes later idk
         switch (selectedControls.ToLower())
@@ -347,6 +351,8 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
         }
 
+        currentPFScript.poisonerLevel = 1;
+        currentPFScript.explosiveLevel = 1;
         return newPlayerPrefab;
     }
 
@@ -378,8 +384,8 @@ public class GameStateManagerScript : MonoBehaviour
         switch (upgradeArg.ToLower())
         {
             case "health":
-                currentPFScript.maxhp += 30f;
-                currentPFScript.hp += 30f;
+                currentPFScript.maxhp += 40f;
+                currentPFScript.hp += 40f;
                 currentPFScript.UpdateHealthBar();
                 break;
             case "energy":
@@ -401,8 +407,35 @@ public class GameStateManagerScript : MonoBehaviour
             case "heal":
                 currentPFScript.ReplenishHealth();
                 break;
+            case "vampirism":
+                currentPFScript.vampirismLevel++;
+                break;
+            case "poisoner":
+                currentPFScript.poisonerLevel++;
+                break;
+            case "explosive":
+                currentPFScript.explosiveLevel++;
+                break;
         }
         StartNextLevel();
+    }
+
+    private void UpdateStatsText()
+    {
+        FighterScript cpfs = currentPFScript;
+
+        characterStatsText.text = "Checkpoint " + enemyManagerScript.difficultyLevel + " stats" + "\n"
+            + "hp: " + (int)cpfs.hp + "/" + (int)cpfs.maxhp + "\n"
+            + "max energy: " + (int)cpfs.maxEnergy + "\n"
+            + "energy/second: " + (int)cpfs.energyPerSecond + "\n"
+            + "arm power: " + cpfs.armPower + "\n"
+            + "leg power: " + cpfs.legPower + "\n"
+            + "speed: " + cpfs.speedMultiplier + "\n"
+            + "\n"
+            + "vampirism: " + cpfs.vampirismLevel + "\n"
+            + "poisoner: " + cpfs.poisonerLevel + "\n"
+            + "explosive: " + cpfs.explosiveLevel + "\n"
+            ;
     }
 
     public void UpdateHighScore()
@@ -479,6 +512,7 @@ public class GameStateManagerScript : MonoBehaviour
             case "checkpoint":
                 UpdateStatsText();
                 CHECKPOINT_UI.SetActive(true);
+                ShowXCheckpointUpgrades(3);
                 break;
             case "update log":
                 UPDATELOG_UI.SetActive(true);
@@ -491,20 +525,43 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
         }
     }
-
-    private void UpdateStatsText()
+    public void ShowXCheckpointUpgrades(int x)
     {
-        FighterScript cpfs = currentPFScript;
+        checkpointUpgradeButtons.SetActive(true);
+        int numOfButtons = checkpointUpgradeButtons.transform.childCount;
+        bool[] shownButtons = new bool[numOfButtons];
 
-        characterStatsText.text = "Current Stats" + "\n"
-            + "hp: " + (int)cpfs.hp + "/" + (int)cpfs.maxhp + "\n"
-            + "max energy: " + (int)cpfs.maxEnergy + "\n"
-            + "energy/second: " + (int)cpfs.energyPerSecond + "\n"
-            + "arm power: " + cpfs.armPower + "\n"
-            + "leg power: " + cpfs.legPower + "\n"
-            + "speed: " + cpfs.speedMultiplier + "\n";
+        for (int i = 0; i < numOfButtons; i++)
+        {
+            shownButtons[i] = false;
+        }
+
+        int buttonsAdded = 0;
+        int numberLeft = numOfButtons;
+        for (int i = 0; i < numOfButtons; i++)
+        {
+            int numberNeeded = x - buttonsAdded;
+            if (Random.Range(0f, 1f) <= (float)numberNeeded / (float)numberLeft)
+            {
+                shownButtons[i] = true;
+                buttonsAdded++;
+            }
+            numberLeft--;
+        }
+
+
+        for (int i = 0; i < numOfButtons; i++)
+        {
+            if (!shownButtons[i])
+            {
+                checkpointUpgradeButtons.transform.GetChild(i).gameObject.SetActive(false);
+            }
+            else
+            {
+                checkpointUpgradeButtons.transform.GetChild(i).gameObject.SetActive(true);
+            }
+        }
     }
-
     public void AddScore(int toAdd) // referenced by FighterScript.Die()
     {
         score += toAdd;
@@ -544,7 +601,8 @@ public class GameStateManagerScript : MonoBehaviour
     {
         selectedSectorToChange = sectorArg;
         Debug.Log("selected to change " + GetSectorName(sectorArg));
-        if(selectedMoveToAdd == "none"){
+        if (selectedMoveToAdd == "none")
+        {
             return;
         }
         ChangeSectorToSelectedMove(selectedMoveToAdd);

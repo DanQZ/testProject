@@ -17,6 +17,7 @@ public class EnemyManagerScript : MonoBehaviour
     GameObject playerFighter; // reference to the fighter prefab inside the player prefab
     PlayerScript PCScript; // reference to the player script
     public List<GameObject> allEnemiesList = new List<GameObject>();
+    public int maxEnemies = 5;
 
     private IEnumerator spawnEnemiesCoroutine;
     private int enemiesSpawnedThisFrame;
@@ -55,6 +56,7 @@ public class EnemyManagerScript : MonoBehaviour
         {
             Destroy(enemy);
         }
+        allEnemiesList.Clear();
     }
     public void GameEnded()
     {
@@ -65,7 +67,7 @@ public class EnemyManagerScript : MonoBehaviour
     public void IncreaseDifficulty()
     {
         // in case it is still running
-        
+
         StopCoroutine(spawnEnemiesCoroutine);
 
         // every level, average enemy spawn interval goes down 1 second
@@ -162,11 +164,14 @@ public class EnemyManagerScript : MonoBehaviour
         {
             if (Time.frameCount >= nextFrame)
             {
-                int numberOfEnemies = (int)Random.Range(1f, 1f + (float)difficultyLevel/levelsPerExtraEnemySpawn); // every 2 levels it can spawn 1 more enemy at once
+                int numberOfEnemies = (int)Random.Range(1f, 1f + (float)difficultyLevel / levelsPerExtraEnemySpawn); // every 2 levels it can spawn 1 more enemy at once
 
                 for (int i = 0; i < numberOfEnemies; i++)
                 {
-                    SpawnEnemyToTheRightOrLeft();
+                    if (allEnemiesList.Count <= maxEnemies)
+                    {
+                        SpawnEnemyToTheRightOrLeft();
+                    }
                 }
                 nextFrame = Time.frameCount
                     + (int)(

@@ -17,6 +17,7 @@ public class FighterScript : MonoBehaviour
     // perks
     public int vampirismLevel = 0;
     public int lightningLevel = 0;
+    public int explosiveLevel = 0;
     public int poisonerLevel = 0; // creates isPoisonedEffect
     public int isPoisonedEffect = 0;
     public int pressurePointLevel = 0; // creates isWeakenedEffect
@@ -771,7 +772,8 @@ public class FighterScript : MonoBehaviour
 
         if (isPoisonedEffect > 0)
         {
-            float poisonDamage = (float)isPoisonedEffect / 6f + isPoisonedEffect;
+            // 3 dps + poisonEffect * 3
+            float poisonDamage = (3f + (float)isPoisonedEffect * 3f)/60f;
             hp -= poisonDamage;
             if (hp < 0)
             {
@@ -1894,37 +1896,37 @@ public class FighterScript : MonoBehaviour
                 timeTaken = .25f;
                 break;
             case "jabaggressive":
-                damage = 25f * armPower;
+                damage = 30f * armPower;
                 pushMultiplier = 3f;
                 energyCost = 13f * armPower;
                 timeTaken = .12f;
                 break;
             case "jabcombo":
-                damage = 25f * armPower;
+                damage = 30f * armPower;
                 pushMultiplier = 3f;
                 energyCost = 25f * armPower;
                 timeTaken = .12f;
                 break;
             case "roundhousekick":
-                damage = 70f * legPower;
+                damage = 60f * legPower;
                 pushMultiplier = 0.5f;
-                energyCost = 35f * legPower;
+                energyCost = 40f * legPower;
                 timeTaken = .3f;
                 break;
             case "roundhousekickhigh":
-                damage = 80f * legPower;
+                damage = 70f * legPower;
                 pushMultiplier = 0.5f;
-                energyCost = 35f * legPower;
+                energyCost = 50f * legPower;
                 timeTaken = .36f;
                 break;
             case "pushkick":
                 damage = 60f * legPower;
                 pushMultiplier = 2f;
-                energyCost = 35f * legPower;
+                energyCost = 45f * legPower;
                 timeTaken = .35f;
                 break;
             case "flyingkick":
-                damage = 90f * legPower;
+                damage = 80f * legPower;
                 pushMultiplier = 2f;
                 energyCost = 70f * legPower;
                 timeTaken = .35f;
@@ -1957,6 +1959,10 @@ public class FighterScript : MonoBehaviour
             {
                 damage = 5f;
             }
+        }
+
+        if(explosiveLevel > 0){
+            pushMultiplier *= (float)explosiveLevel * 1.25f;
         }
 
         output[0] = damage;
@@ -2048,6 +2054,7 @@ public class FighterScript : MonoBehaviour
         AttackAreaScript newAttackScript = newAttack.GetComponent<AttackAreaScript>();
         newAttackScript.creator = this.gameObject;
         newAttackScript.guyHittingScript = this;
+        newAttackScript.gameStateManagerScript = gameStateManagerScript;
 
         newAttackScript.thingHittingPos = limbObject.transform.position;
 

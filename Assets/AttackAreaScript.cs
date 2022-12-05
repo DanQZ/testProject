@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class AttackAreaScript : MonoBehaviour
 {
+    public GameStateManagerScript gameStateManagerScript;
     int startFrame;
     int deathFrame;
     public int lifespan = 60; // 60 frames = 1 second
@@ -136,7 +137,7 @@ public class AttackAreaScript : MonoBehaviour
             collided = true;
             FighterScript enemyFS = thingHit.transform.parent.parent.GetComponent<FighterScript>();
             guyHitScript = enemyFS;
-            EnemyIsHitExtraEffects();
+            EnemyIsHitExtraEffects(false);
         }
         if (!someoneGotHit)
         {
@@ -162,7 +163,7 @@ public class AttackAreaScript : MonoBehaviour
 
         guyHitScript.TakeDamage(attackDamage);
         PlayAttackEffect();
-        CheckIfThingHitIsDead();
+        CheckIfThingHitIsDead(guyHitScript);
         return;
     }
 
@@ -175,12 +176,13 @@ public class AttackAreaScript : MonoBehaviour
         particleControllerScript.PlayEffect("attackHit");
     }
 
-    private void CheckIfThingHitIsDead()
+    private void CheckIfThingHitIsDead(FighterScript checkedFighterScript)
     {
-        if (guyHitScript.hp <= 0)
+        checkedFighterScript = guyHitScript;
+        if (checkedFighterScript.hp <= 0)
         {
             // in the case we kill an enemy, delete the ghost 
-            if (guyHitScript.headLimb.tag == "Enemy")
+            if (checkedFighterScript.headLimb.tag == "Enemy")
             {
                 EnemyDeathProtocol();
             }
@@ -189,21 +191,22 @@ public class AttackAreaScript : MonoBehaviour
                 PlayerDeathProtocol();
             }
             LaunchAwayThingHitBcItDied();
-            guyHitScript.Die();
+            checkedFighterScript.Die();
         }
         else
         {
-            PushAwayGuyHit();
+            PushAwayGuy(guyHitScript);
         }
         Destroy(this.gameObject);
     }
-    void EnemyIsHitExtraEffects()
+    void EnemyIsHitExtraEffects(bool direct)
     {
         //vampirism perk
         int vampirismLevel = guyHittingScript.vampirismLevel;
         if (vampirismLevel > 0)
         {
-            guyHittingScript.TakeHealing(attackDamage * (0.1f + vampirismLevel * 0.01f));
+            // 10% + 5% vampirism lvl
+            guyHittingScript.TakeHealing(attackDamage * (0.1f + vampirismLevel * 0.05f));
         }
 
         // poisoner perk
@@ -211,6 +214,31 @@ public class AttackAreaScript : MonoBehaviour
         if (poisonerLevel > 0)
         {
             guyHitScript.isPoisonedEffect = Mathf.Max(poisonerLevel, guyHitScript.isPoisonedEffect); // weaker poison does not override more powerful
+        }
+        
+        int explosiveLevel = guyHittingScript.explosiveLevel;
+        if (!direct && explosiveLevel > 0)
+        {
+            float range = 5f;
+            foreach (GameObject enemy in gameStateManagerScript.enemyManagerScript.allEnemiesList)
+            {
+                GameObject enemyFighter = enemy.GetComponent<EnemyWithGhostScript>().enemyFighter;
+                float distance = Vector3.Distance(
+                    enemyFighter.transform.position,
+                    transform.position
+                    );
+
+                if (enemyFighter != guyHitScript.gameObject && distance < range)
+                {
+                    float explosiveDamage = attackDamage * 0.1f * (float)explosiveLevel * ((range - distance)/range); // scales down linearly
+
+                    FighterScript hitThisGuy = enemyFighter.GetComponent<FighterScript>();
+
+                    Vector3 explosiveStrikeForceVector = Vector3.Normalize(hitThisGuy.gameObject.transform.position - guyHittingScript.gameObject.transform.position) * explosiveDamage * 10f;
+
+                    DirectlyDamage(hitThisGuy, explosiveDamage, explosiveStrikeForceVector);
+                }
+            }
         }
 
         // lightning perk
@@ -223,6 +251,7 @@ public class AttackAreaScript : MonoBehaviour
     void EnemyDeathProtocol()
     {
         // use objectRoot because we want to destroy the entire enemy gameObject
+        thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().myManagerScript.allEnemiesList.Remove(thingHitObjectRoot);
         thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().StopAllCoroutines();
         thingHitObjectRoot.GetComponent<EnemyWithGhostScript>().enabled = false;
         thingHitObjectRoot.GetComponent<DanEnemyAI>().StopAllCoroutines();
@@ -255,7 +284,7 @@ public class AttackAreaScript : MonoBehaviour
         }
     }
 
-    void PushAwayGuyHit()
+    void PushAwayGuy(FighterScript pushedFighterScript)
     {
         Rigidbody2D rb2dTarget = null;
         GameObject enemyWithGhostParent = null;
@@ -263,13 +292,13 @@ public class AttackAreaScript : MonoBehaviour
         if (thingHit.tag == "Enemy")
         {
             // push both the enemyGhost and enemy
-            enemyWithGhostParent = guyHitScript.gameObject.transform.parent.gameObject;
+            enemyWithGhostParent = pushedFighterScript.gameObject.transform.parent.gameObject;
             rb2dTarget = enemyWithGhostParent.GetComponent<Rigidbody2D>();
             //Debug.Log("pushing enemy away");
         }
         if (thingHit.tag == "Player")
         {
-            GameObject playerObject = guyHitScript.gameObject.transform.parent.gameObject;
+            GameObject playerObject = pushedFighterScript.gameObject.transform.parent.gameObject;
             rb2dTarget = playerObject.GetComponent<Rigidbody2D>();
             //Debug.Log("pushing player away");
         }
@@ -284,7 +313,7 @@ public class AttackAreaScript : MonoBehaviour
             Debug.Log("no rigidbody found for non-killing push");
         }
 
-        guyHitScript.StartCoroutine(guyHitScript.ParentWasPushed());
+        pushedFighterScript.StartCoroutine(guyHitScript.ParentWasPushed());
 
         if (thingHit.tag == "Enemy")
         {
@@ -309,13 +338,13 @@ public class AttackAreaScript : MonoBehaviour
         }
     }
 
-    public void DirectlyDamage(FighterScript fighterScript, float damage, Vector3 forceVector)
+    public void DirectlyDamage(FighterScript targetFighterScript, float damage, Vector3 forceVector)
     {
-        fighterScript.TakeDamage(damage);
-        guyHitScript = fighterScript;
+        targetFighterScript.TakeDamage(damage);
+        guyHitScript = targetFighterScript;
         strikeForceVector = forceVector;
-        SetThingHit(fighterScript.headLimb);
-        EnemyIsHitExtraEffects();
-        CheckIfThingHitIsDead();
+        SetThingHit(targetFighterScript.headLimb);
+        EnemyIsHitExtraEffects(true);
+        CheckIfThingHitIsDead(targetFighterScript);
     }
 }
