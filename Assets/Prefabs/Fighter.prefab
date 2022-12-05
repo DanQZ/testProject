@@ -581,6 +581,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fdc7c5fa3ca2ec4d8343cd5920cbd1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  damageNumberPrefab: {fileID: 6272930874972969348, guid: 27ec74e19be6d61468933c4da2f8d8b0, type: 3}
+  vampirismLevel: 0
+  lightningLevel: 0
+  poisonerLevel: 0
+  isPoisonedEffect: 0
+  pressurePointLevel: 0
+  isWeakenedEffect: 0
   armMoveset:
   - 
   - 
@@ -619,7 +626,7 @@ MonoBehaviour:
   groundLevel: 0
   fighterOrienter: {fileID: 6132136372627296245}
   orientedTran: {fileID: 0}
-  characterType: 
+  fighterType: 
   maxhp: 0
   hp: 0
   maxEnergy: 0
@@ -680,6 +687,7 @@ MonoBehaviour:
   headSprite: {fileID: 7650296333196335449}
   reach: 0
   notInAttackAnimation: 1
+  isTurning: 0
   ragdolling: 1
 --- !u!1 &351865939346434039
 GameObject:

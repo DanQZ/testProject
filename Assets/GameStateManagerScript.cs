@@ -65,6 +65,7 @@ public class GameStateManagerScript : MonoBehaviour
     public List<GameObject> moveButtons = new List<GameObject>();
 
     public List<Move> allMoves = new List<Move>();
+    public List<SpecialAbility>allSpecialAiblities = new List<SpecialAbility>();
 
     void Awake()
     {
@@ -187,6 +188,15 @@ public class GameStateManagerScript : MonoBehaviour
         }
     }
 
+    public struct SpecialAbility{
+        
+        public string abilityName;
+        public int abilityLevel;
+        public SpecialAbility(string nameArg)
+        {
+            abilityName = nameArg; abilityLevel = 0;
+        }
+    }
     void Update()
     {
         if (Input.GetKeyUp(KeyCode.Return)) // must be GetKeyUp or it will keep doing it
@@ -287,7 +297,7 @@ public class GameStateManagerScript : MonoBehaviour
     }
     public void EndLevel()
     {
-        currentPFScript.TakeHealing((int)Mathf.Ceil(((float)currentPFScript.maxhp) / 4f));
+        currentPFScript.TakeHealing((int)Mathf.Ceil(currentPFScript.maxhp / 4f));
         enemyManagerScript.StopSpawningEnemies();
         enemyManagerScript.ClearAllEnemies();
         DisplayUI("checkpoint");
@@ -368,12 +378,12 @@ public class GameStateManagerScript : MonoBehaviour
         switch (upgradeArg.ToLower())
         {
             case "health":
-                currentPFScript.maxhp += 30;
-                currentPFScript.hp += 30;
+                currentPFScript.maxhp += 30f;
+                currentPFScript.hp += 30f;
                 currentPFScript.UpdateHealthBar();
                 break;
             case "energy":
-                currentPFScript.maxEnergy += 20;
+                currentPFScript.maxEnergy += 20f;
                 currentPFScript.UpdateEnergyBar();
                 break;
             case "arm power":
@@ -383,7 +393,7 @@ public class GameStateManagerScript : MonoBehaviour
                 currentPFScript.ChangeMultiplier("leg power", "add", 0.1f);
                 break;
             case "energyregen":
-                currentPFScript.energyPerSecond += 5;
+                currentPFScript.energyPerSecond += 5f;
                 break;
             case "movespeed":
                 currentPFScript.ChangeMultiplier("speed", "add", 0.1f);
@@ -487,9 +497,9 @@ public class GameStateManagerScript : MonoBehaviour
         FighterScript cpfs = currentPFScript;
 
         characterStatsText.text = "Current Stats" + "\n"
-            + "hp: " + cpfs.hp + "/" + cpfs.maxhp + "\n"
-            + "max energy: " + cpfs.maxEnergy + "\n"
-            + "energy/second: " + cpfs.energyPerSecond + "\n"
+            + "hp: " + (int)cpfs.hp + "/" + (int)cpfs.maxhp + "\n"
+            + "max energy: " + (int)cpfs.maxEnergy + "\n"
+            + "energy/second: " + (int)cpfs.energyPerSecond + "\n"
             + "arm power: " + cpfs.armPower + "\n"
             + "leg power: " + cpfs.legPower + "\n"
             + "speed: " + cpfs.speedMultiplier + "\n";

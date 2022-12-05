@@ -20,7 +20,9 @@ public class DanEnemyAI : MonoBehaviour
     float targetDistanceToPlayer;
     float distanceToPlayer;
     string enemyState;
-    public void StopAll(){
+    IEnumerator goingToRandomSector;
+    public void StopAll()
+    {
         StopAllCoroutines();
     }
     IEnumerator Start()
@@ -30,9 +32,10 @@ public class DanEnemyAI : MonoBehaviour
             yield return null;
         }
         enemyState = "keepDistance";
-        EnemyStateRandomizer();
 
         thisGhostScript = enemyGhost.gameObject.GetComponent<FighterScript>();
+        EnemyStateRandomizer();
+        
         playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHeadTran;
         stanceHead = thisGhostScript.stanceHead;
         stanceHeadTran = stanceHead.transform;
@@ -42,11 +45,14 @@ public class DanEnemyAI : MonoBehaviour
         stateTimer = Time.frameCount + stateInterval;
         rangeChangeInterval = (int)Random.Range(60, 80);
         StartCoroutine(RealUpdateAfterSeconds(0.1f));
+        goingToRandomSector = GoToRandomSector();
     }
 
-    IEnumerator RealUpdateAfterSeconds(float time){
-        int frames = (int) (60f * time);
-        for(int i = 0; i < frames; i++){
+    IEnumerator RealUpdateAfterSeconds(float time)
+    {
+        int frames = (int)(60f * time);
+        for (int i = 0; i < frames; i++)
+        {
             yield return null;
         }
         StartCoroutine(RealUpdate());
@@ -94,7 +100,6 @@ public class DanEnemyAI : MonoBehaviour
         stateTimer = 0;
         TargetDistanceUpdate();
     }
-
     void TargetDistanceUpdate()
     {
         switch (enemyState)
@@ -106,6 +111,12 @@ public class DanEnemyAI : MonoBehaviour
                 targetDistanceToPlayer = Random.Range(3f, 5f);
                 break;
         }
+        if (goingToRandomSector != null)
+        {
+            StopCoroutine(goingToRandomSector);
+        }
+        goingToRandomSector = GoToRandomSector();
+        StartCoroutine(goingToRandomSector);
         //Debug.Log("Enemystate = " + enemyState + ", targetDistance = " + targetDistanceToPlayer);
     }
     void FacePlayer()
@@ -149,6 +160,12 @@ public class DanEnemyAI : MonoBehaviour
 
     void InitiateAttack()
     {
+        
+        if (goingToRandomSector != null)
+        {
+            StopCoroutine(goingToRandomSector);
+        }
+
         int randomSector = (int)Random.Range(0f, 9f);
         int randomArmOrLeg = Mathf.RoundToInt(Random.Range(0f, 1f));
 
@@ -170,7 +187,15 @@ public class DanEnemyAI : MonoBehaviour
         attackTimer = Time.frameCount + attackInterval;
         StartCoroutine(GoToSectorThenAttack(randomSector, attackWith));
     }
-
+    IEnumerator GoToRandomSector()
+    {
+        int sector = (int)Random.Range(0f, 9f);
+        while (thisGhostScript.GetHeadSector() != sector && thisGhostScript.notInAttackAnimation)
+        {
+            thisGhostScript.MoveHeadTowardsSector(sector);
+            yield return null;
+        }
+    }
     IEnumerator GoToSectorThenAttack(int sector, string attackWith)
     {
         while (thisGhostScript.GetHeadSector() != sector && thisGhostScript.notInAttackAnimation)

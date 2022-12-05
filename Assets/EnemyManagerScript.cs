@@ -65,6 +65,7 @@ public class EnemyManagerScript : MonoBehaviour
     public void IncreaseDifficulty()
     {
         // in case it is still running
+        
         StopCoroutine(spawnEnemiesCoroutine);
 
         // every level, average enemy spawn interval goes down 1 second

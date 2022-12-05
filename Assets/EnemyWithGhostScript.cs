@@ -50,11 +50,12 @@ public class EnemyWithGhostScript : MonoBehaviour
     Queue<Vector3> foot1PosQ = new Queue<Vector3>();
     Queue<Vector3> foot2PosQ = new Queue<Vector3>();
     Queue<bool> facingRightQ = new Queue<bool>();
-    Queue<int> currentEnergyQ = new Queue<int>();
-    Queue<bool> drawNormalElbow1 = new Queue<bool>();
-    Queue<bool> drawNormalElbow2 = new Queue<bool>();
-    Queue<bool> drawNormalKnee1 = new Queue<bool>();
-    Queue<bool> drawNormalKnee2 = new Queue<bool>();
+    Queue<float> currentEnergyQ = new Queue<float>();
+    Queue<bool> drawNormalElbow1Q = new Queue<bool>();
+    Queue<bool> drawNormalElbow2Q = new Queue<bool>();
+    Queue<bool> drawNormalKnee1Q = new Queue<bool>();
+    Queue<bool> drawNormalKnee2Q = new Queue<bool>();
+    Queue<bool> notInAnimationQ = new Queue<bool>();
     Queue<Vector3> customKnee1Q = new Queue<Vector3>();
     Queue<Vector3> customKnee2Q = new Queue<Vector3>();
     Queue<Vector3> customElbow1Q = new Queue<Vector3>();
@@ -133,16 +134,17 @@ public class EnemyWithGhostScript : MonoBehaviour
             enemyCustomKnee1Tran.localPosition = customKnee1Q.Dequeue();
             enemyCustomKnee2Tran.localPosition = customKnee2Q.Dequeue();
 
-            enemyFighterScript.drawNormalElbow1 = drawNormalElbow1.Dequeue();
-            enemyFighterScript.drawNormalElbow2 = drawNormalElbow2.Dequeue();
-            enemyFighterScript.drawNormalKnee1 = drawNormalKnee1.Dequeue();
-            enemyFighterScript.drawNormalKnee2 = drawNormalKnee2.Dequeue();
+            enemyFighterScript.drawNormalElbow1 = drawNormalElbow1Q.Dequeue();
+            enemyFighterScript.drawNormalElbow2 = drawNormalElbow2Q.Dequeue();
+            enemyFighterScript.drawNormalKnee1 = drawNormalKnee1Q.Dequeue();
+            enemyFighterScript.drawNormalKnee2 = drawNormalKnee2Q.Dequeue();
 
 
-
-            bool toFaceRight = facingRightQ.Dequeue();
+            enemyFighterScript.notInAttackAnimation = notInAnimationQ.Dequeue();
             enemyFighterScript.currentEnergy = currentEnergyQ.Dequeue();
             enemyFighterScript.UpdateEnergyBar();
+
+            bool toFaceRight = facingRightQ.Dequeue();
             if (enemyFighterScript.facingRight != toFaceRight)
             {
                 //Debug.Log("successful detection of turning");
@@ -171,12 +173,13 @@ public class EnemyWithGhostScript : MonoBehaviour
         foot2PosQ.Enqueue(ghostFighterScript.stanceFoot2Tran.localPosition);
 
         facingRightQ.Enqueue(ghostFighterScript.facingRight);
+        notInAnimationQ.Enqueue(ghostFighterScript.notInAttackAnimation);
         currentEnergyQ.Enqueue(ghostFighterScript.currentEnergy);
 
-        drawNormalElbow1.Enqueue(ghostFighterScript.drawNormalElbow1);
-        drawNormalElbow2.Enqueue(ghostFighterScript.drawNormalElbow2);
-        drawNormalKnee1.Enqueue(ghostFighterScript.drawNormalKnee1);
-        drawNormalKnee2.Enqueue(ghostFighterScript.drawNormalKnee2);
+        drawNormalElbow1Q.Enqueue(ghostFighterScript.drawNormalElbow1);
+        drawNormalElbow2Q.Enqueue(ghostFighterScript.drawNormalElbow2);
+        drawNormalKnee1Q.Enqueue(ghostFighterScript.drawNormalKnee1);
+        drawNormalKnee2Q.Enqueue(ghostFighterScript.drawNormalKnee2);
 
         customElbow1Q.Enqueue(ghostFighterScript.customElbow1Tran.localPosition);
         customElbow2Q.Enqueue(ghostFighterScript.customElbow2Tran.localPosition);
