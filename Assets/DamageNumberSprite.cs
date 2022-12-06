@@ -10,6 +10,10 @@ public class DamageNumberSprite : MonoBehaviour
     public float changeNumber;
     public Text numberText;
     // Start is called before the first frame update
+    void Awake()
+    {
+        this.gameObject.GetComponent<Rigidbody2D>().AddForce(Vector3.up * 5f, ForceMode2D.Impulse);
+    }
     void Start()
     {
         switch (type)
@@ -25,7 +29,14 @@ public class DamageNumberSprite : MonoBehaviour
                 }
                 if (changeNumber < 0)
                 {
-                    numberText.color = Color.red;
+                    if (isCrit)
+                    {
+                        numberText.color = Color.red;
+                    }
+                    else
+                    {
+                        numberText.color = Color.white;
+                    }
                 }
                 break;
             case "energy":
@@ -40,20 +51,21 @@ public class DamageNumberSprite : MonoBehaviour
                 break;
         }
 
-
-        this.gameObject.GetComponent<Rigidbody2D>().AddForce(Vector3.up * 5f, ForceMode2D.Impulse);
+        float sizeMultiplier = Mathf.Log(Mathf.Abs(changeNumber) + 10f, 100f);
+        transform.localScale = new Vector3(
+            transform.localScale.x * sizeMultiplier,
+            transform.localScale.y * sizeMultiplier,
+            transform.localScale.z * sizeMultiplier
+        );
 
         numberText.text = "" + changeNumber.ToString("F1"); // gives 1 decimal point
-        if(isCrit){
-            numberText.text += " CRIT";
-        }
     }
 
     // Update is called once per frame
     void Update()
     {
         numberText.color = new Color(numberText.color.r, numberText.color.g, numberText.color.b, numberText.color.a - 0.02f);
-        if (this.gameObject.transform.position.y < -10f)
+        if (numberText.color.a < 0.01f)
         {
             Destroy(this.gameObject);
         }

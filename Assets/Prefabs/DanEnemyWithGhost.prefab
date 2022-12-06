@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4371373301746999774}
   - component: {fileID: 7649292729557365598}
-  - component: {fileID: 6536267865594061964}
   - component: {fileID: 5747497005727487589}
+  - component: {fileID: 6536267865594061964}
   m_Layer: 0
   m_Name: DanEnemyWithGhost
   m_TagString: Untagged
@@ -59,6 +59,24 @@ MonoBehaviour:
   ghostFighterScript: {fileID: 0}
   playerFighter: {fileID: 0}
   playerHead: {fileID: 0}
+--- !u!114 &5747497005727487589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8461294743135604799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 711b7c70b377b42469898296d0412d2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyGhost: {fileID: 6080608042863873847}
+  enemyFollower: {fileID: 1498385057246905792}
+  stanceHead: {fileID: 0}
+  thisGhostScript: {fileID: 0}
+  playerFighter: {fileID: 0}
+  playerHeadTran: {fileID: 0}
 --- !u!50 &6536267865594061964
 Rigidbody2D:
   serializedVersion: 4
@@ -80,24 +98,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &5747497005727487589
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8461294743135604799}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 711b7c70b377b42469898296d0412d2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enemyGhost: {fileID: 6080608042863873847}
-  enemyFollower: {fileID: 1498385057246905792}
-  stanceHead: {fileID: 0}
-  thisGhostScript: {fileID: 0}
-  playerFighter: {fileID: 0}
-  playerHeadTran: {fileID: 0}
 --- !u!1001 &1164533929551451301
 PrefabInstance:
   m_ObjectHideFlags: 0

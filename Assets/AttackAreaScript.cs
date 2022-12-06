@@ -215,22 +215,31 @@ public class AttackAreaScript : MonoBehaviour
         {
             guyHitScript.isPoisonedEffect = Mathf.Max(poisonerLevel, guyHitScript.isPoisonedEffect); // weaker poison does not override more powerful
         }
-        
+
         int explosiveLevel = guyHittingScript.explosiveLevel;
         if (!direct && explosiveLevel > 0)
         {
-            float range = 5f;
-            foreach (GameObject enemy in gameStateManagerScript.enemyManagerScript.allEnemiesList)
+            float range = 1f + ((float)explosiveLevel * 0.2f);
+            List<GameObject> allEnemiesList = gameStateManagerScript.enemyManagerScript.allEnemiesList;
+            for (int i = allEnemiesList.Count - 1; i >= 0; i--)
             {
-                GameObject enemyFighter = enemy.GetComponent<EnemyWithGhostScript>().enemyFighter;
-                float distance = Vector3.Distance(
-                    enemyFighter.transform.position,
+                GameObject enemyFighter = allEnemiesList[i].GetComponent<EnemyWithGhostScript>().enemyFighter;
+
+                float distanceToHead = Vector3.Distance(
+                    enemyFighter.GetComponent<FighterScript>().headLimb.transform.position,
+                    transform.position
+                    );
+                    
+                float distanceToPelvis = Vector3.Distance(
+                    enemyFighter.GetComponent<FighterScript>().jointPelvis2.transform.position,
                     transform.position
                     );
 
+                float distance = Mathf.Min(distanceToHead, distanceToPelvis);
+
                 if (enemyFighter != guyHitScript.gameObject && distance < range)
                 {
-                    float explosiveDamage = attackDamage * 0.1f * (float)explosiveLevel * ((range - distance)/range); // scales down linearly
+                    float explosiveDamage = attackDamage * 0.1f * (float)explosiveLevel;
 
                     FighterScript hitThisGuy = enemyFighter.GetComponent<FighterScript>();
 

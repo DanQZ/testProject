@@ -102,7 +102,6 @@ public class EnemyWithGhostScript : MonoBehaviour
         enemyFoot1StanceTran = enemyFighterScript.stanceFoot1Tran;
         enemyFoot2StanceTran = enemyFighterScript.stanceFoot2Tran;
 
-        
         enemyCustomElbow1Tran = enemyFighterScript.customElbow1Tran;
         enemyCustomElbow2Tran = enemyFighterScript.customElbow2Tran;
         enemyCustomKnee1Tran = enemyFighterScript.customKnee1Tran;
@@ -138,7 +137,6 @@ public class EnemyWithGhostScript : MonoBehaviour
             enemyFighterScript.drawNormalElbow2 = drawNormalElbow2Q.Dequeue();
             enemyFighterScript.drawNormalKnee1 = drawNormalKnee1Q.Dequeue();
             enemyFighterScript.drawNormalKnee2 = drawNormalKnee2Q.Dequeue();
-
 
             enemyFighterScript.notInAttackAnimation = notInAnimationQ.Dequeue();
             enemyFighterScript.currentEnergy = currentEnergyQ.Dequeue();

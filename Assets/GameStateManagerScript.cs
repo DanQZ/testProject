@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class GameStateManagerScript : MonoBehaviour
 {
+    public int skillPoints = 0;
     public GameObject checkpointUpgradeButtons;
 
     public GameObject armMovesetButtons;
@@ -53,6 +54,7 @@ public class GameStateManagerScript : MonoBehaviour
     // choosing character stuff
     public string chosenCharacterType;
     public Text chosenCharacterText;
+    public Text checkpointInfoText;
     public Text characterStatsText;
     public Text selectedMovesetText;
 
@@ -99,7 +101,7 @@ public class GameStateManagerScript : MonoBehaviour
         editingWhichMoveset = "legs";
         selectedMoveToAdd = "none";
 
-        FillMoveList();
+        UpdateAvailableMoveList();
         SetDefaultMoveset();
         ChangeWhatMovesetToEdit();
 
@@ -108,8 +110,9 @@ public class GameStateManagerScript : MonoBehaviour
         checkpointCountdown = CountDownToNextCheckpoint(60f);
 
     }
-    void FillMoveList()
+    void UpdateAvailableMoveList()
     {
+        allMoves.Clear();
         // available everywhere
         List<int> hookSectors = new List<int>();
         for (int i = 0; i < 9; i++)
@@ -119,18 +122,18 @@ public class GameStateManagerScript : MonoBehaviour
         allMoves.Add(new Move("hook", "arms", hookSectors));
 
         //available everywhere        
-        List<int> jabAggressiveSectors = new List<int>();
+        List<int> jabFastSectors = new List<int>();
         for (int i = 0; i < 9; i++)
         {
-            jabAggressiveSectors.Add(i);
+            jabFastSectors.Add(i);
         }
-        allMoves.Add(new Move("jabaggressive", "arms", jabAggressiveSectors));
+        allMoves.Add(new Move("fast jab", "arms", jabFastSectors));
 
         // only top middle and top right
         List<int> jabComboSectors = new List<int>();
         jabComboSectors.Add(7);
         jabComboSectors.Add(8);
-        allMoves.Add(new Move("jabcombo", "arms", jabComboSectors));
+        allMoves.Add(new Move("jab combo", "arms", jabComboSectors));
 
         // only lower sectors
         List<int> uppercutSectors = new List<int>();
@@ -262,6 +265,7 @@ public class GameStateManagerScript : MonoBehaviour
 
         // start counting score
         score = 0;
+        skillPoints = 0;
         scoreCounterText.text = "Score: " + score;
         inGame = true;
         StartNextLevel();
@@ -303,6 +307,7 @@ public class GameStateManagerScript : MonoBehaviour
         currentPFScript.TakeHealing((int)Mathf.Ceil(currentPFScript.maxhp / 4f));
         enemyManagerScript.StopSpawningEnemies();
         enemyManagerScript.ClearAllEnemies();
+        skillPoints++;
         DisplayUI("checkpoint");
 
         StopCoroutine(checkpointCountdown);
@@ -351,8 +356,8 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
         }
 
-        currentPFScript.poisonerLevel = 1;
-        currentPFScript.explosiveLevel = 1;
+        currentPFScript.explosiveLevel = 3;
+
         return newPlayerPrefab;
     }
 
@@ -381,6 +386,11 @@ public class GameStateManagerScript : MonoBehaviour
 
     public void CheckpointUpgrade(string upgradeArg)
     {
+        if (skillPoints <= 0)
+        {
+            return;
+        }
+        skillPoints--;
         switch (upgradeArg.ToLower())
         {
             case "health":
@@ -417,14 +427,19 @@ public class GameStateManagerScript : MonoBehaviour
                 currentPFScript.explosiveLevel++;
                 break;
         }
-        StartNextLevel();
+        UpdateStatsText();
     }
 
     private void UpdateStatsText()
     {
+        checkpointInfoText.text =
+        "Congrations you reached checkpoint"
+        + "\n"
+        + "You have " + skillPoints + " skillpoints";
         FighterScript cpfs = currentPFScript;
 
-        characterStatsText.text = "Checkpoint " + enemyManagerScript.difficultyLevel + " stats" + "\n"
+        characterStatsText.text =
+            "Checkpoint " + enemyManagerScript.difficultyLevel + " stats" + "\n"
             + "hp: " + (int)cpfs.hp + "/" + (int)cpfs.maxhp + "\n"
             + "max energy: " + (int)cpfs.maxEnergy + "\n"
             + "energy/second: " + (int)cpfs.energyPerSecond + "\n"
@@ -432,9 +447,9 @@ public class GameStateManagerScript : MonoBehaviour
             + "leg power: " + cpfs.legPower + "\n"
             + "speed: " + cpfs.speedMultiplier + "\n"
             + "\n"
-            + "vampirism: " + cpfs.vampirismLevel + "\n"
-            + "poisoner: " + cpfs.poisonerLevel + "\n"
-            + "explosive: " + cpfs.explosiveLevel + "\n"
+            + "Vampiric Style Level " + cpfs.vampirismLevel + "\n"
+            + "Insidious Style Level " + cpfs.poisonerLevel + "\n"
+            + "Explosive Style Level " + cpfs.explosiveLevel + "\n"
             ;
     }
 
@@ -573,6 +588,8 @@ public class GameStateManagerScript : MonoBehaviour
         scoreCounterText.text = "Score: " + score;
     }
 
+
+    // MOVESET EDITING CODE 
     private void SetDefaultMoveset()
     {
         currentMovesetLegs[0] = "flyingkick";
@@ -590,10 +607,10 @@ public class GameStateManagerScript : MonoBehaviour
         currentMovesetArms[2] = "uppercut";
         currentMovesetArms[3] = "hook";
         currentMovesetArms[4] = "hook";
-        currentMovesetArms[5] = "jabaggressive";
+        currentMovesetArms[5] = "fast jab";
         currentMovesetArms[6] = "hook";
         currentMovesetArms[7] = "hook";
-        currentMovesetArms[8] = "jabcombo";
+        currentMovesetArms[8] = "jab combo";
     }
 
     // a bunch of code to change the attacks of the player object
@@ -608,7 +625,7 @@ public class GameStateManagerScript : MonoBehaviour
         ChangeSectorToSelectedMove(selectedMoveToAdd);
     }
 
-    public void SelectMove(string moveNameArg)
+    public void SelectMove(string moveNameArg) // used by buttons 
     {
         selectedMoveToAdd = moveNameArg;
         HighlightAvailableSectors(GetMoveStruct(moveNameArg));
