@@ -1663,7 +1663,7 @@ public class FighterScript : MonoBehaviour
     public void MoveHeadAtPosition(Vector3 targetPosition)
     {
         float toMoveSpeed = moveSpeed;
-        if (!notInAttackAnimation && isTurning)
+        if (!notInAttackAnimation || isTurning)
         {
             toMoveSpeed /= 3f;
         }
