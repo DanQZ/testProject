@@ -15,8 +15,9 @@ public class FighterScript : MonoBehaviour
 
     public GameObject damageNumberPrefab;
     // perks
-    public int vampirismLevel = 0;
+    public int colossusLevel = 0;
     public int lightningLevel = 0;
+    public int vampirismLevel = 0;
     public int explosiveLevel = 0;
     public int poisonerLevel = 0; // creates isPoisonedEffect
     public int isPoisonedEffect = 0;
@@ -61,7 +62,7 @@ public class FighterScript : MonoBehaviour
     private TrailRenderer foot1Trail;
     private TrailRenderer foot2Trail;
 
-    public bool airborne = false;
+    public bool isAirborne = false;
     public Rigidbody2D fighterRB;
     public float groundLevel;
     public GameObject fighterOrienter;
@@ -1041,6 +1042,18 @@ public class FighterScript : MonoBehaviour
         // if stances are active, they pull limbs around regardless of the physics engine
         // if stances are not active, they are instead pulled around by the physics engine
         // stances and limbs will always be in the same positions
+
+        // if out of bounds
+        if (transform.position.x < -10f)
+        {
+            transform.position += Vector3.right * moveSpeed;
+        }
+        if (transform.position.x > 10f)
+        {
+            transform.position -= Vector3.right * moveSpeed;
+        }
+
+        // head and hands
         if (stanceHeadActive)
         {
             fighterHead.transform.position = stanceHeadTran.position;
@@ -1072,6 +1085,7 @@ public class FighterScript : MonoBehaviour
         upperArm1Tran.position = jointElbow1Tran.position;
         upperArm2Tran.position = jointElbow2Tran.position;
 
+        // torso stances
         if (stanceTorsoBotActive)
         {
             torsoBottom.transform.position = stanceTorsoBotTran.position;
@@ -1090,6 +1104,7 @@ public class FighterScript : MonoBehaviour
             stanceTorsoTopTran.position = torsoTop.transform.position;
         }
 
+        // feet stances
         if (stanceFoot1Active)
         {
             calf1Tran.position = stanceFoot1Tran.position;
@@ -1460,9 +1475,9 @@ public class FighterScript : MonoBehaviour
             yield return null;
         }
     }
-    public void Move(Vector3 direction) // put an animation on this shit while it's happening
+    public void MoveBody(Vector3 direction) // put an animation on this shit while it's happening
     {
-        if (airborne)
+        if (isAirborne)
         {
             return;
         }
@@ -1470,6 +1485,10 @@ public class FighterScript : MonoBehaviour
         //StartCoroutine(Step((int)direction.x));
         if (notInAttackAnimation)
         {
+            if (isPlayer && (Mathf.Abs(transform.position.x) > 10f))
+            {
+                return;
+            }
             transform.position += Vector3.Normalize(direction) * moveSpeed / 2f;
         }
         else
@@ -1940,16 +1959,16 @@ public class FighterScript : MonoBehaviour
 
         if (isWeakenedEffect > 0)
         {
-            damage -= 20f * isWeakenedEffect;
-            if (damage < 5f)
-            {
-                damage = 5f;
-            }
+
         }
 
         if (explosiveLevel > 0)
         {
             pushMultiplier *= (1f + (float)explosiveLevel * 0.20f);
+        }
+        if (lightningLevel > 0)
+        {
+            timeTaken /= 1f + ((float)lightningLevel * 0.1f);
         }
 
         output[0] = damage;
@@ -1998,10 +2017,7 @@ public class FighterScript : MonoBehaviour
                 break;
             case "pushkick": // dynamically changing thing
                 break;
-            case "knee":
-                output = jointPelvis2Tran.localPosition
-                + transform.right * 0f
-                + transform.up * -1f;
+            case "knee": // dymanically changing
                 break;
         }
         return output;
@@ -2376,12 +2392,12 @@ public class FighterScript : MonoBehaviour
         // setting up balancing animation
         Vector3 torsoMoveVelocity = orientedTran.right * distancePerFrame * 0.3f;
         Vector3 headMoveVelocity = torsoMoveVelocity * 0.5f;
-        Vector3 bodyMoveVelocity = new Vector3(0f, 0f, 0f);
+        Vector3 wholeBodyMoveVelocity = new Vector3(0f, 0f, 0f);
         if (type == "high")
         {
             headMoveVelocity = orientedTran.right * moveSpeed * -2f - orientedTran.up * moveSpeed * 0.5f;
             torsoMoveVelocity = new Vector3(0f, 0f, 0f);
-            bodyMoveVelocity = orientedTran.right * distancePerFrame * 0.3f;
+            wholeBodyMoveVelocity = orientedTran.right * distancePerFrame * 0.3f;
         }
 
         // kick animation
@@ -2390,8 +2406,8 @@ public class FighterScript : MonoBehaviour
             // balancing
             stanceHeadTran.position += headMoveVelocity;
             //stanceTorsoBotTran.position += torsoMoveVelocity;
-            transform.position += bodyMoveVelocity;
-            stanceFoot2Tran.position -= bodyMoveVelocity; // keeps foot in place
+            transform.position += wholeBodyMoveVelocity;
+            stanceFoot2Tran.position -= wholeBodyMoveVelocity; // keeps foot in place
 
             kickingFootTran.LookAt(attackTarget);
             kickingFootTran.position += kickingFootTran.forward * distancePerFrame;
@@ -2428,7 +2444,7 @@ public class FighterScript : MonoBehaviour
 
         float returnFrames = (int)(22f / speedMultiplier);
         float returnSpeedMult = (float)framesTaken / returnFrames;
-        bodyMoveVelocity = -1f * bodyMoveVelocity * returnSpeedMult;
+        wholeBodyMoveVelocity = -1f * wholeBodyMoveVelocity * returnSpeedMult;
         torsoMoveVelocity = -1f * torsoMoveVelocity * returnSpeedMult;
         headMoveVelocity = -1f * headMoveVelocity * returnSpeedMult;
 
@@ -2436,6 +2452,9 @@ public class FighterScript : MonoBehaviour
 
         for (int i = 0; i < returnFrames; i++) // tested number of frames on acolyte
         {
+            // keeps guarding hand in place 
+            Vector3 origHand1Pos = stanceHand1Tran.localPosition;
+
             // keeps front foot in place
             Vector3 origFootPos = stanceFoot2Tran.position;
             float distance = Vector3.Distance(stanceFoot2Tran.position, foot2DefaultPos);
@@ -2448,10 +2467,11 @@ public class FighterScript : MonoBehaviour
             if (distance > 0.1f)
             {
                 stanceFoot2Tran.LookAt(foot2DefaultPos);
-                predictedFootMovement = stanceFoot2Tran.forward * Mathf.Max(moveSpeed * distance * 2f, moveSpeed) + bodyMoveVelocity;
+                predictedFootMovement = stanceFoot2Tran.forward * Mathf.Max(moveSpeed * distance * 2f, moveSpeed) + wholeBodyMoveVelocity;
             }
             MoveTowardsDefaultStance();
             stanceFoot2Tran.position -= predictedFootMovement;
+            stanceHand1Tran.localPosition -= wholeBodyMoveVelocity;
 
             // draw leg correctly
             customKnee1Tran.position = (jointPelvis1Tran.position + kickingFootTran.position) / 2f;
@@ -2459,7 +2479,7 @@ public class FighterScript : MonoBehaviour
             // go back to place
             stanceHand2Tran.position += orientedTran.right * moveSpeed * 1f - orientedTran.up * moveSpeed * 2f;
             //stanceTorsoBotTran.position += torsoMoveVelocity;
-            transform.position += bodyMoveVelocity;
+            transform.position += wholeBodyMoveVelocity;
             MoveAndDrawBody();
 
             yield return null;
@@ -2633,7 +2653,7 @@ public class FighterScript : MonoBehaviour
         IEnumerator handStanceCoroutine = KeepHandsInPlace();
         StartCoroutine(handStanceCoroutine);
         notInAttackAnimation = false;
-        airborne = true;
+        isAirborne = true;
         while (stanceHeadTran.position.y <= transform.position.y + reach)
         {
             stanceHeadTran.position += orientedTran.up * jumpSpeed / 60f;
@@ -2687,7 +2707,7 @@ public class FighterScript : MonoBehaviour
             stanceHeadTran.position -= Vector3.up * 0.5f / 10f;
             yield return null;
         }
-        airborne = false;
+        isAirborne = false;
     }
     IEnumerator FlyingKick()
     {
@@ -2828,7 +2848,7 @@ public class FighterScript : MonoBehaviour
         // run through the list to damage them
         foreach (GameObject enemy in tempAllEnemiesList)
         {
-            if (!enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript.airborne)
+            if (!enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript.isAirborne)
             {
                 FighterScript targetFighterScript = enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript;
 
@@ -2865,10 +2885,6 @@ public class FighterScript : MonoBehaviour
 
         int framesTaken = (int)(timeTaken * 60f);
 
-        // move foot
-        Vector3 footFrom = stanceFoot1Tran.localPosition;
-        Vector3 footTo = GetAttackTargetPos("knee"); // this is not where the attack will spawn but rather where the foot will go to form the knee attack
-
         // move head
         Vector3 localHeadFrom = stanceHeadTran.localPosition;
         Vector3 localHeadTo = new Vector3(
@@ -2887,9 +2903,13 @@ public class FighterScript : MonoBehaviour
         Vector3 foot2Start = stanceFoot2Tran.localPosition;
         Vector3 foot2End = stanceFoot2Tran.localPosition - transform.right * bodyMove;
 
+        Vector3 footFrom = stanceFoot1Tran.localPosition;
         // knee animation
         for (int i = 0; i < framesTaken; i++)
         {
+            Vector3 footTo = stanceHeadTran.localPosition
+                + transform.right * 1f
+                + transform.up * -2f; ;
             float lerpAmount = ((float)i) / ((float)framesTaken);
             stanceFoot1Tran.localPosition = Vector3.Lerp(footFrom, footTo, lerpAmount);
             transform.position = Vector3.Lerp(wholeBodyStart, wholeBodyEnd, lerpAmount);

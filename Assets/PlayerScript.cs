@@ -48,11 +48,11 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKey("left"))
         {
-            PFScript.Move(transform.right * -1f);
+            PFScript.MoveBody(transform.right * -1f);
         }
         if (Input.GetKey("right"))
         {
-            PFScript.Move(transform.right);
+            PFScript.MoveBody(transform.right);
         }
         if (Input.GetKey("q")) // face left
         {
@@ -99,11 +99,11 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKey("a"))
         {
-            PFScript.Move(transform.right * -1f);
+            PFScript.MoveBody(transform.right * -1f);
         }
         if (Input.GetKey("d"))
         {
-            PFScript.Move(transform.right);
+            PFScript.MoveBody(transform.right);
         }
         if (Input.GetKey("q")) // face left
         {

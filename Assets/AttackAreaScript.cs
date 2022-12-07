@@ -144,23 +144,6 @@ public class AttackAreaScript : MonoBehaviour
             return;
         }
 
-        /*
-        // this code halves damage if guy hit is facing the guy hitting
-        float hitDirection = guyHitScript.gameObject.transform.position.x - guyHittingScript.gameObject.transform.position.x; 
-        // positive = from left to right, negative = right to left
-
-        if(hitDirection >= 0){
-            if(!guyHitScript.facingRight){
-                attackDamage /= 2f;
-            }
-        }
-        else{
-            if(guyHitScript.facingRight){
-                attackDamage /= 2f;
-            }
-        }
-        */
-
         guyHitScript.TakeDamage(attackDamage);
         PlayAttackEffect();
         CheckIfThingHitIsDead(guyHitScript);
@@ -229,7 +212,7 @@ public class AttackAreaScript : MonoBehaviour
                     enemyFighter.GetComponent<FighterScript>().headLimb.transform.position,
                     transform.position
                     );
-                    
+
                 float distanceToPelvis = Vector3.Distance(
                     enemyFighter.GetComponent<FighterScript>().jointPelvis2.transform.position,
                     transform.position
@@ -249,13 +232,6 @@ public class AttackAreaScript : MonoBehaviour
                 }
             }
         }
-
-        // lightning perk
-        int lightningLevel = guyHittingScript.lightningLevel;
-        if (lightningLevel > 0)
-        {
-
-        }
     }
     void EnemyDeathProtocol()
     {
@@ -272,7 +248,12 @@ public class AttackAreaScript : MonoBehaviour
 
     void PlayerIsHitExtraEffects()
     {
-
+        if (guyHitScript.colossusLevel > 0 && !guyHitScript.notInAttackAnimation && !guyHitScript.isTurning && !guyHitScript.isAirborne)
+        {
+            float divideBy = 1f + guyHitScript.colossusLevel;
+            strikeForceVector /= divideBy;
+            attackDamage /= divideBy;
+        }
     }
     void PlayerDeathProtocol()
     {

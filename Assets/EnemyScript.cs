@@ -50,12 +50,12 @@ public class EnemyScript : MonoBehaviour
 
         if (distanceToPlayer > targetDistanceToPlayer)
         {
-            thisFighterScript.Move(-1f * transform.right);
+            thisFighterScript.MoveBody(-1f * transform.right);
             thisFighterScript.TurnTo("left");
         }
         if (distanceToPlayer < 0 - targetDistanceToPlayer)
         {
-            thisFighterScript.Move(transform.right);
+            thisFighterScript.MoveBody(transform.right);
             thisFighterScript.TurnTo("right");
         }
 

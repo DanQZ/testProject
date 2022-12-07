@@ -138,22 +138,22 @@ public class DanEnemyAI : MonoBehaviour
         {
             if (distanceToPlayer > targetDistanceToPlayer)
             {
-                thisGhostScript.Move(Vector3.right);
+                thisGhostScript.MoveBody(Vector3.right);
             }
             if (distanceToPlayer < targetDistanceToPlayer)
             {
-                thisGhostScript.Move(-1f * Vector3.right);
+                thisGhostScript.MoveBody(-1f * Vector3.right);
             }
         }
         if (!thisGhostScript.facingRight) // facing left
         {
             if (distanceToPlayer < targetDistanceToPlayer)
             {
-                thisGhostScript.Move(Vector3.right);
+                thisGhostScript.MoveBody(Vector3.right);
             }
             if (distanceToPlayer > targetDistanceToPlayer)
             {
-                thisGhostScript.Move(-1f * Vector3.right);
+                thisGhostScript.MoveBody(-1f * Vector3.right);
             }
         }
     }

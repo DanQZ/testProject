@@ -356,8 +356,6 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
         }
 
-        currentPFScript.explosiveLevel = 3;
-
         return newPlayerPrefab;
     }
 
@@ -369,11 +367,10 @@ public class GameStateManagerScript : MonoBehaviour
     private IEnumerator CountDownToNextCheckpoint(float secondsUntil)
     {
         int framesUntil = (int)(secondsUntil * 60f);
-        Debug.Log(framesUntil + " frames until next checkpoint");
         for (int i = 0; i < framesUntil; i++)
         {
             yield return null;
-            levelTimerTimeText.text = "" + ((framesUntil - i) / 60);
+            levelTimerTimeText.text = "Checkpoint " + enemyManagerScript.difficultyLevel + " in " + ((framesUntil - i) / 60);
         }
         EndLevel();
     }
@@ -403,16 +400,16 @@ public class GameStateManagerScript : MonoBehaviour
                 currentPFScript.UpdateEnergyBar();
                 break;
             case "arm power":
-                currentPFScript.ChangeMultiplier("arm power", "add", 0.1f);
+                currentPFScript.ChangeMultiplier("arm power", "add", 0.05f);
                 break;
             case "leg power":
-                currentPFScript.ChangeMultiplier("leg power", "add", 0.1f);
+                currentPFScript.ChangeMultiplier("leg power", "add", 0.05f);
                 break;
             case "energyregen":
                 currentPFScript.energyPerSecond += 5f;
                 break;
             case "movespeed":
-                currentPFScript.ChangeMultiplier("speed", "add", 0.1f);
+                currentPFScript.ChangeMultiplier("speed", "add", 0.08f);
                 break;
             case "heal":
                 currentPFScript.ReplenishHealth();
@@ -425,6 +422,12 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
             case "explosive":
                 currentPFScript.explosiveLevel++;
+                break;
+            case "lightning":
+                currentPFScript.lightningLevel++;
+                break;
+            case "colossus":
+                currentPFScript.colossusLevel++;
                 break;
         }
         UpdateStatsText();
@@ -448,8 +451,10 @@ public class GameStateManagerScript : MonoBehaviour
             + "speed: " + cpfs.speedMultiplier + "\n"
             + "\n"
             + "Vampiric Style Level " + cpfs.vampirismLevel + "\n"
-            + "Insidious Style Level " + cpfs.poisonerLevel + "\n"
+            + "Snake Style Level " + cpfs.poisonerLevel + "\n"
             + "Explosive Style Level " + cpfs.explosiveLevel + "\n"
+            + "Lightning Style Level " + cpfs.lightningLevel + "\n"
+            + "Colossus Style Level " + cpfs.colossusLevel + "\n"
             ;
     }
 
@@ -587,7 +592,6 @@ public class GameStateManagerScript : MonoBehaviour
     {
         scoreCounterText.text = "Score: " + score;
     }
-
 
     // MOVESET EDITING CODE 
     private void SetDefaultMoveset()
