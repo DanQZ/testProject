@@ -68,26 +68,20 @@ public class PlayerScript : MonoBehaviour
 
     void AttackIfInputWASD()
     {
-        if (PFScript.IsHeadWithinSectors() && PFScript.notInAttackAnimation)
+        if (Input.GetKey("space"))
         {
-            if (Input.GetKey("space"))
-            {
-                PFScript.notInAttackAnimation = false;
-                PFScript.Attack("arms");
-                return;
-            }
-            if (Input.GetKey(KeyCode.LeftShift))
-            {
-                PFScript.notInAttackAnimation = false;
-                PFScript.Attack("legs");
-                return;
-            }
-            if (Input.GetKey("f"))
-            {
-                PFScript.notInAttackAnimation = false;
-                PFScript.Attack("groundslam");
-                return;
-            }
+            PFScript.Attack("arms");
+            return;
+        }
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            PFScript.Attack("legs");
+            return;
+        }
+        if (Input.GetKey("f"))
+        {
+            PFScript.Attack("groundslam");
+            return;
         }
     }
 
@@ -118,26 +112,20 @@ public class PlayerScript : MonoBehaviour
     }
     void AttackIfInputMouse()
     {
-        if (PFScript.IsHeadWithinSectors() && PFScript.notInAttackAnimation)
+        if (Input.GetKey(KeyCode.Mouse0))
         {
-            if (Input.GetKey(KeyCode.Mouse0))
-            {
-                PFScript.notInAttackAnimation = false;
-                PFScript.Attack("arms");
-                return;
-            }
-            if (Input.GetKey(KeyCode.Mouse1))
-            {
-                PFScript.notInAttackAnimation = false;
-                PFScript.Attack("legs");
-                return;
-            }
-            if (Input.GetKey("f"))
-            {
-                PFScript.notInAttackAnimation = false;
-                PFScript.Attack("groundslam");
-                return;
-            }
+            PFScript.Attack("arms");
+            return;
+        }
+        if (Input.GetKey(KeyCode.Mouse1))
+        {
+            PFScript.Attack("legs");
+            return;
+        }
+        if (Input.GetKey("f"))
+        {
+            PFScript.Attack("groundslam");
+            return;
         }
     }
     void MouseControls()

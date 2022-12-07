@@ -21,6 +21,8 @@ public class FighterScript : MonoBehaviour
     public int explosiveLevel = 0;
     public int poisonerLevel = 0; // creates isPoisonedEffect
     public int isPoisonedEffect = 0;
+    public float poisonDefaultDamage = 10f;
+    public float poisonDamagePerExtraLevel = 5f;
     public int pressurePointLevel = 0; // creates isWeakenedEffect
     public int isWeakenedEffect = 0;
 
@@ -776,12 +778,8 @@ public class FighterScript : MonoBehaviour
         if (isPoisonedEffect > 0)
         {
             // 3 dps + poisonEffect * 3
-            float poisonDamage = (6f + (float)isPoisonedEffect * 3f) / 60f;
-            hp -= poisonDamage;
-            if (hp < 0)
-            {
-                hp = 1f;
-            }
+            float poisonDamage = (poisonDefaultDamage + (float)(isPoisonedEffect - 1) * poisonDamagePerExtraLevel) / 60f;
+            ChangeHealth(-1f * poisonDamage, false, "poison");
             UpdateHealthBar();
         }
     }
@@ -962,7 +960,7 @@ public class FighterScript : MonoBehaviour
 
         */
         // Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
-        
+
         UpdateHealthBar();
         UpdateEnergyBar();
     }
@@ -1302,32 +1300,90 @@ public class FighterScript : MonoBehaviour
             SetStances("combat");
         }
     }
-    public void TakeHealing(float healing)
+    public void TakeHealing(float healing, string healingType)
     {
-        ChangeHealth(healing, false);
+        ChangeHealth(healing, false, healingType);
     }
-    public void TakeDamage(float damage)
+    public void TakeDamage(float damage, bool isCrit, string damageType)
     {
         float damageTaken = damage * -1f;
-        if (!notInAttackAnimation)
-        { // if hit in the middle of an animation
-            damageTaken *= 1.5f;
-        }
-        ChangeHealth(damageTaken, !notInAttackAnimation);
+        ChangeHealth(damageTaken, isCrit, damageType);
     }
-    private void ChangeHealth(float change, bool isCrit)
+    private void ChangeHealth(float change, bool isCrit, string changeType)
     {
+        // prevent poison from killing
+        if (changeType == "poison" && hp <= 1)
+        {
+            return;
+        }
+
+        float amountChanged = change;
         hp += change;
 
-        GameObject damageNumber = Instantiate(damageNumberPrefab, stanceHeadTran.position + Vector3.up, transform.rotation);
-        damageNumber.GetComponent<DamageNumberSprite>().type = "health";
-        damageNumber.GetComponent<DamageNumberSprite>().changeNumber = change;
-        damageNumber.GetComponent<DamageNumberSprite>().isCrit = isCrit;
-
+        // does not let health go above max
         if (hp > maxhp)
         {
+            amountChanged = maxhp - hp;
             hp = maxhp;
         }
+        // does not let health drop below 0
+        if (hp <= 0f)
+        {
+            amountChanged = hp;
+            hp = 0f;
+        }
+
+        if (Mathf.Abs(amountChanged) > 1f)
+        {
+            GameObject changeNumber = Instantiate(damageNumberPrefab, stanceHeadTran.position + Vector3.up, transform.rotation);
+            DamageNumberSprite numberScript = changeNumber.GetComponent<DamageNumberSprite>();
+            numberScript.type = "health";
+            numberScript.changeNumber = change;
+            numberScript.isCrit = isCrit;
+        }
+
+        // damage was dealt
+        if (amountChanged < 0f && !isPlayer)
+        {
+            if (!isPlayer)
+            {
+                // player dealt damage to enemies
+                switch (changeType)
+                {
+                    case "physical":
+                        gameStateManagerScript.damageDealtCurrent += amountChanged;
+                        break;
+                    case "explosive":
+                        gameStateManagerScript.explosiveDamageCurrent += amountChanged;
+                        break;
+                    case "poison":
+                        gameStateManagerScript.poisonDamageDealtCurrent += amountChanged;
+                        break;
+                }
+            }
+            // enemy dealt damage to player
+            if (isPlayer)
+            {
+                gameStateManagerScript.damageTakenCurrent += amountChanged;
+            }
+        }
+        else
+        {
+            // healing
+            if (isPlayer)
+            {
+                switch (changeType)
+                {
+                    case "checkpoint":
+                        gameStateManagerScript.checkpointHealingCurrent += amountChanged;
+                        break;
+                    case "vampirism":
+                        gameStateManagerScript.vampirismHealingCurrent += amountChanged;
+                        break;
+                }
+            }
+        }
+
         UpdateHealthBar();
     }
     public void SetHealth(float amount)
@@ -1458,12 +1514,13 @@ public class FighterScript : MonoBehaviour
         SetRagdoll(true);
         if (isPlayer)
         {
-            gameStateManager.GetComponent<GameStateManagerScript>().GameOver();
+            gameStateManagerScript.GameOver();
             return;
         }
         if (!isGhost && !isPlayer)
         {
-            gameStateManager.GetComponent<GameStateManagerScript>().AddScore(100);
+            gameStateManagerScript.AddScore(100);
+            gameStateManagerScript.enemiesKilledCurrent++;
         }
         Destroy(this.transform.root.gameObject, 5);
     }
@@ -1606,7 +1663,7 @@ public class FighterScript : MonoBehaviour
     public void MoveHeadAtPosition(Vector3 targetPosition)
     {
         float toMoveSpeed = moveSpeed;
-        if (!notInAttackAnimation)
+        if (!notInAttackAnimation && isTurning)
         {
             toMoveSpeed /= 3f;
         }
@@ -1766,9 +1823,8 @@ public class FighterScript : MonoBehaviour
 
         TurnBody();
         SwapHingeAngles();
-
-        isTurning = false;
         notInAttackAnimation = true;
+        isTurning = false;
         //Debug.Log("facing right: " + facingRight);
     }
 
@@ -1817,12 +1873,15 @@ public class FighterScript : MonoBehaviour
     }
     public void Attack(string attackType) // attackType = "arms" or "legs"
     {
+        if (!notInAttackAnimation || !IsHeadWithinSectors())
+        {
+            return;
+        }
         string[] sectors = {
         "bottom back", "bottom", "bottom forward",
         "center back", "true center", "center forward",
         "top back", "top", "top forward"
         };
-        notInAttackAnimation = false;
 
         if (attackType == "groundslam")
         {
@@ -1890,74 +1949,111 @@ public class FighterScript : MonoBehaviour
     }
     public float[] GetAttackInfo(string name)
     {
-        float[] output = new float[4]; // output = [damage, knockback multiplier, energy cost, normal time taken]
+        float[] output = new float[4]; // output = [damage, knockback multiplier, energy cost, default time taken]
         float damage = -1f;
         float pushMultiplier = -1f;
         float energyCost = -1f;
         float timeTaken = -1f;
+        string type = "none";
         switch (name.ToLower())
         {
             case "hook":
+                type = "arms";
                 damage = 50f * armPower;
                 pushMultiplier = 1f;
                 energyCost = 15f * armPower;
                 timeTaken = .25f;
                 break;
             case "fast jab":
+                type = "arms";
                 damage = 30f * armPower;
                 pushMultiplier = 2f;
                 energyCost = 13f * armPower;
                 timeTaken = .12f;
                 break;
             case "jab combo":
+                type = "arms";
                 damage = 30f * armPower;
                 pushMultiplier = 2f;
                 energyCost = 25f * armPower;
                 timeTaken = .12f;
                 break;
             case "roundhousekick":
+                type = "legs";
                 damage = 60f * legPower;
                 pushMultiplier = 0.5f;
                 energyCost = 40f * legPower;
                 timeTaken = .3f;
                 break;
             case "roundhousekickhigh":
+                type = "legs";
                 damage = 70f * legPower;
                 pushMultiplier = 0.5f;
                 energyCost = 50f * legPower;
                 timeTaken = .36f;
                 break;
             case "pushkick":
+                type = "legs";
                 damage = 60f * legPower;
                 pushMultiplier = 2f;
                 energyCost = 45f * legPower;
                 timeTaken = .35f;
                 break;
             case "flyingkick":
+                type = "legs";
                 damage = 80f * legPower;
                 pushMultiplier = 2f;
                 energyCost = 70f * legPower;
                 timeTaken = .35f;
                 break;
             case "uppercut":
+                type = "arms";
                 damage = 60f * armPower;
                 pushMultiplier = 1f;
                 energyCost = 18f * armPower;
                 timeTaken = .25f;
                 break;
             case "groundslam":
+                type = "special";
                 damage = 60f;
                 pushMultiplier = 2.5f;
                 energyCost = 100f;
                 timeTaken = 0.8f;
                 break;
             case "knee":
+                type = "legs";
                 damage = 65f * legPower;
                 pushMultiplier = 1f;
                 energyCost = 20f * legPower;
                 timeTaken = 0.25f;
                 break;
         }
+
+        if (isPlayer && notInAttackAnimation) // adds to punches/kicks thrown
+        {
+            if (energyCost > currentEnergy)
+            {
+                type = "no energy";
+            }
+            else
+            {
+                switch (type)
+                {
+                    case "no energy":
+                        break;
+                    case "arms":
+                        gameStateManagerScript.armAttacksUsedCurrent++;
+                        break;
+                    case "legs":
+                        gameStateManagerScript.legAttacksUsedCurrent++;
+                        break;
+                    case "special":
+                        gameStateManagerScript.specialAttacksUsedCurrent++;
+                        break;
+                }
+            }
+        }
+
         timeTaken /= speedMultiplier;
 
         if (isWeakenedEffect > 0)
@@ -1978,6 +2074,8 @@ public class FighterScript : MonoBehaviour
         output[1] = pushMultiplier;
         output[2] = energyCost;
         output[3] = timeTaken;
+        notInAttackAnimation = false;
+
         return output;
     }
     public Vector3 GetAttackTargetPos(string attackName)
@@ -2093,7 +2191,7 @@ public class FighterScript : MonoBehaviour
         }
         //Debug.Break();
     }
-    private void DirectlyDamage(float damage, FighterScript targetFighterScript, Vector3 strikeForceVector)
+    private void DirectlyDamage(float damage, FighterScript targetFighterScript, string damageType, Vector3 strikeForceVector)
     {
         // use 1 attackAreaScript to attack all enemies
         GameObject directDamager = Instantiate(
@@ -2110,6 +2208,7 @@ public class FighterScript : MonoBehaviour
         damagerScript.DirectlyDamage(
             targetFighterScript,
             damage,
+            damageType,
             strikeForceVector
             );
 
@@ -2651,21 +2750,20 @@ public class FighterScript : MonoBehaviour
         notInAttackAnimation = true;
         //Debug.Log("controls re-enabled");
     }
-    IEnumerator FlyingKickPart2(float jumpSpeed)
+    IEnumerator FlyingKickPart2(float jumpVectorY)
     {
         IEnumerator handStanceCoroutine = KeepHandsInPlace();
         StartCoroutine(handStanceCoroutine);
-        notInAttackAnimation = false;
         isAirborne = true;
         while (stanceHeadTran.position.y <= transform.position.y + reach)
         {
-            stanceHeadTran.position += orientedTran.up * jumpSpeed / 60f;
+            stanceHeadTran.position += orientedTran.up * jumpVectorY / 60f;
             //stanceFoot2Tran.position += orientedTran.up * jumpSpeed / 60f;
             yield return null;
         }
 
         //Debug.Log("jumped into air");
-        fighterRB.velocity = new Vector2(5f * transform.localScale.x, jumpSpeed);
+        fighterRB.velocity = new Vector2(5f * transform.localScale.x, jumpVectorY);
         fighterRB.gravityScale = 3f;
         stanceFoot1Tran.position += Vector3.up * 0.05f;
         stanceFoot2Tran.position += Vector3.up * 0.05f;
@@ -2673,9 +2771,7 @@ public class FighterScript : MonoBehaviour
 
         // flying front kick
         StartCoroutine(PushKick("flying"));
-        notInAttackAnimation = false;
 
-        Vector3 jumpPos = transform.position;
         float y = transform.position.y;
         while (y >= transform.position.y)
         {
@@ -2726,7 +2822,6 @@ public class FighterScript : MonoBehaviour
             ChangeEnergy(0f - energyCost);
         }
 
-        notInAttackAnimation = false;
         int sector = GetHeadSector();
 
         // move head to top forward section
@@ -2748,7 +2843,6 @@ public class FighterScript : MonoBehaviour
     }
     IEnumerator GroundSlam()
     {
-        notInAttackAnimation = false;
 
         float[] info = GetAttackInfo("groundslam");
         float damage = info[0];
@@ -2845,6 +2939,8 @@ public class FighterScript : MonoBehaviour
             allEnemiesArray[i] = allEnemiesRef[i];
         }
 
+        Debug.Log("slam hit " + allEnemiesRef.Count + " enemies");
+
         // use 1 attackAreaScript to attack all enemies
         GameObject directDamager = Instantiate(
             AttackWarningPrefab,
@@ -2864,25 +2960,10 @@ public class FighterScript : MonoBehaviour
 
             Vector3 strikeForceVector = strikeForceDirection * damage * pushMultiplier;
 
-            DirectlyDamage(damage, targetFS, strikeForceVector);
+            DirectlyDamage(damage, targetFS, "physical", strikeForceVector);
 
         }
-        /*
-        foreach (GameObject enemy in allEnemiesRef)
-        {
-            if (!enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript.isAirborne)
-            {
-                FighterScript targetFighterScript = enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript;
 
-                Vector3 strikeForceDirection = (
-                    Vector3.Normalize(targetFighterScript.transform.position - transform.position) + Vector3.up
-                );
-
-                Vector3 strikeForceVector = strikeForceDirection * damage * pushMultiplier;
-
-                DirectlyDamage(damage, targetFighterScript, strikeForceVector);
-            }
-        }*/
         Destroy(directDamager);
 
         gainEnergyOn = true;

@@ -7,7 +7,10 @@ public class GameStateManagerScript : MonoBehaviour
 {
     public int skillPoints = 0;
     public GameObject checkpointUpgradeButtons;
+    public int currentFramesToCheckpoint = 0;
+    float defaultSecondsToCheckpoint = 30f;
 
+    // moveset editor ui
     public GameObject armMovesetButtons;
     public GameObject legMovesetButtons;
     public GameObject sectorTextParent;
@@ -17,36 +20,49 @@ public class GameStateManagerScript : MonoBehaviour
     private string editingWhichMoveset;
     private string selectedMoveToAdd;
 
+    // stuff for in game
     public GameObject background;
     public GameObject playerPrefab;
     private GameObject currentPlayer;
-    private FighterScript currentPFScript;
+    public FighterScript currentPFScript;
     public GameObject enemyManager;
-
     public EnemyManagerScript enemyManagerScript;
-
     public bool inGame;
 
-    //tracking scores
-    public int score;
+    //tracking stuff
+    public int currentScore;
     public int highScore;
-    public Text scoreCounterText;
-    public Text gameOverText;
-    public Text highScoreText;
+    public int enemiesKilledCurrent;
+    public float damageDealtCurrent;
+    public float damageTakenCurrent;
+    public float checkpointHealingCurrent;
+    public float colossusDamageReduced;
+    public float vampirismHealingCurrent;
+    public float poisonDamageDealtCurrent;
+    public float explosiveDamageCurrent;
+    public int armAttacksUsedCurrent;
+    public int legAttacksUsedCurrent;
+    public int specialAttacksUsedCurrent;
 
-    // timer text 
-    public Text levelTimerTimeText;
+    public Text randomTextObject; // used as intantiated
+    public Text highScoreText;
 
 
     // UI objects that have all the necessary UI inside of them
     public GameObject UI_PARENT;
     public GameObject MAIN_MENU_UI;
     public GameObject IN_GAME_UI;
+    public InGameUIScript inGameUIScript;
     public GameObject GAME_OVER_UI;
+    public GameOverUIScript gameOverUIScript;
     public GameObject CREDITS_UI;
+    public CreditsUIScript creditsUIScript;
     public GameObject INSTRUCTIONS_UI;
+    public InstructionsUIScript instructionsUIScript;
     public GameObject OPTIONS_UI;
+    public OptionsUIScript optionsUIScript;
     public GameObject CHECKPOINT_UI;
+    public CheckpointScript checkpointScript;
     public GameObject UPDATELOG_UI;
     public GameObject SELECTSTYLE_UI;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
@@ -54,14 +70,12 @@ public class GameStateManagerScript : MonoBehaviour
     // choosing character stuff
     public string chosenCharacterType;
     public Text chosenCharacterText;
-    public Text checkpointInfoText;
-    public Text characterStatsText;
     public Text selectedMovesetText;
 
     public string selectedControls;
 
     IEnumerator pressEnterToContinue;
-    IEnumerator checkpointCountdown;
+    IEnumerator checkpointCountdownCoroutine;
 
     string[] currentMovesetLegs = new string[9];
     string[] currentMovesetArms = new string[9];
@@ -107,7 +121,7 @@ public class GameStateManagerScript : MonoBehaviour
 
         ShowBackground(false);
         DisplayUI("main menu");
-        checkpointCountdown = CountDownToNextCheckpoint(60f);
+        checkpointCountdownCoroutine = CountDownToNextCheckpoint();
 
     }
     void UpdateAvailableMoveList()
@@ -238,22 +252,6 @@ public class GameStateManagerScript : MonoBehaviour
             }
         }
     }
-
-    private void ResetCheckpointCountdown(float seconds)
-    {
-        if (checkpointCountdown != null)
-        {
-            StopCoroutine(checkpointCountdown);
-        }
-        checkpointCountdown = CountDownToNextCheckpoint(seconds);
-    }
-
-    private void StartCountingDownCheckpoint(float seconds)
-    {
-        ResetCheckpointCountdown(seconds);
-        StartCoroutine(checkpointCountdown);
-    }
-
     public void StartNewGame()
     {
         DisplayUI("in game");
@@ -263,26 +261,38 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.playerPrefab = currentPlayer;
         enemyManagerScript.NewGame();
 
-        // start counting score
-        score = 0;
+        // start counting score and other shit
+        currentScore = 0;
         skillPoints = 0;
-        scoreCounterText.text = "Score: " + score;
+
+
+        enemiesKilledCurrent = 0;
+        damageDealtCurrent = 0f;
+        damageTakenCurrent = 0f;
+        checkpointHealingCurrent = 0f;
+        colossusDamageReduced = 0f;
+        vampirismHealingCurrent = 0f;
+        poisonDamageDealtCurrent = 0f;
+        explosiveDamageCurrent = 0f;
+        armAttacksUsedCurrent = 0;
+        legAttacksUsedCurrent = 0;
+        specialAttacksUsedCurrent = 0;
+
+        inGameUIScript.UpdateScore();
         inGame = true;
         StartNextLevel();
     }
     public void GameOver() // referenced on an event in FighterScript.Die() not sure why vscode thinks it has 0 references
     {
-        ResetCheckpointCountdown(60f);
-
         DisplayUI("game over");
-        gameOverText.text = "GAME OVER\nScore: " + score;
+        StopCoroutine(checkpointCountdownCoroutine);
+        gameOverUIScript.UpdateAll();
         enemyManagerScript.StopSpawningEnemies();
     }
     public void EndGame()// referenced by button objects, goes to main menu
     {
         ShowBackground(false);
         enemyManagerScript.GameEnded();
-        ResetCheckpointCountdown(60f);
 
         inGame = false;
         Destroy(currentPlayer);
@@ -297,20 +307,32 @@ public class GameStateManagerScript : MonoBehaviour
         enemyManagerScript.IncreaseDifficulty();
         enemyManagerScript.StartSpawningEnemies();
 
-        StartCountingDownCheckpoint(30f);
+        StartCountingDownCheckpoint();
 
         currentPlayer.transform.position = new Vector3(0f, 0f, 0f);
         currentPFScript.ReplenishEnergy();
     }
+    private void StartCountingDownCheckpoint()
+    {
+        if (checkpointCountdownCoroutine != null)
+        {
+            StopCoroutine(checkpointCountdownCoroutine);
+        }
+        // resets timer
+        currentFramesToCheckpoint = (int)((defaultSecondsToCheckpoint + enemyManagerScript.difficultyLevel) * 60f);
+        checkpointCountdownCoroutine = CountDownToNextCheckpoint();
+        StartCoroutine(checkpointCountdownCoroutine);
+    }
+
     public void EndLevel()
     {
-        currentPFScript.TakeHealing((int)Mathf.Ceil(currentPFScript.maxhp / 4f));
+        currentPFScript.TakeHealing((int)Mathf.Ceil(currentPFScript.maxhp / 4f), "checkpoint");
         enemyManagerScript.StopSpawningEnemies();
         enemyManagerScript.ClearAllEnemies();
         skillPoints++;
         DisplayUI("checkpoint");
 
-        StopCoroutine(checkpointCountdown);
+        StopCoroutine(checkpointCountdownCoroutine);
     }
     public void EnterTrainingLevel()
     {
@@ -319,8 +341,8 @@ public class GameStateManagerScript : MonoBehaviour
         currentPlayer = CreatePlayer();
 
         // start counting score
-        score = 0;
-        scoreCounterText.text = "Training";
+        currentScore = 0;
+        inGameUIScript.SetTrainingText();
         inGame = true;
     }
     public void SetControlsWASD()
@@ -364,13 +386,13 @@ public class GameStateManagerScript : MonoBehaviour
         currentPFScript.ApplyNewMoveset(currentMovesetArms, currentMovesetLegs);
     }
 
-    private IEnumerator CountDownToNextCheckpoint(float secondsUntil)
+    private IEnumerator CountDownToNextCheckpoint()
     {
-        int framesUntil = (int)(secondsUntil * 60f);
-        for (int i = 0; i < framesUntil; i++)
+        while (currentFramesToCheckpoint > 0)
         {
+            currentFramesToCheckpoint--;
+            inGameUIScript.UpdateTimer();
             yield return null;
-            levelTimerTimeText.text = "Checkpoint " + enemyManagerScript.difficultyLevel + " in " + ((framesUntil - i) / 60);
         }
         EndLevel();
     }
@@ -430,39 +452,15 @@ public class GameStateManagerScript : MonoBehaviour
                 currentPFScript.colossusLevel++;
                 break;
         }
-        UpdateStatsText();
+        checkpointScript.UpdateStatsText();
     }
 
-    private void UpdateStatsText()
-    {
-        checkpointInfoText.text =
-        "Congrations you reached checkpoint"
-        + "\n"
-        + "You have " + skillPoints + " skillpoints";
-        FighterScript cpfs = currentPFScript;
-
-        characterStatsText.text =
-            "Checkpoint " + enemyManagerScript.difficultyLevel + " stats" + "\n"
-            + "hp: " + (int)cpfs.hp + "/" + (int)cpfs.maxhp + "\n"
-            + "max energy: " + (int)cpfs.maxEnergy + "\n"
-            + "energy/second: " + (int)cpfs.energyPerSecond + "\n"
-            + "arm power: " + cpfs.armPower + "\n"
-            + "leg power: " + cpfs.legPower + "\n"
-            + "speed: " + cpfs.speedMultiplier + "\n"
-            + "\n"
-            + "Vampiric Style Level " + cpfs.vampirismLevel + "\n"
-            + "Snake Style Level " + cpfs.poisonerLevel + "\n"
-            + "Explosive Style Level " + cpfs.explosiveLevel + "\n"
-            + "Lightning Style Level " + cpfs.lightningLevel + "\n"
-            + "Colossus Style Level " + cpfs.colossusLevel + "\n"
-            ;
-    }
 
     public void UpdateHighScore()
     {
-        if (score > highScore)
+        if (currentScore > highScore)
         {
-            highScore = score;
+            highScore = currentScore;
         }
         highScoreText.text = "High Score: " + highScore;
     }
@@ -511,8 +509,8 @@ public class GameStateManagerScript : MonoBehaviour
         switch (buttonSetName)
         {
             case "main menu":
-                UpdateHighScore();
                 MAIN_MENU_UI.SetActive(true);
+                UpdateHighScore();
                 break;
             case "in game":
                 IN_GAME_UI.SetActive(true);
@@ -530,18 +528,18 @@ public class GameStateManagerScript : MonoBehaviour
                 INSTRUCTIONS_UI.SetActive(true);
                 break;
             case "checkpoint":
-                UpdateStatsText();
                 CHECKPOINT_UI.SetActive(true);
+                checkpointScript.UpdateStatsText();
                 ShowXCheckpointUpgrades(3);
                 break;
             case "update log":
                 UPDATELOG_UI.SetActive(true);
                 break;
             case "select style":
+                SELECTSTYLE_UI.SetActive(true);
                 selectedMoveToAdd = "none";
                 PurgeOldHighlights();
                 UpdateCurrentSectorMovesText();
-                SELECTSTYLE_UI.SetActive(true);
                 break;
         }
     }
@@ -584,13 +582,8 @@ public class GameStateManagerScript : MonoBehaviour
     }
     public void AddScore(int toAdd) // referenced by FighterScript.Die()
     {
-        score += toAdd;
-        UpdateScore();
-    }
-
-    void UpdateScore()
-    {
-        scoreCounterText.text = "Score: " + score;
+        currentScore += toAdd;
+        inGameUIScript.UpdateScore();
     }
 
     // MOVESET EDITING CODE 
@@ -672,7 +665,7 @@ public class GameStateManagerScript : MonoBehaviour
         int i = 0;
         foreach (GameObject button in sectorButtons)
         {
-            GameObject newText = Instantiate(gameOverText.gameObject, button.transform.position, transform.rotation);
+            GameObject newText = Instantiate(randomTextObject.gameObject, button.transform.position, transform.rotation);
             newText.transform.SetParent(sectorTextParent.transform);
             newText.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
 

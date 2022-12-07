@@ -17,7 +17,7 @@ public class EnemyManagerScript : MonoBehaviour
     GameObject playerFighter; // reference to the fighter prefab inside the player prefab
     PlayerScript PCScript; // reference to the player script
     public List<GameObject> allEnemiesList = new List<GameObject>();
-    public int maxEnemies = 5;
+    public int maxEnemies = 4;
 
     private IEnumerator spawnEnemiesCoroutine;
     private int enemiesSpawnedThisFrame;
@@ -147,8 +147,13 @@ public class EnemyManagerScript : MonoBehaviour
         // the non-ghost part 
         FighterScript newEGSFighterScript = newEGScript.enemyFighter.GetComponent<FighterScript>();
 
+        // settin gup gameStateManager for enemy real fighter
         newEGSFighterScript.gameStateManager = gameStateManager;
         newEGSFighterScript.gameStateManagerScript = gameStateManager.GetComponent<GameStateManagerScript>();
+
+        // setting up gameStateManager for enemy ghost fighter
+        newEGScript.ghostFighterScript.gameStateManager = gameStateManager;
+        newEGScript.ghostFighterScript.gameStateManagerScript = gameStateManager.GetComponent<GameStateManagerScript>();
 
         allEnemiesList.Add(newEnemyWithGhost);
         numOfEnemiesSpawnedThisGame++;
@@ -159,14 +164,14 @@ public class EnemyManagerScript : MonoBehaviour
         float rangeMin = rangeMinArgSeconds;
         float rangeMax = rangeMaxArgSeconds;
         int nextFrame = Time.frameCount + 3 * 60;
-        float levelsPerExtraEnemySpawn = 2f;
+        float levelsPerExtraEnemySpawn = 3f;
         while (true)
         {
             if (Time.frameCount >= nextFrame)
             {
-                int numberOfEnemies = (int)Random.Range(1f, 1f + (float)difficultyLevel / levelsPerExtraEnemySpawn); // every 2 levels it can spawn 1 more enemy at once
+                int numOfEnemiesToSpawn = (int)Random.Range(1f, 1f + (float)difficultyLevel / levelsPerExtraEnemySpawn); // every 3 levels it can spawn 1 more enemy at once
 
-                for (int i = 0; i < numberOfEnemies; i++)
+                for (int i = 0; i < numOfEnemiesToSpawn; i++)
                 {
                     if (allEnemiesList.Count <= maxEnemies)
                     {

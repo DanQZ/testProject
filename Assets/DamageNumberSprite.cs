@@ -1,14 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class DamageNumberSprite : MonoBehaviour
 {
     public bool isCrit;
     public string type;
     public float changeNumber;
-    public Text numberText;
+    public TextMeshProUGUI numberText;
     // Start is called before the first frame update
     void Awake()
     {

@@ -23,6 +23,8 @@ public class AttackAreaScript : MonoBehaviour
     public GameObject thingHitObjectRoot;
     bool despawnNextFrame = false;
     public float attackDamage;
+    public bool isCrit = false;
+    public string damageType; // defaults to "physical"
     public GameObject creator;
     public string creatorType;
     PolygonCollider2D myCollider;
@@ -49,6 +51,7 @@ public class AttackAreaScript : MonoBehaviour
     {
         //Debug.Log("attackArea position = " + transform.position.x + "," + transform.position.y);
         creatorType = "NONE";
+        damageType = "physical";
         warningSprite = warning.GetComponent<SpriteRenderer>();
         incomingCircleSprite = incomingCircle.GetComponent<SpriteRenderer>();
 
@@ -122,7 +125,7 @@ public class AttackAreaScript : MonoBehaviour
         SetThingHit(collision.gameObject);
 
         bool someoneGotHit = false;
-
+        
         if (creatorType == "enemy" && thingHit.tag == "Player")// enemy hits player
         {
             someoneGotHit = true;
@@ -144,7 +147,12 @@ public class AttackAreaScript : MonoBehaviour
             return;
         }
 
-        guyHitScript.TakeDamage(attackDamage);
+        if(!guyHitScript.notInAttackAnimation){
+            isCrit = true;
+            attackDamage *= 1.5f;
+        }
+
+        guyHitScript.TakeDamage(attackDamage, isCrit, damageType);
         PlayAttackEffect();
         CheckIfThingHitIsDead(guyHitScript);
         return;
@@ -182,14 +190,14 @@ public class AttackAreaScript : MonoBehaviour
         }
         Destroy(this.gameObject);
     }
-    void EnemyIsHitExtraEffects(bool direct)
+    void EnemyIsHitExtraEffects(bool directOrNot) // direct does not cause explosion
     {
         //vampirism perk
         int vampirismLevel = guyHittingScript.vampirismLevel;
         if (vampirismLevel > 0)
         {
             // 10% + 5% vampirism lvl
-            guyHittingScript.TakeHealing(attackDamage * (0.1f + vampirismLevel * 0.05f));
+            guyHittingScript.TakeHealing(attackDamage * (0.1f + vampirismLevel * 0.05f), "vampirism");
         }
 
         // poisoner perk
@@ -200,7 +208,7 @@ public class AttackAreaScript : MonoBehaviour
         }
 
         int explosiveLevel = guyHittingScript.explosiveLevel;
-        if (!direct && explosiveLevel > 0)
+        if (!directOrNot && explosiveLevel > 0)
         {
             float range = 1f + ((float)explosiveLevel * 0.2f);
             List<GameObject> allEnemiesList = gameStateManagerScript.enemyManagerScript.allEnemiesList;
@@ -226,9 +234,9 @@ public class AttackAreaScript : MonoBehaviour
 
                     FighterScript hitThisGuy = enemyFighter.GetComponent<FighterScript>();
 
-                    Vector3 explosiveStrikeForceVector = Vector3.Normalize(hitThisGuy.gameObject.transform.position - guyHittingScript.gameObject.transform.position) * explosiveDamage * 10f;
+                    Vector3 explosiveStrikeForceVector = Vector3.Normalize(hitThisGuy.gameObject.transform.position - guyHittingScript.gameObject.transform.position) * explosiveDamage * 0.1f;
 
-                    DirectlyDamage(hitThisGuy, explosiveDamage, explosiveStrikeForceVector);
+                    DirectlyDamage(hitThisGuy, explosiveDamage, "explosive", explosiveStrikeForceVector);
                 }
             }
         }
@@ -248,11 +256,14 @@ public class AttackAreaScript : MonoBehaviour
 
     void PlayerIsHitExtraEffects()
     {
-        if (guyHitScript.colossusLevel > 0 && !guyHitScript.notInAttackAnimation && !guyHitScript.isTurning && !guyHitScript.isAirborne)
+        if (guyHitScript.colossusLevel > 0 && !guyHitScript.notInAttackAnimation && !guyHitScript.isTurning && !guyHitScript.isAirborne) // in an animation, but turning around does not count
         {
             float divideBy = 1f + guyHitScript.colossusLevel;
+            float origAttackDmg = attackDamage;
             strikeForceVector /= divideBy;
             attackDamage /= divideBy;
+            float damagedReduced = origAttackDmg - attackDamage;
+            gameStateManagerScript.colossusDamageReduced += damagedReduced * 1.5f; // multiply by 1.5 bc you will be crit if this triggers
         }
     }
     void PlayerDeathProtocol()
@@ -328,9 +339,9 @@ public class AttackAreaScript : MonoBehaviour
         }
     }
 
-    public void DirectlyDamage(FighterScript targetFighterScript, float damage, Vector3 forceVector)
+    public void DirectlyDamage(FighterScript targetFighterScript, float damage, string damageType, Vector3 forceVector)
     {
-        targetFighterScript.TakeDamage(damage);
+        targetFighterScript.TakeDamage(damage, false, damageType);
         guyHitScript = targetFighterScript;
         strikeForceVector = forceVector;
         SetThingHit(targetFighterScript.headLimb);
