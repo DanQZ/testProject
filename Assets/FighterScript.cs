@@ -907,7 +907,7 @@ public class FighterScript : MonoBehaviour
         {
             case "acolyte":
                 // Debug.Log("setting acolyte");
-                defaultMaxHP = 100f;
+                defaultMaxHP = 200f;
                 defaultMaxEnergy = 100f;
                 defaultEnergyPerSecond = 20f;
 
@@ -919,7 +919,7 @@ public class FighterScript : MonoBehaviour
             case "brawler":
                 // Debug.Log("setting brawler");
 
-                defaultMaxHP = 160f;
+                defaultMaxHP = 320f;
                 defaultMaxEnergy = 100f;
                 defaultEnergyPerSecond = 20f;
 
@@ -931,7 +931,7 @@ public class FighterScript : MonoBehaviour
             case "trickster":
                 // Debug.Log("setting trickster");
 
-                defaultMaxHP = 60f;
+                defaultMaxHP = 120f;
                 defaultMaxEnergy = 100f;
                 defaultEnergyPerSecond = 20f;
 
@@ -953,13 +953,16 @@ public class FighterScript : MonoBehaviour
         moveSpeed = defaultMoveSpeed * speedMultiplier;
         armPower = armPowerDefault;
         legPower = legPowerDefault;
-
+        /*
         if (isPlayer)
         {
             maxhp *= 2f;
             hp *= 2f;
         }
+
+        */
         // Debug.Log("After initializing " + characterType + ", hp: " + hp + "/" + maxhp + ", speedMulti,powerMulti = " + speedMultiplier + ", " + damageMultiplier);
+        
         UpdateHealthBar();
         UpdateEnergyBar();
     }
@@ -2835,7 +2838,12 @@ public class FighterScript : MonoBehaviour
 
 
         // damage all enemies
-        List<GameObject> tempAllEnemiesList = gameStateManagerScript.enemyManagerScript.GetAllEnemiesList(); // removes null enemies before returning the list
+        List<GameObject> allEnemiesRef = gameStateManagerScript.enemyManagerScript.GetAllEnemiesList(); // removes null enemies before returning the list
+        GameObject[] allEnemiesArray = new GameObject[allEnemiesRef.Count];
+        for (int i = 0; i < allEnemiesRef.Count; i++)
+        {
+            allEnemiesArray[i] = allEnemiesRef[i];
+        }
 
         // use 1 attackAreaScript to attack all enemies
         GameObject directDamager = Instantiate(
@@ -2846,7 +2854,21 @@ public class FighterScript : MonoBehaviour
         AttackAreaScript damagerScript = directDamager.GetComponent<AttackAreaScript>();
 
         // run through the list to damage them
-        foreach (GameObject enemy in tempAllEnemiesList)
+        for (int i = 0; i < allEnemiesArray.Length; i++)
+        {
+            FighterScript targetFS = allEnemiesArray[i].GetComponent<EnemyWithGhostScript>().enemyFighterScript;
+
+            Vector3 strikeForceDirection = (
+                Vector3.Normalize(targetFS.gameObject.transform.position - transform.position) + Vector3.up
+            );
+
+            Vector3 strikeForceVector = strikeForceDirection * damage * pushMultiplier;
+
+            DirectlyDamage(damage, targetFS, strikeForceVector);
+
+        }
+        /*
+        foreach (GameObject enemy in allEnemiesRef)
         {
             if (!enemy.GetComponent<EnemyWithGhostScript>().enemyFighterScript.isAirborne)
             {
@@ -2860,7 +2882,7 @@ public class FighterScript : MonoBehaviour
 
                 DirectlyDamage(damage, targetFighterScript, strikeForceVector);
             }
-        }
+        }*/
         Destroy(directDamager);
 
         gainEnergyOn = true;
