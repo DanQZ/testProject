@@ -1,0 +1,6 @@
+{
+  "editor.formatOnSave": true,
+  "csharp.format.enable": true,
+  "csharp.inlayHints.types.enabled": true
+  "omnisharp.enableEditorConfigSupport": false // lets the custom no new line after if statements work
+}
