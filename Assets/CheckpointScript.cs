@@ -2,13 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-public class CheckpointScript : MonoBehaviour
-{
+public class CheckpointScript : MonoBehaviour {
     public GameStateManagerScript GMScript;
     public Text checkpointInfoText;
     public Text characterStatsText;
-    public void UpdateStatsText()
-    {
+    public void UpdateStatsText() {
         checkpointInfoText.text =
         "Congrations you reached checkpoint"
         + "\n"
@@ -33,7 +31,7 @@ public class CheckpointScript : MonoBehaviour
             ;
     }
 
-    public string GetStatsText(){
+    public string GetStatsText() {
         UpdateStatsText();
         return characterStatsText.text;
     }

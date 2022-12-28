@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameStateManagerScript : MonoBehaviour
-{
+public class GameStateManagerScript : MonoBehaviour {
     public int skillPoints = 0;
     public GameObject checkpointUpgradeButtons;
     public int currentFramesToCheckpoint = 0;
@@ -16,6 +15,7 @@ public class GameStateManagerScript : MonoBehaviour
     public GameObject sectorTextParent;
     public GameObject sectorHighlightParent;
     public GameObject sectorButtonOutline;
+    public string selectedPlayerFightingStyle;
     private int selectedSectorToChange;
     private string editingWhichMoveset;
     private string selectedMoveToAdd;
@@ -85,8 +85,7 @@ public class GameStateManagerScript : MonoBehaviour
     public List<Move> allMoves = new List<Move>();
     public List<SpecialAbility> allSpecialAiblities = new List<SpecialAbility>();
 
-    void Awake()
-    {
+    void Awake() {
         Debug.Log("screen width/height = " + Screen.width + ", " + Screen.height);
         ALL_UI_LIST.Add(MAIN_MENU_UI);
         ALL_UI_LIST.Add(IN_GAME_UI);
@@ -111,6 +110,7 @@ public class GameStateManagerScript : MonoBehaviour
         inGame = false;
         highScore = 0;
         chosenCharacterType = "acolyte";
+        selectedPlayerFightingStyle = "muaythai";
         selectedSectorToChange = -1;
         editingWhichMoveset = "legs";
         selectedMoveToAdd = "none";
@@ -124,21 +124,18 @@ public class GameStateManagerScript : MonoBehaviour
         checkpointCountdownCoroutine = CountDownToNextCheckpoint();
 
     }
-    void UpdateAvailableMoveList()
-    {
+    void UpdateAvailableMoveList() {
         allMoves.Clear();
         // available everywhere
         List<int> hookSectors = new List<int>();
-        for (int i = 0; i < 9; i++)
-        {
+        for (int i = 0; i < 9; i++) {
             hookSectors.Add(i);
         }
         allMoves.Add(new Move("hook", "arms", hookSectors));
 
         //available everywhere        
         List<int> jabFastSectors = new List<int>();
-        for (int i = 0; i < 9; i++)
-        {
+        for (int i = 0; i < 9; i++) {
             jabFastSectors.Add(i);
         }
         allMoves.Add(new Move("fast jab", "arms", jabFastSectors));
@@ -160,8 +157,7 @@ public class GameStateManagerScript : MonoBehaviour
 
         // top front 2x2
         List<int> roundhouseSectors = new List<int>();
-        for (int i = 3; i < 8; i++)
-        {
+        for (int i = 3; i < 8; i++) {
             roundhouseSectors.Add(i);
         }
         allMoves.Add(new Move("roundhousekick", "legs", roundhouseSectors));
@@ -196,29 +192,24 @@ public class GameStateManagerScript : MonoBehaviour
     }
 
     // 1. check which moves are available for both selected sector and selected moveset
-    public struct Move
-    {
+    public struct Move {
         public string moveName;
         public string type;
         public List<int> availableSectors;
-        public Move(string nameArg, string typeArg, List<int> availableSectorsArg)
-        {
+        public Move(string nameArg, string typeArg, List<int> availableSectorsArg) {
             moveName = nameArg; type = typeArg; availableSectors = availableSectorsArg;
         }
     }
 
-    public struct SpecialAbility
-    {
+    public struct SpecialAbility {
 
         public string abilityName;
         public int abilityLevel;
-        public SpecialAbility(string nameArg)
-        {
+        public SpecialAbility(string nameArg) {
             abilityName = nameArg; abilityLevel = 0;
         }
     }
-    void Update()
-    {
+    void Update() {
         if (Input.GetKeyUp(KeyCode.Return)) // must be GetKeyUp or it will keep doing it
         {
             if (!inGame && MAIN_MENU_UI.activeInHierarchy) // these need te be Invoke or stuff gets weird (some bullshit that happens because it all happens on the same frame)
@@ -228,8 +219,7 @@ public class GameStateManagerScript : MonoBehaviour
                 return;
                 //Invoke("StartNewGame", 0.1f);
             }
-            if (inGame && GAME_OVER_UI.activeInHierarchy)
-            {
+            if (inGame && GAME_OVER_UI.activeInHierarchy) {
                 Debug.Log("enter pressed on gameover, ending game");
                 EndGame();
                 return;
@@ -237,23 +227,19 @@ public class GameStateManagerScript : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (!MAIN_MENU_UI.activeInHierarchy)
-            {
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            if (!MAIN_MENU_UI.activeInHierarchy) {
                 if (!inGame) // somewhere within the menus 
                 {
                     DisplayUI("main menu");
                 }
-                if (inGame)
-                {
+                if (inGame) {
                     EndGame();
                 }
             }
         }
     }
-    public void StartNewGame()
-    {
+    public void StartNewGame() {
         DisplayUI("in game");
         // makes and returns new player object
         currentPlayer = CreatePlayer();
@@ -298,8 +284,7 @@ public class GameStateManagerScript : MonoBehaviour
         Destroy(currentPlayer);
         DisplayUI("main menu");
     }
-    public void StartNextLevel()
-    { // referenced by button objects
+    public void StartNextLevel() { // referenced by button objects
         ShowBackground(true);
         DisplayUI("in game");
 
@@ -312,10 +297,8 @@ public class GameStateManagerScript : MonoBehaviour
         currentPlayer.transform.position = new Vector3(0f, 0f, 0f);
         currentPFScript.ReplenishEnergy();
     }
-    private void StartCountingDownCheckpoint()
-    {
-        if (checkpointCountdownCoroutine != null)
-        {
+    private void StartCountingDownCheckpoint() {
+        if (checkpointCountdownCoroutine != null) {
             StopCoroutine(checkpointCountdownCoroutine);
         }
         // resets timer
@@ -324,8 +307,7 @@ public class GameStateManagerScript : MonoBehaviour
         StartCoroutine(checkpointCountdownCoroutine);
     }
 
-    public void EndLevel()
-    {
+    public void EndLevel() {
         currentPFScript.TakeHealing((int)Mathf.Ceil(currentPFScript.maxhp / 4f), "checkpoint");
         enemyManagerScript.StopSpawningEnemies();
         enemyManagerScript.ClearAllEnemies();
@@ -334,8 +316,7 @@ public class GameStateManagerScript : MonoBehaviour
 
         StopCoroutine(checkpointCountdownCoroutine);
     }
-    public void EnterTrainingLevel()
-    {
+    public void EnterTrainingLevel() {
         DisplayUI("in game");
         // makes and returns new player object
         currentPlayer = CreatePlayer();
@@ -345,16 +326,13 @@ public class GameStateManagerScript : MonoBehaviour
         inGameUIScript.SetTrainingText();
         inGame = true;
     }
-    public void SetControlsWASD()
-    {
+    public void SetControlsWASD() {
         selectedControls = "wasd";
     }
-    public void SetControlsMouse()
-    {
+    public void SetControlsMouse() {
         selectedControls = "mouse";
     }
-    public GameObject CreatePlayer()
-    {
+    public GameObject CreatePlayer() {
         GameObject newPlayerPrefab = Instantiate(playerPrefab, new Vector3(0f, 0f, 0f), transform.rotation);
         currentPlayer = newPlayerPrefab;
         PlayerScript newPlayerScript = currentPlayer.GetComponent<PlayerScript>();
@@ -365,11 +343,11 @@ public class GameStateManagerScript : MonoBehaviour
         currentPFScript.gameStateManager = transform.gameObject;
         currentPFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
         currentPFScript.SetCharacterType(chosenCharacterType);
+        currentPFScript.fightingStyle = selectedPlayerFightingStyle;
 
         ApplyNewMovesetToPlayer();
         // there might be more control schemes later idk
-        switch (selectedControls.ToLower())
-        {
+        switch (selectedControls.ToLower()) {
             case "wasd":
                 newPlayerScript.controlWithMouse = false;
                 break;
@@ -381,15 +359,12 @@ public class GameStateManagerScript : MonoBehaviour
         return newPlayerPrefab;
     }
 
-    public void ApplyNewMovesetToPlayer()
-    {
+    public void ApplyNewMovesetToPlayer() {
         currentPFScript.ApplyNewMoveset(currentMovesetArms, currentMovesetLegs);
     }
 
-    private IEnumerator CountDownToNextCheckpoint()
-    {
-        while (currentFramesToCheckpoint > 0)
-        {
+    private IEnumerator CountDownToNextCheckpoint() {
+        while (currentFramesToCheckpoint > 0) {
             currentFramesToCheckpoint--;
             inGameUIScript.UpdateTimer();
             yield return null;
@@ -397,21 +372,17 @@ public class GameStateManagerScript : MonoBehaviour
         EndLevel();
     }
 
-    public void SetChosenCharacter(string typeArg)
-    {
+    public void SetChosenCharacter(string typeArg) {
         chosenCharacterType = typeArg;
         chosenCharacterText.text = "Chosen: " + chosenCharacterType;
     }
 
-    public void CheckpointUpgrade(string upgradeArg)
-    {
-        if (skillPoints <= 0)
-        {
+    public void CheckpointUpgrade(string upgradeArg) {
+        if (skillPoints <= 0) {
             return;
         }
         skillPoints--;
-        switch (upgradeArg.ToLower())
-        {
+        switch (upgradeArg.ToLower()) {
             case "health":
                 currentPFScript.maxhp += 40f;
                 currentPFScript.hp += 40f;
@@ -456,10 +427,8 @@ public class GameStateManagerScript : MonoBehaviour
     }
 
 
-    public void UpdateHighScore()
-    {
-        if (currentScore > highScore)
-        {
+    public void UpdateHighScore() {
+        if (currentScore > highScore) {
             highScore = currentScore;
         }
         highScoreText.text = "High Score: " + highScore;
@@ -470,10 +439,8 @@ public class GameStateManagerScript : MonoBehaviour
         Application.Quit();
     }
 
-    public void HideAllUI()
-    {
-        foreach (GameObject UIGameObject in ALL_UI_LIST)
-        {
+    public void HideAllUI() {
+        foreach (GameObject UIGameObject in ALL_UI_LIST) {
             UIGameObject.SetActive(false);
         }
     }
@@ -484,30 +451,25 @@ public class GameStateManagerScript : MonoBehaviour
         float UIWidthMult = (((float)Screen.width) / 1074f);
         float ratio = ((float)Screen.width) / ((float)Screen.height);
         float UIMult = 0f;
-        if (ratio > 1.777f)
-        {
+        if (ratio > 1.777f) {
             UIMult = UIHeightMult;
         }
-        else
-        {
+        else {
             UIMult = UIWidthMult;
         }
 
         UI_PARENT.transform.localScale = new Vector3(UIMult, UIMult, 1f);
 
     }
-    private void ShowBackground(bool trueOrFalse)
-    {
+    private void ShowBackground(bool trueOrFalse) {
         background.GetComponent<SpriteRenderer>().enabled = true;
     }
-    public void DisplayUI(string buttonSetNameArg)
-    {
+    public void DisplayUI(string buttonSetNameArg) {
         ScaleUIToScreen();
         HideAllUI();
         string buttonSetName = buttonSetNameArg.ToLower();
 
-        switch (buttonSetName)
-        {
+        switch (buttonSetName) {
             case "main menu":
                 MAIN_MENU_UI.SetActive(true);
                 UpdateHighScore();
@@ -543,24 +505,20 @@ public class GameStateManagerScript : MonoBehaviour
                 break;
         }
     }
-    public void ShowXCheckpointUpgrades(int x)
-    {
+    public void ShowXCheckpointUpgrades(int x) {
         checkpointUpgradeButtons.SetActive(true);
         int numOfButtons = checkpointUpgradeButtons.transform.childCount;
         bool[] shownButtons = new bool[numOfButtons];
 
-        for (int i = 0; i < numOfButtons; i++)
-        {
+        for (int i = 0; i < numOfButtons; i++) {
             shownButtons[i] = false;
         }
 
         int buttonsAdded = 0;
         int numberLeft = numOfButtons;
-        for (int i = 0; i < numOfButtons; i++)
-        {
+        for (int i = 0; i < numOfButtons; i++) {
             int numberNeeded = x - buttonsAdded;
-            if (Random.Range(0f, 1f) <= (float)numberNeeded / (float)numberLeft)
-            {
+            if (Random.Range(0f, 1f) <= (float)numberNeeded / (float)numberLeft) {
                 shownButtons[i] = true;
                 buttonsAdded++;
             }
@@ -568,14 +526,11 @@ public class GameStateManagerScript : MonoBehaviour
         }
 
 
-        for (int i = 0; i < numOfButtons; i++)
-        {
-            if (!shownButtons[i])
-            {
+        for (int i = 0; i < numOfButtons; i++) {
+            if (!shownButtons[i]) {
                 checkpointUpgradeButtons.transform.GetChild(i).gameObject.SetActive(false);
             }
-            else
-            {
+            else {
                 checkpointUpgradeButtons.transform.GetChild(i).gameObject.SetActive(true);
             }
         }
@@ -587,8 +542,7 @@ public class GameStateManagerScript : MonoBehaviour
     }
 
     // MOVESET EDITING CODE 
-    private void SetDefaultMoveset()
-    {
+    private void SetDefaultMoveset() {
         currentMovesetLegs[0] = "flyingkick";
         currentMovesetLegs[1] = "flyingkick";
         currentMovesetLegs[2] = "knee";
@@ -610,13 +564,15 @@ public class GameStateManagerScript : MonoBehaviour
         currentMovesetArms[8] = "jab combo";
     }
 
+    public void SelectFightingStyle(string style) {
+        selectedPlayerFightingStyle = style;
+    }
     // a bunch of code to change the attacks of the player object
     public void SelectSector(int sectorArg) // 0 = bot back, 1 = bot center, bot forward, center back etc.
     {
         selectedSectorToChange = sectorArg;
         Debug.Log("selected to change " + GetSectorName(sectorArg));
-        if (selectedMoveToAdd == "none")
-        {
+        if (selectedMoveToAdd == "none") {
             return;
         }
         ChangeSectorToSelectedMove(selectedMoveToAdd);
@@ -627,25 +583,20 @@ public class GameStateManagerScript : MonoBehaviour
         selectedMoveToAdd = moveNameArg;
         HighlightAvailableSectors(GetMoveStruct(moveNameArg));
     }
-    private void PurgeOldHighlights()
-    {
+    private void PurgeOldHighlights() {
         // purge old highlights
-        foreach (Transform child in sectorHighlightParent.transform)
-        {
+        foreach (Transform child in sectorHighlightParent.transform) {
             Destroy(child.gameObject);
         }
     }
-    private void HighlightAvailableSectors(Move moveInput)
-    {
+    private void HighlightAvailableSectors(Move moveInput) {
         PurgeOldHighlights();
         string availableSectorString = "available sectors: ";
-        foreach (int sector in moveInput.availableSectors)
-        {
+        foreach (int sector in moveInput.availableSectors) {
             availableSectorString += sector + ", ";
         }
         Debug.Log(availableSectorString);
-        foreach (int sector in moveInput.availableSectors)
-        {
+        foreach (int sector in moveInput.availableSectors) {
             GameObject newHighlight = Instantiate(
                 sectorButtonOutline,
                 sectorButtons[sector].transform.position,
@@ -655,22 +606,18 @@ public class GameStateManagerScript : MonoBehaviour
         }
     }
 
-    private void UpdateCurrentSectorMovesText()
-    {
+    private void UpdateCurrentSectorMovesText() {
         selectedMovesetText.text = "Editing moveset: " + editingWhichMoveset;
-        foreach (Transform child in sectorTextParent.transform)
-        {
+        foreach (Transform child in sectorTextParent.transform) {
             Destroy(child.gameObject);
         }
         int i = 0;
-        foreach (GameObject button in sectorButtons)
-        {
+        foreach (GameObject button in sectorButtons) {
             GameObject newText = Instantiate(randomTextObject.gameObject, button.transform.position, transform.rotation);
             newText.transform.SetParent(sectorTextParent.transform);
             newText.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
 
-            switch (editingWhichMoveset)
-            {
+            switch (editingWhichMoveset) {
                 case "arms":
                     newText.GetComponent<Text>().text = currentMovesetArms[i];
                     break;
@@ -684,12 +631,9 @@ public class GameStateManagerScript : MonoBehaviour
         }
     }
 
-    private Move GetMoveStruct(string moveNameToFind)
-    {
-        for (int i = 0; i < allMoves.Count; i++)
-        {
-            if (allMoves[i].moveName == moveNameToFind)
-            {
+    private Move GetMoveStruct(string moveNameToFind) {
+        for (int i = 0; i < allMoves.Count; i++) {
+            if (allMoves[i].moveName == moveNameToFind) {
                 Debug.Log("found " + allMoves[i].moveName);
                 return allMoves[i];
             }
@@ -698,12 +642,10 @@ public class GameStateManagerScript : MonoBehaviour
         return allMoves[0];
     }
 
-    public void ChangeWhatMovesetToEdit()
-    {
+    public void ChangeWhatMovesetToEdit() {
         PurgeOldHighlights();
         selectedMoveToAdd = "none";
-        switch (editingWhichMoveset)
-        {
+        switch (editingWhichMoveset) {
             case "arms":
                 editingWhichMoveset = "legs";
                 break;
@@ -717,8 +659,7 @@ public class GameStateManagerScript : MonoBehaviour
 
         legMovesetButtons.SetActive(false);
         armMovesetButtons.SetActive(false);
-        switch (editingWhichMoveset)
-        {
+        switch (editingWhichMoveset) {
             case "arms":
                 armMovesetButtons.SetActive(true);
                 break;
@@ -731,10 +672,8 @@ public class GameStateManagerScript : MonoBehaviour
         UpdateCurrentSectorMovesText();
     }
 
-    public void ChangeSectorToSelectedMove(string moveName)
-    {
-        switch (editingWhichMoveset)
-        {
+    public void ChangeSectorToSelectedMove(string moveName) {
+        switch (editingWhichMoveset) {
             case "arms":
                 currentMovesetArms[selectedSectorToChange] = moveName;
                 break;
@@ -747,11 +686,9 @@ public class GameStateManagerScript : MonoBehaviour
         UpdateCurrentSectorMovesText();
 
     }
-    private string GetSectorName(int sector)
-    {
+    private string GetSectorName(int sector) {
         string output = sector + ", INVALID SECTOR";
-        switch (sector)
-        {
+        switch (sector) {
             case 0:
                 output = sector + ", low back";
                 break;

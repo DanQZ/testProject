@@ -3,13 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// to do
-/*
-
--sorting layer stuff
-
-*/
-
 public class FighterScript : MonoBehaviour {
 
     public GameObject damageNumberPrefab;
@@ -24,7 +17,6 @@ public class FighterScript : MonoBehaviour {
     public float poisonDamagePerExtraLevel = 5f;
     public int pressurePointLevel = 0; // creates isWeakenedEffect
     public int isWeakenedEffect = 0;
-
     public int attackDelayIfEnemy = 60; // frames 
 
     // selection of moves
@@ -63,6 +55,7 @@ public class FighterScript : MonoBehaviour {
     private TrailRenderer foot1Trail;
     private TrailRenderer foot2Trail;
 
+    public bool isInvulnerable = false;
     public bool isAirborne = false;
     public Rigidbody2D fighterRB;
     public float groundLevel;
@@ -70,6 +63,7 @@ public class FighterScript : MonoBehaviour {
     public Transform orientedTran; // .right is forward no matter what direction the fighter is currently looking in
 
     public string fighterType;
+    public string fightingStyle;
 
     // health values
     private float defaultMaxHP;
@@ -316,8 +310,9 @@ public class FighterScript : MonoBehaviour {
         }
     }
     public void InitDefaultMoveset() {
-        legMoveset[0] = "flyingkick";
-        legMoveset[1] = "flyingkick";
+        fightingStyle = "muaythai";
+
+        legMoveset[0] = "flyingkick"; legMoveset[1] = "flyingkick";
         legMoveset[2] = "knee";
         legMoveset[3] = "pushkick";
         legMoveset[4] = "roundhousekick";
@@ -1206,6 +1201,9 @@ public class FighterScript : MonoBehaviour {
         ChangeHealth(healing, false, healingType);
     }
     public void TakeDamage(float damage, bool isCrit, string damageType) {
+        if (isInvulnerable) {
+            return;
+        }
         float damageTaken = damage * -1f;
         ChangeHealth(damageTaken, isCrit, damageType);
     }
@@ -1238,7 +1236,7 @@ public class FighterScript : MonoBehaviour {
         }
 
         // damage was dealt
-        if (amountChanged < 0f && !isPlayer) {
+        if (amountChanged < 0f) {
             if (!isPlayer) {
                 // player dealt damage to enemies
                 switch (changeType) {
@@ -1392,6 +1390,13 @@ public class FighterScript : MonoBehaviour {
             gameStateManagerScript.enemiesKilledCurrent++;
         }
         Destroy(this.transform.root.gameObject, 5);
+    }
+    public void PushParent(Vector3 pushVector) {
+        if (fightingStyle == "muay thai") {
+            pushVector = 0.75f * pushVector;
+        }
+        parentRB.AddForce(pushVector, ForceMode2D.Impulse);
+        StartCoroutine(ParentWasPushed());
     }
     public IEnumerator ParentWasPushed() {
         while (Vector3.Magnitude(parentRB.velocity) > 0f) {
@@ -1618,75 +1623,66 @@ public class FighterScript : MonoBehaviour {
         return Vector3.Normalize(direction);
     }
     public void MoveHead(int direction) {
-        float toMoveSpeed = moveSpeed;
-        if (!notInAttackAnimation) {
-            toMoveSpeed /= 3f;
-        }
-        float playerX = transform.position.x;
-        float playerY = transform.position.y;
-        float playerHeadX = stanceHeadTran.position.x;
-        float playerHeadY = stanceHeadTran.position.y;
-
         switch (direction) {
             case 1: // up
-                if (playerHeadY + toMoveSpeed < playerY + reach) {
-                    stanceHeadTran.position += Vector3.up * toMoveSpeed;
-                }
+                MoveHeadInDirection(Vector3.up);
                 break;
             case 2: // down
-                if (playerHeadY - toMoveSpeed > playerY - reach) {
-                    stanceHeadTran.position += Vector3.down * toMoveSpeed;
-                }
+                MoveHeadInDirection(Vector3.up * -1f);
                 break;
             case 3: // left
-                if (playerHeadX - toMoveSpeed > playerX - reach && !isTurning) {
-                    stanceHeadTran.position += Vector3.left * toMoveSpeed;
-                }
+                MoveHeadInDirection(Vector3.right * -1f);
                 break;
             case 4: // right
-                if (playerHeadX + toMoveSpeed < playerX + reach && !isTurning) {
-                    stanceHeadTran.position += Vector3.right * toMoveSpeed;
-                }
+                MoveHeadInDirection(Vector3.right);
                 break;
         }
     }
     private void MoveHeadInDirection(Vector3 direction) {
-        stanceHeadTran.position += Vector3.Normalize(direction) * moveSpeed;
+        float finalMoveSpeed = moveSpeed;
+        if (!notInAttackAnimation) {
+            if (fightingStyle == "tae kwon do") {
+                finalMoveSpeed /= 1.5f;
+            }
+            else {
+                finalMoveSpeed /= 3f;
+            }
+        }
+        // prevents player from slowing down the turn
+        if (isTurning) {
+            direction = new Vector3(0f, direction.y, 0f);
+        }
+
+        Vector3 expectedPos = stanceHeadTran.position + (direction * finalMoveSpeed);
+        FixIfExpectedPosOutOfBounds(expectedPos);
+
+        stanceHeadTran.position = expectedPos;
+    }
+    private Vector3 FixIfExpectedPosOutOfBounds(Vector3 input) {
+        Vector3 fixedPos = input;
+        if (input.x > transform.position.x + reach) {
+            fixedPos = new Vector3(transform.position.x + reach, fixedPos.y, 0f);
+        }
+        else {
+            if (input.x < transform.position.x - reach) {
+                fixedPos = new Vector3(transform.position.x - reach, fixedPos.y, 0f);
+            }
+        }
+        if (input.y > transform.position.y + reach) {
+            fixedPos = new Vector3(fixedPos.x, transform.position.y + reach, 0f);
+        }
+        else {
+            if (input.y < transform.position.y - reach) {
+                fixedPos = new Vector3(fixedPos.x, transform.position.y - reach, 0f);
+            }
+        }
+        return fixedPos;
     }
     public void MoveHeadAtPosition(Vector3 targetPosition) {
-        float toMoveSpeed = moveSpeed;
-        if (!notInAttackAnimation || isTurning) {
-            toMoveSpeed /= 3f;
-        }
-
-        Vector3 targetPos2D = new Vector3(targetPosition.x, targetPosition.y, 0f);
-        if (targetPos2D.x > transform.position.x + reach) {
-            targetPos2D = new Vector3(transform.position.x + reach, targetPos2D.y, 0f);
-        }
-        if (targetPos2D.x < transform.position.x - reach) {
-            targetPos2D = new Vector3(transform.position.x - reach, targetPos2D.y, 0f);
-        }
-
-
-        if (targetPos2D.y > transform.position.y + reach) {
-            targetPos2D = new Vector3(targetPos2D.x, transform.position.y + reach, 0f);
-        }
-        if (targetPos2D.y < transform.position.y - reach) {
-            targetPos2D = new Vector3(targetPos2D.x, transform.position.y - reach, 0f);
-        }
-
-        if (isTurning) {
-            targetPos2D = new Vector3(0f, targetPos2D.y, 0f);
-        }
-
-        stanceHeadTran.LookAt(targetPos2D);
-        Vector3 moveVector = stanceHeadTran.forward * toMoveSpeed;
-
-        if (moveSpeed >= Vector3.Distance(stanceHeadTran.position, targetPos2D) && IsPositionWithinSectors(targetPos2D)) {
-            return;
-        }
-
-        stanceHeadTran.position += moveVector;
+        targetPosition = new Vector3(targetPosition.x, targetPosition.y, 0f);
+        Vector3 direction = targetPosition - stanceHeadTran.position;
+        direction = Vector3.Normalize(direction);
+        MoveHeadInDirection(direction);
     }
     public void MoveHeadTowardsSector(int sector) {
         // 0 1 2 = bottom back, bottom, bottom forward
@@ -2177,7 +2173,18 @@ public class FighterScript : MonoBehaviour {
             yield return null;
         }
     }
-
+    IEnumerator MakeInvulnerableForSeconds(float seconds) {
+        for (int i = 0; i < (int)(60f * seconds); i++) {
+            isInvulnerable = true;
+            yield return null;
+        }
+        isInvulnerable = false;
+    }
+    private void SuccessfulAttackStart(string attackID) {
+        if (fightingStyle == "wingchun") {
+            MakeInvulnerableForSeconds(0.5f);
+        }
+    }
     IEnumerator Hook(bool isPartOfCombo)// true input  means no energy cost 
     {
         float[] info = GetAttackInfo("hook");
