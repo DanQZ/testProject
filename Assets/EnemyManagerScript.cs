@@ -114,10 +114,10 @@ public class EnemyManagerScript : MonoBehaviour {
         float randomClass = Random.Range(0, 1f);
         string newEnemyType = "acolyte";
 
-        if (randomClass > 0.30f) { // 15% chance spawn
+        if (randomClass < 0.30f) { // 15% chance spawn
             newEnemyType = "trickster";
         }
-        if (randomClass > 0.15f) { // 15% chance spawn
+        if (randomClass < 0.15f) { // 15% chance spawn
             newEnemyType = "brawler";
         }
 
