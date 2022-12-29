@@ -17,7 +17,7 @@ public class GameStateManagerScript : MonoBehaviour {
     public GameObject sectorButtonOutline;
     public string selectedPlayerFightingStyle;
     private int selectedSectorToChange;
-    private string editingWhichMoveset;
+    private string editingArmsOrLegs;
     private string selectedMoveToAdd;
 
     // stuff for in game
@@ -80,7 +80,6 @@ public class GameStateManagerScript : MonoBehaviour {
     string[] currentMovesetLegs = new string[9];
     string[] currentMovesetArms = new string[9];
     public List<GameObject> sectorButtons = new List<GameObject>();
-    public List<GameObject> moveButtons = new List<GameObject>();
 
     public List<Move> allMoves = new List<Move>();
     public List<SpecialAbility> allSpecialAiblities = new List<SpecialAbility>();
@@ -112,12 +111,13 @@ public class GameStateManagerScript : MonoBehaviour {
         chosenCharacterType = "acolyte";
         selectedPlayerFightingStyle = "muaythai";
         selectedSectorToChange = -1;
-        editingWhichMoveset = "legs";
+        editingArmsOrLegs = "legs";
         selectedMoveToAdd = "none";
 
         UpdateAvailableMoveList();
         SetDefaultMoveset();
         ChangeWhatMovesetToEdit();
+        SelectFightingStyle("muaythai");
 
         ShowBackground(false);
         DisplayUI("main menu");
@@ -125,7 +125,9 @@ public class GameStateManagerScript : MonoBehaviour {
 
     }
     void UpdateAvailableMoveList() {
+
         allMoves.Clear();
+
         // available everywhere
         List<int> hookSectors = new List<int>();
         for (int i = 0; i < 9; i++) {
@@ -133,7 +135,7 @@ public class GameStateManagerScript : MonoBehaviour {
         }
         allMoves.Add(new Move("hook", "arms", hookSectors));
 
-        //available everywhere        
+        //available everywhere
         List<int> jabFastSectors = new List<int>();
         for (int i = 0; i < 9; i++) {
             jabFastSectors.Add(i);
@@ -168,6 +170,7 @@ public class GameStateManagerScript : MonoBehaviour {
         roundhouseHighSectors.Add(8);
         allMoves.Add(new Move("roundhousekickhigh", "legs", roundhouseHighSectors));
 
+
         // top back 2x2
         List<int> pushKickSectors = new List<int>();
         pushKickSectors.Add(3);
@@ -182,6 +185,7 @@ public class GameStateManagerScript : MonoBehaviour {
         flyingKickSectors.Add(1);
         flyingKickSectors.Add(2);
         allMoves.Add(new Move("flyingkick", "legs", flyingKickSectors));
+
 
         // front low 2
         List<int> kneeSectors = new List<int>();
@@ -566,6 +570,8 @@ public class GameStateManagerScript : MonoBehaviour {
 
     public void SelectFightingStyle(string style) {
         selectedPlayerFightingStyle = style;
+        SELECTSTYLE_UI.GetComponent<SelectStyleUIScript>().DisplayOnlyMovesOfStyle(style, editingArmsOrLegs);
+        DisplayUI("select style");
     }
     // a bunch of code to change the attacks of the player object
     public void SelectSector(int sectorArg) // 0 = bot back, 1 = bot center, bot forward, center back etc.
@@ -575,9 +581,34 @@ public class GameStateManagerScript : MonoBehaviour {
         if (selectedMoveToAdd == "none") {
             return;
         }
-        ChangeSectorToSelectedMove(selectedMoveToAdd);
-    }
 
+        // checking if sector is valid for selected move
+        bool validSector = false;
+        foreach (Move move in allMoves) {
+            if (move.moveName == selectedMoveToAdd) {
+                foreach (int sectorItCanGoIn in move.availableSectors) {
+                    if (sectorItCanGoIn == sectorArg && editingArmsOrLegs == move.type)
+                        validSector = true;
+                    break;
+                }
+            }
+        }
+        if (!validSector) {
+            return;
+        }
+
+        switch (editingArmsOrLegs) {
+            case "arms":
+                currentMovesetArms[selectedSectorToChange] = selectedMoveToAdd;
+                break;
+            case "legs":
+                currentMovesetLegs[selectedSectorToChange] = selectedMoveToAdd;
+                break;
+            case "special":
+                break;
+        }
+        UpdateCurrentSectorMovesText();
+    }
     public void SelectMove(string moveNameArg) // used by buttons 
     {
         selectedMoveToAdd = moveNameArg;
@@ -607,7 +638,7 @@ public class GameStateManagerScript : MonoBehaviour {
     }
 
     private void UpdateCurrentSectorMovesText() {
-        selectedMovesetText.text = "Editing moveset: " + editingWhichMoveset;
+        selectedMovesetText.text = "Editing moveset: " + editingArmsOrLegs;
         foreach (Transform child in sectorTextParent.transform) {
             Destroy(child.gameObject);
         }
@@ -617,7 +648,7 @@ public class GameStateManagerScript : MonoBehaviour {
             newText.transform.SetParent(sectorTextParent.transform);
             newText.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
 
-            switch (editingWhichMoveset) {
+            switch (editingArmsOrLegs) {
                 case "arms":
                     newText.GetComponent<Text>().text = currentMovesetArms[i];
                     break;
@@ -645,47 +676,28 @@ public class GameStateManagerScript : MonoBehaviour {
     public void ChangeWhatMovesetToEdit() {
         PurgeOldHighlights();
         selectedMoveToAdd = "none";
-        switch (editingWhichMoveset) {
-            case "arms":
-                editingWhichMoveset = "legs";
-                break;
-            case "legs":
-                editingWhichMoveset = "arms";
-                break;
-            case "special":
-                editingWhichMoveset = "special";
-                break;
-        }
-
-        legMovesetButtons.SetActive(false);
         armMovesetButtons.SetActive(false);
-        switch (editingWhichMoveset) {
+        legMovesetButtons.SetActive(false);
+        switch (editingArmsOrLegs) {
             case "arms":
-                armMovesetButtons.SetActive(true);
-                break;
-            case "legs":
+                editingArmsOrLegs = "legs";
                 legMovesetButtons.SetActive(true);
                 break;
-            case "special":
-                break;
-        }
-        UpdateCurrentSectorMovesText();
-    }
-
-    public void ChangeSectorToSelectedMove(string moveName) {
-        switch (editingWhichMoveset) {
-            case "arms":
-                currentMovesetArms[selectedSectorToChange] = moveName;
-                break;
             case "legs":
-                currentMovesetLegs[selectedSectorToChange] = moveName;
+                editingArmsOrLegs = "arms";
+                armMovesetButtons.SetActive(true);
                 break;
             case "special":
+                editingArmsOrLegs = "special";
                 break;
         }
-        UpdateCurrentSectorMovesText();
 
+
+        SelectFightingStyle(selectedPlayerFightingStyle);
+
+        UpdateCurrentSectorMovesText();
     }
+
     private string GetSectorName(int sector) {
         string output = sector + ", INVALID SECTOR";
         switch (sector) {

@@ -337,6 +337,14 @@ public class FighterScript : MonoBehaviour {
         headLimb.tag = tag;
         torsoTop.tag = tag;
         torsoBottom.tag = tag;
+        upperArm1.tag = tag;
+        upperArm2.tag = tag;
+        lowerArm1.tag = tag;
+        lowerArm2.tag = tag;
+        thigh1.tag = tag;
+        thigh2.tag = tag;
+        calf1.tag = tag;
+        calf2.tag = tag;
     }
     void InitHealthAndEnergyBar() {
         healthBarHeight = new Vector3(0f, 0.5f, 0f);
@@ -617,6 +625,10 @@ public class FighterScript : MonoBehaviour {
                 headLimb.GetComponent<PolygonCollider2D>().enabled = true;
                 torsoTop.GetComponent<PolygonCollider2D>().enabled = true;
                 torsoBottom.GetComponent<PolygonCollider2D>().enabled = true;
+                thigh1.GetComponent<PolygonCollider2D>().enabled = true;
+                thigh2.GetComponent<PolygonCollider2D>().enabled = true;
+                calf1.GetComponent<PolygonCollider2D>().enabled = true;
+                calf2.GetComponent<PolygonCollider2D>().enabled = true;
 
                 // every collider is now disabled
 
@@ -681,6 +693,14 @@ public class FighterScript : MonoBehaviour {
         fighterHead.tag = "Enemy";
         torsoTop.tag = "Enemy";
         torsoBottom.tag = "Enemy";
+        upperArm1.tag = "Enemy";
+        upperArm2.tag = "Enemy";
+        lowerArm1.tag = "Enemy";
+        lowerArm2.tag = "Enemy";
+        thigh1.tag = "Enemy";
+        thigh2.tag = "Enemy";
+        calf1.tag = "Enemy";
+        calf2.tag = "Enemy";
 
         notInAnimation = true;
         facingRight = true;
@@ -1200,7 +1220,7 @@ public class FighterScript : MonoBehaviour {
     }
     public void TakeDamage(float damage, bool isCrit, string damageType) {
         if (isInvulnerable) {
-            return;
+            ChangeHealth(0f, false, "negated");
         }
         float damageTaken = damage * -1f;
         ChangeHealth(damageTaken, isCrit, damageType);
@@ -1225,7 +1245,7 @@ public class FighterScript : MonoBehaviour {
             hp = 0f;
         }
 
-        if (Mathf.Abs(amountChanged) > 1f) {
+        if (Mathf.Abs(amountChanged) > 1f && changeType != "blocked") {
             GameObject changeNumber = Instantiate(damageNumberPrefab, stanceHeadTran.position + Vector3.up, transform.rotation);
             DamageNumberSprite numberScript = changeNumber.GetComponent<DamageNumberSprite>();
             numberScript.type = "health";

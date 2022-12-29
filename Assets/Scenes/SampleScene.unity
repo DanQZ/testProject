@@ -868,7 +868,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -4, y: 119.99999}
+  m_AnchoredPosition: {x: 35, y: -179}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &113036921
@@ -7358,7 +7358,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1875287470}
         m_TargetAssemblyTypeName: GameStateManagerScript, Assembly-CSharp
-        m_MethodName: SelectMove
+        m_MethodName: SelectFightingStyle
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -10035,7 +10035,7 @@ GameObject:
   - component: {fileID: 1123619176}
   - component: {fileID: 1123619175}
   m_Layer: 0
-  m_Name: Click to change moveset
+  m_Name: text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12790,7 +12790,7 @@ GameObject:
   - component: {fileID: 1440901827}
   - component: {fileID: 1440901826}
   m_Layer: 0
-  m_Name: Hook
+  m_Name: text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13027,7 +13027,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -250, y: 46}
+  m_AnchoredPosition: {x: 31.99997, y: 44}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1485951424
@@ -13844,7 +13844,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -250, y: -100}
+  m_AnchoredPosition: {x: 31.99997, y: -102}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1556516774
@@ -14184,6 +14184,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1585066995}
+  - component: {fileID: 1585066996}
   m_Layer: 0
   m_Name: SelectStyleUI
   m_TagString: Untagged
@@ -14213,6 +14214,28 @@ Transform:
   m_Father: {fileID: 517110078}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1585066996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1585066994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 831f3ccfb50097e41b29cd3ef8c59cc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hookButton: {fileID: 400411015}
+  jabButton: {fileID: 470110171}
+  jabComboButton: {fileID: 1843439480}
+  uppercutButton: {fileID: 1869444340}
+  pushKickButton: {fileID: 1485951422}
+  roundhouseKickButton: {fileID: 2026992380}
+  highRoundhouseKickButton: {fileID: 113036919}
+  flyingKickButton: {fileID: 1724139307}
+  kneeButton: {fileID: 1556516772}
+  allMoveButtons: []
 --- !u!1 &1585995677
 GameObject:
   m_ObjectHideFlags: 0
@@ -14303,7 +14326,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1588074865}
   m_Layer: 0
-  m_Name: LegButtnos
+  m_Name: LegButtons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14786,7 +14809,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -250, y: -26}
+  m_AnchoredPosition: {x: 32, y: -28}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1724139309
@@ -15850,7 +15873,6 @@ MonoBehaviour:
   - {fileID: 922928514}
   - {fileID: 1638598261}
   - {fileID: 179298035}
-  moveButtons: []
 --- !u!4 &1875287471
 Transform:
   m_ObjectHideFlags: 0
@@ -16930,7 +16952,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -250, y: 120}
+  m_AnchoredPosition: {x: 31.99997, y: 118}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2026992382
