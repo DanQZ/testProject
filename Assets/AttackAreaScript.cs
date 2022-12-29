@@ -131,7 +131,7 @@ public class AttackAreaScript : MonoBehaviour {
             return;
         }
 
-        if (!guyHitScript.notInAttackAnimation) {
+        if (!guyHitScript.notInAnimation) {
             isCrit = true;
             attackDamage *= 1.5f;
         }
@@ -227,7 +227,7 @@ public class AttackAreaScript : MonoBehaviour {
     }
 
     void PlayerIsHitExtraEffects() {
-        if (guyHitScript.colossusLevel > 0 && !guyHitScript.notInAttackAnimation && !guyHitScript.isTurning && !guyHitScript.isAirborne) // in an animation, but turning around does not count
+        if (guyHitScript.colossusLevel > 0 && !guyHitScript.notInAnimation && !guyHitScript.isTurning && !guyHitScript.isAirborne) // in an animation, but turning around does not count
         {
             float divideBy = 1f + guyHitScript.colossusLevel;
             float origAttackDmg = attackDamage;

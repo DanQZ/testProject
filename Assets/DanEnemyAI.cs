@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DanEnemyAI : MonoBehaviour
-{
+public class DanEnemyAI : MonoBehaviour {
     public GameObject enemyGhost;
     public GameObject enemyFollower;
     Transform enemyTran;
@@ -21,12 +20,10 @@ public class DanEnemyAI : MonoBehaviour
     float distanceToPlayer;
     string enemyState;
     IEnumerator goingToRandomSector;
-    public void StopAll()
-    {
+    public void StopAll() {
         StopAllCoroutines();
     }
-    IEnumerator Start()
-    {
+    IEnumerator Start() {
         for (int i = 0; i < 10; i++) // waits a short time to make sure ghost does not glitch out
         {
             yield return null;
@@ -35,7 +32,7 @@ public class DanEnemyAI : MonoBehaviour
 
         thisGhostScript = enemyGhost.gameObject.GetComponent<FighterScript>();
         EnemyStateRandomizer();
-        
+
         playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHeadTran;
         stanceHead = thisGhostScript.stanceHead;
         stanceHeadTran = stanceHead.transform;
@@ -48,22 +45,17 @@ public class DanEnemyAI : MonoBehaviour
         goingToRandomSector = GoToRandomSector();
     }
 
-    IEnumerator RealUpdateAfterSeconds(float time)
-    {
+    IEnumerator RealUpdateAfterSeconds(float time) {
         int frames = (int)(60f * time);
-        for (int i = 0; i < frames; i++)
-        {
+        for (int i = 0; i < frames; i++) {
             yield return null;
         }
         StartCoroutine(RealUpdate());
     }
 
-    IEnumerator RealUpdate()
-    {
-        while (true)
-        {
-            switch (enemyState)
-            {
+    IEnumerator RealUpdate() {
+        while (true) {
+            switch (enemyState) {
                 case "keepDistance":
                     MoveTowardsTargetDistance();
                     break;
@@ -74,36 +66,30 @@ public class DanEnemyAI : MonoBehaviour
             }
 
             stateTimer++;
-            if (stateTimer >= stateInterval)
-            {
+            if (stateTimer >= stateInterval) {
                 EnemyStateRandomizer();
             }
 
-            if (Time.frameCount % rangeChangeInterval == 0)
-            { // change target distance
+            if (Time.frameCount % rangeChangeInterval == 0) { // change target distance
                 TargetDistanceUpdate();
             }
             yield return null;
         }
     }
-    void EnemyStateRandomizer()
-    {
+    void EnemyStateRandomizer() {
         float randomized = Random.Range(0f, 1f);
         if (randomized < 0.75f) // chance to attack state
         {
             enemyState = "attack";
         }
-        else
-        {
+        else {
             enemyState = "keepDistance";
         }
         stateTimer = 0;
         TargetDistanceUpdate();
     }
-    void TargetDistanceUpdate()
-    {
-        switch (enemyState)
-        {
+    void TargetDistanceUpdate() {
+        switch (enemyState) {
             case "keepDistance":
                 targetDistanceToPlayer = Random.Range(6f, 8f);
                 break;
@@ -111,100 +97,81 @@ public class DanEnemyAI : MonoBehaviour
                 targetDistanceToPlayer = Random.Range(3f, 5f);
                 break;
         }
-        if (goingToRandomSector != null)
-        {
+        if (goingToRandomSector != null) {
             StopCoroutine(goingToRandomSector);
         }
         goingToRandomSector = GoToRandomSector();
         StartCoroutine(goingToRandomSector);
         //Debug.Log("Enemystate = " + enemyState + ", targetDistance = " + targetDistanceToPlayer);
     }
-    void FacePlayer()
-    {
-        if (playerFighter.transform.position.x < enemyFollower.transform.position.x)
-        {
+    void FacePlayer() {
+        if (playerFighter.transform.position.x < enemyFollower.transform.position.x) {
             thisGhostScript.TurnTo("left");
         }
-        if (playerFighter.transform.position.x > enemyFollower.transform.position.x)
-        {
+        if (playerFighter.transform.position.x > enemyFollower.transform.position.x) {
             thisGhostScript.TurnTo("right");
         }
     }
-    void MoveTowardsTargetDistance()
-    {
+    void MoveTowardsTargetDistance() {
         distanceToPlayer = Mathf.Abs(enemyFollower.transform.position.x - playerFighter.transform.position.x);
         FacePlayer();
         if (thisGhostScript.facingRight) // facing right
         {
-            if (distanceToPlayer > targetDistanceToPlayer)
-            {
+            if (distanceToPlayer > targetDistanceToPlayer) {
                 thisGhostScript.MoveBody(Vector3.right);
             }
-            if (distanceToPlayer < targetDistanceToPlayer)
-            {
+            if (distanceToPlayer < targetDistanceToPlayer) {
                 thisGhostScript.MoveBody(-1f * Vector3.right);
             }
         }
         if (!thisGhostScript.facingRight) // facing left
         {
-            if (distanceToPlayer < targetDistanceToPlayer)
-            {
+            if (distanceToPlayer < targetDistanceToPlayer) {
                 thisGhostScript.MoveBody(Vector3.right);
             }
-            if (distanceToPlayer > targetDistanceToPlayer)
-            {
+            if (distanceToPlayer > targetDistanceToPlayer) {
                 thisGhostScript.MoveBody(-1f * Vector3.right);
             }
         }
     }
 
-    void InitiateAttack()
-    {
-        
-        if (goingToRandomSector != null)
-        {
+    void InitiateAttack() {
+
+        if (goingToRandomSector != null) {
             StopCoroutine(goingToRandomSector);
         }
 
         int randomSector = (int)Random.Range(0f, 9f);
         int randomArmOrLeg = Mathf.RoundToInt(Random.Range(0f, 1f));
 
-        if (attackTimer > Time.frameCount)
-        {
+        if (attackTimer > Time.frameCount) {
             return;
         }
 
         string attackWith = "";
-        if (Random.Range(0f, 1f) > 0.5f)
-        {
+        if (Random.Range(0f, 1f) > 0.5f) {
             attackWith = "arms";
         }
-        else
-        {
+        else {
             attackWith = "legs";
         }
 
         attackTimer = Time.frameCount + attackInterval;
         StartCoroutine(GoToSectorThenAttack(randomSector, attackWith));
     }
-    IEnumerator GoToRandomSector()
-    {
+    IEnumerator GoToRandomSector() {
         int sector = (int)Random.Range(0f, 9f);
-        while (thisGhostScript.GetHeadSector() != sector && thisGhostScript.notInAttackAnimation)
-        {
+        while (thisGhostScript.GetHeadSector() != sector && thisGhostScript.notInAnimation) {
             thisGhostScript.MoveHeadTowardsSector(sector);
             yield return null;
         }
     }
-    IEnumerator GoToSectorThenAttack(int sector, string attackWith)
-    {
-        while (thisGhostScript.GetHeadSector() != sector && thisGhostScript.notInAttackAnimation)
-        {
+    IEnumerator GoToSectorThenAttack(int sector, string attackWith) {
+        while (thisGhostScript.GetHeadSector() != sector && thisGhostScript.notInAnimation) {
             thisGhostScript.MoveHeadTowardsSector(sector);
             yield return null;
         }
-        if (thisGhostScript.notInAttackAnimation)
-        {
+        if (thisGhostScript.notInAnimation) {
             thisGhostScript.Attack(attackWith);
         }
     }

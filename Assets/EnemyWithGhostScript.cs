@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyWithGhostScript : MonoBehaviour
-{
+public class EnemyWithGhostScript : MonoBehaviour {
     public GameObject myManagerObject;
     public EnemyManagerScript myManagerScript;
 
@@ -63,14 +62,12 @@ public class EnemyWithGhostScript : MonoBehaviour
 
     private IEnumerator realEnemyActionsCoroutine;
 
-    public void StopAll()
-    {
+    public void StopAll() {
         Destroy(ghostFighter);
         StopCoroutine(realEnemyActionsCoroutine);
     }
 
-    void Awake()
-    {
+    void Awake() {
         enemyFighterScript = enemyFighter.gameObject.GetComponent<FighterScript>();
         enemyFighterScript.isGhost = false;
         enemyFighterScript.isPlayer = false;
@@ -86,8 +83,7 @@ public class EnemyWithGhostScript : MonoBehaviour
         StartCoroutine(realEnemyActionsCoroutine);
     }
 
-    void Start()
-    {
+    void Start() {
         StartCoroutine(ghostFighterScript.InitBasedOnCharSettings());
         StartCoroutine(enemyFighterScript.InitBasedOnCharSettings());
         enemyFighterTran = enemyFighter.transform;
@@ -106,15 +102,13 @@ public class EnemyWithGhostScript : MonoBehaviour
         enemyCustomElbow2Tran = enemyFighterScript.customElbow2Tran;
         enemyCustomKnee1Tran = enemyFighterScript.customKnee1Tran;
         enemyCustomKnee2Tran = enemyFighterScript.customKnee2Tran;
-}
+    }
 
-    IEnumerator RealEnemyActions()
-    {
+    IEnumerator RealEnemyActions() {
         // waits 1 second before starting the forever while loop
         yield return new WaitForSeconds(1);
 
-        while (true)
-        {
+        while (true) {
             enemyFighterTran.localPosition = bodPosQ.Dequeue();
             enemyHeadStanceTran.localPosition = headPosQ.Dequeue();
 
@@ -129,7 +123,7 @@ public class EnemyWithGhostScript : MonoBehaviour
 
             enemyCustomElbow1Tran.localPosition = customElbow1Q.Dequeue();
             enemyCustomElbow2Tran.localPosition = customElbow2Q.Dequeue();
-            
+
             enemyCustomKnee1Tran.localPosition = customKnee1Q.Dequeue();
             enemyCustomKnee2Tran.localPosition = customKnee2Q.Dequeue();
 
@@ -138,13 +132,12 @@ public class EnemyWithGhostScript : MonoBehaviour
             enemyFighterScript.drawNormalKnee1 = drawNormalKnee1Q.Dequeue();
             enemyFighterScript.drawNormalKnee2 = drawNormalKnee2Q.Dequeue();
 
-            enemyFighterScript.notInAttackAnimation = notInAnimationQ.Dequeue();
+            enemyFighterScript.notInAnimation = notInAnimationQ.Dequeue();
             enemyFighterScript.currentEnergy = currentEnergyQ.Dequeue();
             enemyFighterScript.UpdateEnergyBar();
 
             bool toFaceRight = facingRightQ.Dequeue();
-            if (enemyFighterScript.facingRight != toFaceRight)
-            {
+            if (enemyFighterScript.facingRight != toFaceRight) {
                 //Debug.Log("successful detection of turning");
                 enemyFighterScript.SwapHingeAngles();
                 enemyFighterScript.TurnBody();
@@ -156,8 +149,7 @@ public class EnemyWithGhostScript : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
         bodPosQ.Enqueue(ghostFighterTran.localPosition);
         headPosQ.Enqueue(ghostHeadStanceTran.localPosition);
 
@@ -171,7 +163,7 @@ public class EnemyWithGhostScript : MonoBehaviour
         foot2PosQ.Enqueue(ghostFighterScript.stanceFoot2Tran.localPosition);
 
         facingRightQ.Enqueue(ghostFighterScript.facingRight);
-        notInAnimationQ.Enqueue(ghostFighterScript.notInAttackAnimation);
+        notInAnimationQ.Enqueue(ghostFighterScript.notInAnimation);
         currentEnergyQ.Enqueue(ghostFighterScript.currentEnergy);
 
         drawNormalElbow1Q.Enqueue(ghostFighterScript.drawNormalElbow1);

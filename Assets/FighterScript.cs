@@ -188,7 +188,7 @@ public class FighterScript : MonoBehaviour {
 
     public float reach; // distance the fighterHead can move from fighter object position
 
-    public bool notInAttackAnimation = true; // enabled, fighter can move head around + limbs move to default positions. disable when in an animation. moves slower when false
+    public bool notInAnimation = true; // enabled, fighter can move head around + limbs move to default positions. disable when in an animation. moves slower when false
     public bool isTurning = false;
     public bool ragdolling = true; // if true, fighter cannot do ANYTHING outside of rigidbody physics 
 
@@ -643,15 +643,13 @@ public class FighterScript : MonoBehaviour {
             newTorsoColor = new Color((newColor.r + 1f) / 2f, (newColor.g + 1f) / 2f, (newColor.b + 1f) / 2f, 0.1f);
         }
 
+        headSprite.color = newColor;
         foreach (LineRenderer renderer in allLineRenderers) {
             renderer.startColor = newColor;
             renderer.endColor = newColor;
         }
-
         torsoRenderer.startColor = newTorsoColor;
         torsoRenderer.endColor = newTorsoColor;
-
-        headSprite.color = newColor;
     }
     public void SetRenderSortingLayer(int layer) {
         foreach (LineRenderer renderer in allLineRenderers) {
@@ -684,7 +682,7 @@ public class FighterScript : MonoBehaviour {
         torsoTop.tag = "Enemy";
         torsoBottom.tag = "Enemy";
 
-        notInAttackAnimation = true;
+        notInAnimation = true;
         facingRight = true;
         isTurning = false;
 
@@ -723,7 +721,7 @@ public class FighterScript : MonoBehaviour {
         KeepZPositionAtZero();
         GainEnergy();
         MoveAndDrawBody(); // for some reason important this is called first
-        if (notInAttackAnimation) // if the fighter is not currently in an animation
+        if (notInAnimation) // if the fighter is not currently in an animation
         {
             MoveTowardsDefaultStance();
         }
@@ -762,7 +760,7 @@ public class FighterScript : MonoBehaviour {
 
     IEnumerator FindAndFixBrokenArmHinges() {
         while (true) {
-            if (Time.frameCount % 20 == 0 && notInAttackAnimation) {
+            if (Time.frameCount % 20 == 0 && notInAnimation) {
                 UnfuckArm(jointShoulder2, jointElbow2, lowerArm2, stanceHand2);
                 UnfuckArm(jointShoulder1, jointElbow1, lowerArm1, stanceHand1);
             }
@@ -905,7 +903,7 @@ public class FighterScript : MonoBehaviour {
         UpdateEnergyBar();
     }
     void MoveTowardsDefaultStance()
-    //only happens with controlsEnabled. moves at speed towards default positions of hands and feet
+    // moves at speed towards default positions of hands and feet
     {
         float fighterX = transform.position.x;
         float fighterY = transform.position.y;
@@ -1182,7 +1180,7 @@ public class FighterScript : MonoBehaviour {
     public void SetRagdoll(bool ragdoll) {
         if (ragdoll) {
             //Debug.Log("ragdoll set true");
-            notInAttackAnimation = false;
+            notInAnimation = false;
             EnableGravity(true);
             EqualizeBodyPartMass(true);
             SetColliders("ragdoll");
@@ -1190,7 +1188,7 @@ public class FighterScript : MonoBehaviour {
         }
         else {
             //Debug.Log("ragdoll set false");
-            notInAttackAnimation = true;
+            notInAnimation = true;
             EnableGravity(false);
             EqualizeBodyPartMass(false);
             SetColliders("combat");
@@ -1411,7 +1409,7 @@ public class FighterScript : MonoBehaviour {
     {
         float walkSpeed = moveSpeed * 0.75f;
         bool walkingRight = (direction.x > 0);
-        if (isAirborne || !notInAttackAnimation) // will not move in air/attack animation
+        if (isAirborne || !notInAnimation) // will not move in air/attack animation
         {
             return;
         }
@@ -1640,8 +1638,8 @@ public class FighterScript : MonoBehaviour {
     }
     private void MoveHeadInDirection(Vector3 direction) {
         float finalMoveSpeed = moveSpeed;
-        if (!notInAttackAnimation) {
-            if (fightingStyle == "tae kwon do") {
+        if (!notInAnimation) {
+            if (fightingStyle == "taekwondo") {
                 finalMoveSpeed /= 1.5f;
             }
             else {
@@ -1654,29 +1652,9 @@ public class FighterScript : MonoBehaviour {
         }
 
         Vector3 expectedPos = stanceHeadTran.position + (direction * finalMoveSpeed);
-        FixIfExpectedPosOutOfBounds(expectedPos);
-
-        stanceHeadTran.position = expectedPos;
-    }
-    private Vector3 FixIfExpectedPosOutOfBounds(Vector3 input) {
-        Vector3 fixedPos = input;
-        if (input.x > transform.position.x + reach) {
-            fixedPos = new Vector3(transform.position.x + reach, fixedPos.y, 0f);
+        if (IsPositionWithinSectors(expectedPos)) {
+            stanceHeadTran.position = expectedPos;
         }
-        else {
-            if (input.x < transform.position.x - reach) {
-                fixedPos = new Vector3(transform.position.x - reach, fixedPos.y, 0f);
-            }
-        }
-        if (input.y > transform.position.y + reach) {
-            fixedPos = new Vector3(fixedPos.x, transform.position.y + reach, 0f);
-        }
-        else {
-            if (input.y < transform.position.y - reach) {
-                fixedPos = new Vector3(fixedPos.x, transform.position.y - reach, 0f);
-            }
-        }
-        return fixedPos;
     }
     public void MoveHeadAtPosition(Vector3 targetPosition) {
         targetPosition = new Vector3(targetPosition.x, targetPosition.y, 0f);
@@ -1773,7 +1751,7 @@ public class FighterScript : MonoBehaviour {
             yield break;
         }
         isTurning = true;
-        notInAttackAnimation = false;
+        notInAnimation = false;
 
         float directionMultiplier = orientedTran.position.x - stanceHeadTran.position.x;
         Vector3 movementVector = transform.right * directionMultiplier * moveSpeed * 2f;
@@ -1791,7 +1769,7 @@ public class FighterScript : MonoBehaviour {
 
         TurnBody();
         SwapHingeAngles();
-        notInAttackAnimation = true;
+        notInAnimation = true;
         isTurning = false;
         //Debug.Log("facing right: " + facingRight);
     }
@@ -1803,7 +1781,7 @@ public class FighterScript : MonoBehaviour {
         }
     }
     public void TurnTo(string direction) {
-        if (!notInAttackAnimation || isTurning) {
+        if (!notInAnimation || isTurning) {
             return;
         }
         // only turns if it is not already facing the direction
@@ -1834,7 +1812,7 @@ public class FighterScript : MonoBehaviour {
     }
     public void Attack(string attackType) {
         // attackType = "arms" or "legs"
-        if (!notInAttackAnimation || !IsHeadWithinSectors()) {
+        if (!notInAnimation || !IsHeadWithinSectors()) {
             return;
         }
         string[] sectors = {
@@ -1901,14 +1879,14 @@ public class FighterScript : MonoBehaviour {
                 return;
         }
     }
-    public float[] GetAttackInfo(string name) {
+    public float[] GetAttackInfo(string attackID) {
         float[] output = new float[4]; // output = [damage, knockback multiplier, energy cost, default time taken]
         float damage = -1f;
         float pushMultiplier = -1f;
         float energyCost = -1f;
         float timeTaken = -1f;
         string type = "none";
-        switch (name.ToLower()) {
+        switch (attackID.ToLower()) {
             case "hook":
                 type = "arms";
                 damage = 50f * armPower;
@@ -1981,7 +1959,7 @@ public class FighterScript : MonoBehaviour {
                 break;
         }
 
-        if (isPlayer && notInAttackAnimation) // adds to punches/kicks thrown
+        if (isPlayer && notInAnimation) // adds to counter of punches/kicks thrown
         {
             if (energyCost > currentEnergy) {
                 type = "no energy";
@@ -1992,8 +1970,6 @@ public class FighterScript : MonoBehaviour {
                     walkAnimationCoroutine = null;
                 }
                 switch (type) {
-                    case "no energy":
-                        break;
                     case "arms":
                         gameStateManagerScript.armAttacksUsedCurrent++;
                         break;
@@ -2004,6 +1980,7 @@ public class FighterScript : MonoBehaviour {
                         gameStateManagerScript.specialAttacksUsedCurrent++;
                         break;
                 }
+                SuccessfulAttackStart(attackID);
             }
         }
 
@@ -2024,7 +2001,7 @@ public class FighterScript : MonoBehaviour {
         output[1] = pushMultiplier;
         output[2] = energyCost;
         output[3] = timeTaken;
-        notInAttackAnimation = false;
+        notInAnimation = false;
 
         return output;
     }
@@ -2173,17 +2150,39 @@ public class FighterScript : MonoBehaviour {
             yield return null;
         }
     }
+
+    IEnumerator GetStunned(float seconds) {
+        if (!notInAnimation) {
+            yield break;
+        }
+
+        notInAnimation = false;
+        for (int i = 0; i < (int)(seconds * 60f); i++) {
+            yield return null;
+        }
+        yield return null;
+    }
+    private void SuccessfulAttackStart(string attackID) {
+        if (fightingStyle == "wingchun") {
+            Debug.Log("wingchun attack");
+            StartCoroutine(MakeInvulnerableForSeconds(0.15f));
+        }
+    }
     IEnumerator MakeInvulnerableForSeconds(float seconds) {
+        if (isInvulnerable) {
+            yield break;
+        }
+
+        isInvulnerable = true;
+        Color origColor = torsoOutlineRenderer.startColor;
+        Color invulColor = new Color((origColor.r + 1f) / 2f, (origColor.g + 1f) / 2f, (origColor.b + 1f) / 2f, 1);
+        SetColor(invulColor);
         for (int i = 0; i < (int)(60f * seconds); i++) {
             isInvulnerable = true;
             yield return null;
         }
+        SetColor(origColor);
         isInvulnerable = false;
-    }
-    private void SuccessfulAttackStart(string attackID) {
-        if (fightingStyle == "wingchun") {
-            MakeInvulnerableForSeconds(0.5f);
-        }
     }
     IEnumerator Hook(bool isPartOfCombo)// true input  means no energy cost 
     {
@@ -2197,7 +2196,7 @@ public class FighterScript : MonoBehaviour {
         float timeTaken = info[3]; //seconds
 
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
@@ -2245,11 +2244,10 @@ public class FighterScript : MonoBehaviour {
             MoveTowardsDefaultStance();
             yield return null;
         }
-        notInAttackAnimation = true;
+        notInAnimation = true;
     }
     IEnumerator JabCombo(string type)// type = "combo" or "fast". combo is a 2 hit combo, fast is a single far jab
         {
-
         string jabID = "";
         switch (type) {
             case "fast":
@@ -2266,7 +2264,7 @@ public class FighterScript : MonoBehaviour {
         float timeTaken = info[3]; //seconds
 
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
@@ -2322,7 +2320,7 @@ public class FighterScript : MonoBehaviour {
         }
         if (type == "fast") // end animation if fast
         {
-            notInAttackAnimation = true;
+            notInAnimation = true;
         }
         //Debug.Log("controls re-enabled");
     }
@@ -2334,11 +2332,11 @@ public class FighterScript : MonoBehaviour {
         float timeTaken = info[3]; //seconds
 
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
-            notInAttackAnimation = false;
+            notInAnimation = false;
             ChangeEnergy(0f - energyCost);
         }
         int framesTaken = (int)(timeTaken * 60f);
@@ -2382,7 +2380,7 @@ public class FighterScript : MonoBehaviour {
             MoveTowardsDefaultStance();
             yield return null;
         }
-        notInAttackAnimation = true;
+        notInAnimation = true;
     }
     IEnumerator RoundhouseKick(string type)// type = high or straight
     {
@@ -2396,7 +2394,7 @@ public class FighterScript : MonoBehaviour {
         float timeTaken = info[3]; //seconds
 
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
@@ -2513,7 +2511,7 @@ public class FighterScript : MonoBehaviour {
         }
         SetStances("combat");
         drawNormalKnee1 = true;
-        notInAttackAnimation = true;
+        notInAnimation = true;
         //Debug.Log("controls re-enabled");
     }
     IEnumerator PushKick(string type)// type = "grounded" or "flying" because I am lazy to make another ienumerator for a flying push kick 
@@ -2535,7 +2533,7 @@ public class FighterScript : MonoBehaviour {
         bool grounded = true;
 
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
@@ -2658,7 +2656,7 @@ public class FighterScript : MonoBehaviour {
             MoveTowardsDefaultStance();
             yield return null;
         }
-        notInAttackAnimation = true;
+        notInAnimation = true;
         //Debug.Log("controls re-enabled");
     }
     IEnumerator FlyingKickPart2(float jumpVectorY) {
@@ -2717,7 +2715,7 @@ public class FighterScript : MonoBehaviour {
         float energyCost = GetAttackInfo("flyingkick")[2];
         // no power listed here, rather it is listed on the front kick
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
@@ -2751,7 +2749,7 @@ public class FighterScript : MonoBehaviour {
         float totalAnimationTimeTaken = info[3];
 
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
@@ -2860,7 +2858,7 @@ public class FighterScript : MonoBehaviour {
         Destroy(directDamager);
 
         gainEnergyOn = true;
-        notInAttackAnimation = true;
+        notInAnimation = true;
     }
     IEnumerator Knee(string type)// grounded or flying
         {
@@ -2870,7 +2868,7 @@ public class FighterScript : MonoBehaviour {
         float energyCost = info[2];
         float timeTaken = info[3]; //seconds
         if (currentEnergy < energyCost) {
-            notInAttackAnimation = true;
+            notInAnimation = true;
             yield break;
         }
         else {
@@ -2924,6 +2922,6 @@ public class FighterScript : MonoBehaviour {
             MoveTowardsDefaultStance();
             yield return null;
         }
-        notInAttackAnimation = true;
+        notInAnimation = true;
     }
 }
