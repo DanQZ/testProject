@@ -7,7 +7,7 @@ public class GameStateManagerScript : MonoBehaviour {
     public int skillPoints = 0;
     public GameObject checkpointUpgradeButtons;
     public int currentFramesToCheckpoint = 0;
-    float defaultSecondsToCheckpoint = 30f;
+    float defaultSecondsToCheckpoint = 45f;
 
     // moveset editor ui
     public GameObject armMovesetButtons;
@@ -114,7 +114,7 @@ public class GameStateManagerScript : MonoBehaviour {
         editingArmsOrLegs = "legs";
         selectedMoveToAdd = "none";
 
-        UpdateAvailableMoveList();
+        InitAllAvailableMoves();
         SetDefaultMoveset();
         ChangeWhatMovesetToEdit();
         SelectFightingStyle("muaythai");
@@ -124,7 +124,7 @@ public class GameStateManagerScript : MonoBehaviour {
         checkpointCountdownCoroutine = CountDownToNextCheckpoint();
 
     }
-    void UpdateAvailableMoveList() {
+    void InitAllAvailableMoves() {
 
         allMoves.Clear();
 
@@ -186,22 +186,33 @@ public class GameStateManagerScript : MonoBehaviour {
         flyingKickSectors.Add(2);
         allMoves.Add(new Move("flyingkick", "legs", flyingKickSectors));
 
-
         // front low 2
         List<int> kneeSectors = new List<int>();
         kneeSectors.Add(2);
         kneeSectors.Add(5);
         allMoves.Add(new Move("knee", "legs", kneeSectors));
 
+        // top front, mid front
+        List<int> chainPunchSectors = new List<int>();
+        chainPunchSectors.Add(8);
+        chainPunchSectors.Add(5);
+        allMoves.Add(new Move("chainpunch", "arms", chainPunchSectors));
+
+        // all sectors
+        List<int> elbowSectors = new List<int>();
+        for (int i = 0; i < 9; i++) {
+            elbowSectors.Add(i);
+        }
+        allMoves.Add(new Move("elbow", "arms", elbowSectors));
     }
 
     // 1. check which moves are available for both selected sector and selected moveset
     public struct Move {
         public string moveName;
         public string type;
-        public List<int> availableSectors;
+        public List<int> validSectors;
         public Move(string nameArg, string typeArg, List<int> availableSectorsArg) {
-            moveName = nameArg; type = typeArg; availableSectors = availableSectorsArg;
+            moveName = nameArg; type = typeArg; validSectors = availableSectorsArg;
         }
     }
 
@@ -347,9 +358,10 @@ public class GameStateManagerScript : MonoBehaviour {
         currentPFScript.gameStateManager = transform.gameObject;
         currentPFScript.gameStateManagerScript = transform.gameObject.GetComponent<GameStateManagerScript>();
         currentPFScript.SetCharacterType(chosenCharacterType);
-        currentPFScript.fightingStyle = selectedPlayerFightingStyle;
+        currentPFScript.InitDefaultMoveset();
+        currentPFScript.myFightingStyle = selectedPlayerFightingStyle;
 
-        ApplyNewMovesetToPlayer();
+        currentPFScript.ApplyNewMoveset(currentMovesetArms, currentMovesetLegs);
         // there might be more control schemes later idk
         switch (selectedControls.ToLower()) {
             case "wasd":
@@ -547,38 +559,130 @@ public class GameStateManagerScript : MonoBehaviour {
 
     // MOVESET EDITING CODE 
     private void SetDefaultMoveset() {
-        currentMovesetLegs[0] = "flyingkick";
-        currentMovesetLegs[1] = "flyingkick";
-        currentMovesetLegs[2] = "knee";
-        currentMovesetLegs[3] = "pushkick";
-        currentMovesetLegs[4] = "roundhousekick";
-        currentMovesetLegs[5] = "roundhousekick";
-        currentMovesetLegs[6] = "pushkick";
-        currentMovesetLegs[7] = "roundhousekick";
-        currentMovesetLegs[8] = "roundhousekickhigh";
+        SetDefaultMovesetOf("muaythai");
+    }
 
-        currentMovesetArms[0] = "uppercut";
-        currentMovesetArms[1] = "uppercut";
-        currentMovesetArms[2] = "uppercut";
-        currentMovesetArms[3] = "hook";
-        currentMovesetArms[4] = "hook";
-        currentMovesetArms[5] = "fast jab";
-        currentMovesetArms[6] = "hook";
-        currentMovesetArms[7] = "hook";
-        currentMovesetArms[8] = "jab combo";
+    public string[][] GetDefaultMovesetOf(string fightingStyle) { // returns 2d array of arm attacks then leg attacks
+        string[][] output = new string[2][]{
+                new string[9],
+                new string[9]
+            };
+
+        switch (fightingStyle) {
+            case "unskilled":
+                output[0][0] = "uppercut";
+                output[0][1] = "uppercut";
+                output[0][2] = "fast jab";
+                output[0][3] = "hook";
+                output[0][4] = "hook";
+                output[0][5] = "fast jab";
+                output[0][6] = "hook";
+                output[0][7] = "hook";
+                output[0][8] = "fast jab";
+
+                output[1][0] = "pushkick";
+                output[1][1] = "pushkick";
+                output[1][2] = "pushkick";
+                output[1][3] = "pushkick";
+                output[1][4] = "pushkick";
+                output[1][5] = "pushkick";
+                output[1][6] = "pushkick";
+                output[1][7] = "pushkick";
+                output[1][8] = "pushkick";
+                break;
+            case "muaythai":
+                output[0][0] = "uppercut";
+                output[0][1] = "uppercut";
+                output[0][2] = "fast jab";
+                output[0][3] = "hook";
+                output[0][4] = "hook";
+                output[0][5] = "elbow";
+                output[0][6] = "hook";
+                output[0][7] = "hook";
+                output[0][8] = "jab combo";
+
+                output[1][0] = "knee";
+                output[1][1] = "knee";
+                output[1][2] = "knee";
+                output[1][3] = "pushkick";
+                output[1][4] = "roundhousekick";
+                output[1][5] = "roundhousekick";
+                output[1][6] = "pushkick";
+                output[1][7] = "roundhousekick";
+                output[1][8] = "roundhousekick";
+                break;
+            case "wingchun":
+                output[0][0] = "uppercut";
+                output[0][1] = "uppercut";
+                output[0][2] = "uppercut";
+                output[0][3] = "hook";
+                output[0][4] = "hook";
+                output[0][5] = "chainpunch";
+                output[0][6] = "hook";
+                output[0][7] = "hook";
+                output[0][8] = "chainpunch";
+
+                output[1][0] = "pushkick";
+                output[1][1] = "pushkick";
+                output[1][2] = "none";
+                output[1][3] = "pushkick";
+                output[1][4] = "pushkick";
+                output[1][5] = "none";
+                output[1][6] = "pushkick";
+                output[1][7] = "pushkick";
+                output[1][8] = "none";
+                break;
+            case "taekwondo":
+                output[0][0] = "hook";
+                output[0][1] = "hook";
+                output[0][2] = "fast jab";
+                output[0][3] = "hook";
+                output[0][4] = "hook";
+                output[0][5] = "fast jab";
+                output[0][6] = "hook";
+                output[0][7] = "hook";
+                output[0][8] = "jab combo";
+
+                output[1][0] = "flyingkick";
+                output[1][1] = "flyingkick";
+                output[1][2] = "knee";
+                output[1][3] = "pushkick";
+                output[1][4] = "roundhousekick";
+                output[1][5] = "roundhousekick";
+                output[1][6] = "pushkick";
+                output[1][7] = "roundhousekick";
+                output[1][8] = "roundhousekickhigh";
+                break;
+        }
+        return output;
+    }
+
+    private void SetDefaultMovesetOf(string fightingStyle) {
+        string[][] movesetArray = GetDefaultMovesetOf(fightingStyle);
+        for (int x = 0; x < 9; x++) {
+            currentMovesetArms[x] = movesetArray[0][x];
+        }
+        for (int x = 0; x < 9; x++) {
+            currentMovesetLegs[x] = movesetArray[1][x];
+        }
     }
 
     public void SelectFightingStyle(string style) {
         selectedPlayerFightingStyle = style;
         SELECTSTYLE_UI.GetComponent<SelectStyleUIScript>().DisplayOnlyMovesOfStyle(style, editingArmsOrLegs);
+        SetDefaultMovesetOf(style);
         DisplayUI("select style");
+    }
+    private void UpdateAvailableMoveList() {
+        SELECTSTYLE_UI.GetComponent<SelectStyleUIScript>().DisplayOnlyMovesOfStyle(selectedPlayerFightingStyle, editingArmsOrLegs);
     }
     // a bunch of code to change the attacks of the player object
     public void SelectSector(int sectorArg) // 0 = bot back, 1 = bot center, bot forward, center back etc.
     {
         selectedSectorToChange = sectorArg;
-        Debug.Log("selected to change " + GetSectorName(sectorArg));
+        Debug.Log("selected to change " + GetSectorName(sectorArg) + "to " + selectedMoveToAdd);
         if (selectedMoveToAdd == "none") {
+            Debug.Log("no move selected");
             return;
         }
 
@@ -586,14 +690,17 @@ public class GameStateManagerScript : MonoBehaviour {
         bool validSector = false;
         foreach (Move move in allMoves) {
             if (move.moveName == selectedMoveToAdd) {
-                foreach (int sectorItCanGoIn in move.availableSectors) {
-                    if (sectorItCanGoIn == sectorArg && editingArmsOrLegs == move.type)
+                foreach (int validSectors in move.validSectors) {
+                    if (validSectors == sectorArg && editingArmsOrLegs == move.type) {
                         validSector = true;
-                    break;
+                        break;
+                    }
                 }
+                break;
             }
         }
         if (!validSector) {
+            Debug.Log("invalid sector");
             return;
         }
 
@@ -623,11 +730,11 @@ public class GameStateManagerScript : MonoBehaviour {
     private void HighlightAvailableSectors(Move moveInput) {
         PurgeOldHighlights();
         string availableSectorString = "available sectors: ";
-        foreach (int sector in moveInput.availableSectors) {
+        foreach (int sector in moveInput.validSectors) {
             availableSectorString += sector + ", ";
         }
         Debug.Log(availableSectorString);
-        foreach (int sector in moveInput.availableSectors) {
+        foreach (int sector in moveInput.validSectors) {
             GameObject newHighlight = Instantiate(
                 sectorButtonOutline,
                 sectorButtons[sector].transform.position,
@@ -676,22 +783,18 @@ public class GameStateManagerScript : MonoBehaviour {
     public void ChangeWhatMovesetToEdit() {
         PurgeOldHighlights();
         selectedMoveToAdd = "none";
-        armMovesetButtons.SetActive(false);
-        legMovesetButtons.SetActive(false);
+        GameObject turnOnTheseButtons = null;
+
         switch (editingArmsOrLegs) {
             case "arms":
+                turnOnTheseButtons = legMovesetButtons;
                 editingArmsOrLegs = "legs";
-                legMovesetButtons.SetActive(true);
                 break;
             case "legs":
+                turnOnTheseButtons = armMovesetButtons;
                 editingArmsOrLegs = "arms";
-                armMovesetButtons.SetActive(true);
-                break;
-            case "special":
-                editingArmsOrLegs = "special";
                 break;
         }
-
 
         SelectFightingStyle(selectedPlayerFightingStyle);
 

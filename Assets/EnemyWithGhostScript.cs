@@ -29,17 +29,10 @@ public class EnemyWithGhostScript : MonoBehaviour {
     public FighterScript ghostFighterScript;
     public GameObject playerFighter;
     public GameObject playerHead;
-    // Start is called before the first frame update
-    int timer;
-    int attackInterval;
-    float targetDistanceToPlayer;
-    float distanceToPlayer;
 
-    Vector3 pos1sAgo;
-    string method1sAgo;
-    // failed attempt
-    //List<string> actionsThatFrame = new List<string>();
-    //Queue<List<string>> actionQueue = new Queue<List<string>>();
+
+    Queue<bool> invulnerabilityQ = new Queue<bool>();
+
     Queue<Vector3> bodPosQ = new Queue<Vector3>();
     Queue<Vector3> headPosQ = new Queue<Vector3>();
     Queue<Vector3> torsoTopPosQ = new Queue<Vector3>();
@@ -109,6 +102,8 @@ public class EnemyWithGhostScript : MonoBehaviour {
         yield return new WaitForSeconds(1);
 
         while (true) {
+            enemyFighterScript.isInvulnerable = invulnerabilityQ.Dequeue();
+
             enemyFighterTran.localPosition = bodPosQ.Dequeue();
             enemyHeadStanceTran.localPosition = headPosQ.Dequeue();
 
@@ -150,6 +145,8 @@ public class EnemyWithGhostScript : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        invulnerabilityQ.Enqueue(ghostFighterScript.isInvulnerable);
+
         bodPosQ.Enqueue(ghostFighterTran.localPosition);
         headPosQ.Enqueue(ghostHeadStanceTran.localPosition);
 
@@ -175,5 +172,6 @@ public class EnemyWithGhostScript : MonoBehaviour {
         customElbow2Q.Enqueue(ghostFighterScript.customElbow2Tran.localPosition);
         customKnee1Q.Enqueue(ghostFighterScript.customKnee1Tran.localPosition);
         customKnee2Q.Enqueue(ghostFighterScript.customKnee2Tran.localPosition);
+
     }
 }

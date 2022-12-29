@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SelectStyleUIScript : MonoBehaviour {
     public GameObject hookButton;
     public GameObject jabButton;
     public GameObject jabComboButton;
     public GameObject uppercutButton;
+    public GameObject chainPunchButton;
+    public GameObject elbowButton;
 
     public GameObject pushKickButton;
     public GameObject roundhouseKickButton;
@@ -20,6 +23,8 @@ public class SelectStyleUIScript : MonoBehaviour {
         allMoveButtons.Add(jabButton);
         allMoveButtons.Add(jabComboButton);
         allMoveButtons.Add(uppercutButton);
+        allMoveButtons.Add(chainPunchButton);
+        allMoveButtons.Add(elbowButton);
 
         allMoveButtons.Add(pushKickButton);
         allMoveButtons.Add(roundhouseKickButton);
@@ -32,34 +37,34 @@ public class SelectStyleUIScript : MonoBehaviour {
 
         // hides all movebuttons
         foreach (GameObject button in allMoveButtons) {
-            button.SetActive(false);
+            TurnOff(button);
         }
 
         if (armsOrLegs == "arms") {
-            Show(hookButton);
-            Show(jabButton);
-            Show(jabComboButton);
+            TurnOn(hookButton);
+            TurnOn(jabButton);
+            TurnOn(jabComboButton);
         }
         else {
-            Show(pushKickButton);
+            TurnOn(pushKickButton);
         }
 
         switch (style) {
             case "muaythai":
                 if (armsOrLegs == "arms") {
-                    Show(uppercutButton);
-                    // Show(elbowButton); to be added
+                    TurnOn(uppercutButton);
+                    TurnOn(elbowButton);
                 }
                 else {
-                    Show(kneeButton);
-                    Show(roundhouseKickButton);
+                    TurnOn(kneeButton);
+                    TurnOn(roundhouseKickButton);
                 }
                 break;
             case "wingchun":
                 if (armsOrLegs == "arms") {
-                    Show(uppercutButton);
-                    //Show(elbowButton);
-                    //Show(chainPunchButton);
+                    TurnOn(uppercutButton);
+                    TurnOn(elbowButton);
+                    TurnOn(chainPunchButton);
                 }
                 else {
                 }
@@ -70,16 +75,19 @@ public class SelectStyleUIScript : MonoBehaviour {
 
                 }
                 else {
-                    Show(flyingKickButton);
-                    Show(roundhouseKickButton);
-                    Show(highRoundhouseKickButton);
-                    Show(kneeButton);
+                    TurnOn(flyingKickButton);
+                    TurnOn(roundhouseKickButton);
+                    TurnOn(highRoundhouseKickButton);
+                    TurnOn(kneeButton);
                 }
                 break;
         }
     }
 
-    private void Show(GameObject button) {
-        button.SetActive(true);
+    private void TurnOn(GameObject buttonObject) {
+        buttonObject.GetComponent<Button>().interactable = true;
+    }
+    private void TurnOff(GameObject buttonObject) {
+        buttonObject.GetComponent<Button>().interactable = false;
     }
 }

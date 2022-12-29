@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyManagerScript : MonoBehaviour
-{
+public class EnemyManagerScript : MonoBehaviour {
     public GameObject gameStateManager;
     public GameObject enemyWithGhostPrefab; // reference to the enemy prefab
     public int numOfEnemiesSpawnedThisGame;
@@ -26,46 +25,38 @@ public class EnemyManagerScript : MonoBehaviour
 
     // Start is called before the first frame update
 
-    void Start()
-    {
+    void Start() {
         difficultyLevel = 0;
         spawnEnemiesCoroutine = KeepSpawningEnemies(5f, 10f); // begins with long intervals
         numOfEnemiesSpawnedThisGame = 0;
     }
 
-    public void NewGame()
-    {
+    public void NewGame() {
         difficultyLevel = 0;
         numOfEnemiesSpawnedThisGame = 0;
         PCScript = playerPrefab.GetComponent<PlayerScript>(); // creates a reference
         playerFighter = PCScript.playerFighter; // creates a reference to the fighter inside the player
     }
-    public List<GameObject> GetAllEnemiesList()
-    {
+    public List<GameObject> GetAllEnemiesList() {
         RemoveDestroyedEnemiesFromList();
         return allEnemiesList;
     }
-    public void RemoveDestroyedEnemiesFromList()
-    {
+    public void RemoveDestroyedEnemiesFromList() {
         allEnemiesList.RemoveAll(enemy => enemy == null);
     }
 
-    public void ClearAllEnemies()
-    {
-        foreach (GameObject enemy in allEnemiesList)
-        {
+    public void ClearAllEnemies() {
+        foreach (GameObject enemy in allEnemiesList) {
             Destroy(enemy);
         }
         allEnemiesList.Clear();
     }
-    public void GameEnded()
-    {
+    public void GameEnded() {
         StopSpawningEnemies();
         ClearAllEnemies();
     }
 
-    public void IncreaseDifficulty()
-    {
+    public void IncreaseDifficulty() {
         // in case it is still running
 
         StopCoroutine(spawnEnemiesCoroutine);
@@ -75,12 +66,10 @@ public class EnemyManagerScript : MonoBehaviour
         float rangeMaxSeconds = 20f - ((float)difficultyLevel);
 
         // prevents enemies from spawning more than once per second
-        if (rangeMinSeconds < 1f)
-        {
+        if (rangeMinSeconds < 1f) {
             rangeMinSeconds = 1f;
         }
-        if (rangeMaxSeconds < 1f)
-        {
+        if (rangeMaxSeconds < 1f) {
             rangeMaxSeconds = 1f;
         }
         // new spawn intervals
@@ -88,25 +77,21 @@ public class EnemyManagerScript : MonoBehaviour
         difficultyLevel++;
     }
 
-    public void StartSpawningEnemies()
-    {
+    public void StartSpawningEnemies() {
         // in case it is still running
         StopCoroutine(spawnEnemiesCoroutine);
 
         StartCoroutine(spawnEnemiesCoroutine);
     }
 
-    public void StopSpawningEnemies()
-    {
+    public void StopSpawningEnemies() {
         StopCoroutine(spawnEnemiesCoroutine);
     }
 
     // spawn 1 enemy 10 units to the right
-    void SpawnEnemyToTheRightOrLeft()
-    {
+    void SpawnEnemyToTheRightOrLeft() {
         float leftRight = 10f;
-        if (Random.Range(0f, 1f) > 0.5f)
-        {
+        if (Random.Range(0f, 1f) > 0.5f) {
             leftRight = -10f;
         }
         GameObject newEnemyWithGhost = Instantiate(enemyWithGhostPrefab,
@@ -121,26 +106,21 @@ public class EnemyManagerScript : MonoBehaviour
         newEGScript.myManagerObject = transform.gameObject;
         newEGScript.myManagerScript = transform.gameObject.GetComponent<EnemyManagerScript>();
 
-
         // the enemy AI referencing (replace with the other AI script here)
         DanEnemyAI newEnemyAIScript = newEnemyWithGhost.GetComponent<DanEnemyAI>();
         newEnemyAIScript.playerFighter = playerFighter;
         newEnemyAIScript.playerHeadTran = playerFighter.GetComponent<FighterScript>().stanceHead.transform;
 
-        int randomNum = (int)Random.Range(0, 3f);
+        float randomClass = Random.Range(0, 1f);
         string newEnemyType = "acolyte";
-        switch (randomNum)
-        {
-            case 0:
-                newEnemyType = "acolyte";
-                break;
-            case 1:
-                newEnemyType = "brawler";
-                break;
-            case 2:
-                newEnemyType = "trickster";
-                break;
+
+        if (randomClass > 0.30f) { // 15% chance spawn
+            newEnemyType = "trickster";
         }
+        if (randomClass > 0.15f) { // 15% chance spawn
+            newEnemyType = "brawler";
+        }
+
         newEGScript.ghostFighterScript.SetCharacterType(newEnemyType);
         newEGScript.enemyFighterScript.SetCharacterType(newEnemyType);
 
@@ -155,6 +135,28 @@ public class EnemyManagerScript : MonoBehaviour
         newEGScript.ghostFighterScript.gameStateManager = gameStateManager;
         newEGScript.ghostFighterScript.gameStateManagerScript = gameStateManager.GetComponent<GameStateManagerScript>();
 
+        // apply new fighting style at random
+        float random = Random.Range(0, 1f);
+        if (random < 0.25f) {
+            int randomStyle = (int)Random.Range(0, 2.99f);
+            switch (randomStyle) {
+                case 0:
+                    newEGScript.ghostFighterScript.myFightingStyle = "muaythai";
+                    break;
+                case 1:
+                    newEGScript.ghostFighterScript.myFightingStyle = "wingchun";
+                    break;
+                case 2:
+                    newEGScript.ghostFighterScript.myFightingStyle = "taekwondo";
+                    break;
+            }
+        }
+        else {
+            newEGScript.ghostFighterScript.myFightingStyle = "unskilled";
+        }
+        newEGScript.ghostFighterScript.myFightingStyle = "unskilled";
+        newEGScript.ghostFighterScript.ApplyMyStyleDefaultMoveset();
+
         allEnemiesList.Add(newEnemyWithGhost);
         numOfEnemiesSpawnedThisGame++;
     }
@@ -165,16 +167,12 @@ public class EnemyManagerScript : MonoBehaviour
         float rangeMax = rangeMaxArgSeconds;
         int nextFrame = Time.frameCount + 3 * 60;
         float levelsPerExtraEnemySpawn = 3f;
-        while (true)
-        {
-            if (Time.frameCount >= nextFrame)
-            {
+        while (true) {
+            if (Time.frameCount >= nextFrame) {
                 int numOfEnemiesToSpawn = (int)Random.Range(1f, 1f + (float)difficultyLevel / levelsPerExtraEnemySpawn); // every 3 levels it can spawn 1 more enemy at once
 
-                for (int i = 0; i < numOfEnemiesToSpawn; i++)
-                {
-                    if (allEnemiesList.Count <= maxEnemies)
-                    {
+                for (int i = 0; i < numOfEnemiesToSpawn; i++) {
+                    if (allEnemiesList.Count <= maxEnemies) {
                         SpawnEnemyToTheRightOrLeft();
                     }
                 }
