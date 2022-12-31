@@ -154,7 +154,6 @@ public class EnemyManagerScript : MonoBehaviour {
         else {
             newEGScript.ghostFighterScript.myFightingStyle = "unskilled";
         }
-        newEGScript.ghostFighterScript.myFightingStyle = "unskilled";
         newEGScript.ghostFighterScript.ApplyMyStyleDefaultMoveset();
 
         allEnemiesList.Add(newEnemyWithGhost);

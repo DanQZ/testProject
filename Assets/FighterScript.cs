@@ -1421,7 +1421,10 @@ public class FighterScript : MonoBehaviour {
         bool walkingRight = (direction.x > 0);
         if (isAirborne || !notInAnimation) // will not move in air/attack animation
         {
-            return;
+            walkSpeed *= 0.25f;
+            if (myFightingStyle == "taekwondo") {
+                walkSpeed *= 2f;
+            }
         }
 
         if (isPlayer) // player limitations
