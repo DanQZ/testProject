@@ -1827,10 +1827,10 @@ public class FighterScript : MonoBehaviour {
         newMoveset[1] = gameStateManagerScript.GetDefaultMovesetOf(myFightingStyle)[1];
         ApplyNewMoveset(newMoveset[0], newMoveset[1]);
     }
-    public void ApplyNewMoveset(string[] newArmMoveset, string[] newLegMoveset) {
+    public void ApplyNewMoveset(string[] newArmMovesetArg, string[] newLegMovesetArg) {
         for (int i = 0; i < 9; i++) {
-            armMoveset[i] = newArmMoveset[i];
-            legMoveset[i] = newLegMoveset[i];
+            armMoveset[i] = newArmMovesetArg[i];
+            legMoveset[i] = newLegMovesetArg[i];
         }
     }
 
@@ -1846,29 +1846,15 @@ public class FighterScript : MonoBehaviour {
         };
 
         if (attackType == "groundslam") { // temp disabled
-            //            StartCoroutine(GroundSlam());
+            //StartCoroutine(GroundSlam());
             return;
         }
 
         int sector = GetHeadSector();
 
         switch (attackType) {
-            case "arms":
-                UseSelectedMove("arms", armMoveset[sector]);
-                break;
-            case "legs":
-                UseSelectedMove("legs", legMoveset[sector]);
-                break;
-        }
-    }
-    public void UseSelectedMove(string armsOrLegs, string moveName) {
-        if (moveName == "none") {
-            Debug.Log("none selected for this sector");
-            return;
-        }
-        switch (armsOrLegs) {
-            case "arms":
-                switch (moveName) {
+            case "arms": // arms
+                switch (armMoveset[sector]) {
                     case "hook":
                         moveCoroutine = Hook(false);
                         StartCoroutine(moveCoroutine);
@@ -1889,10 +1875,10 @@ public class FighterScript : MonoBehaviour {
                         StartCoroutine(Elbow());
                         return;
                 }
-                Debug.Log(moveName + " does not exist for arm attacks");
+                Debug.Log(armMoveset[sector] + "does not exist for arm attacks");
                 return;
-            case "legs":
-                switch (moveName) {
+            case "legs": // legs
+                switch (legMoveset[sector]) {
                     case "roundhousekick":
                         StartCoroutine(RoundhouseKick("straight"));
                         return;
@@ -1909,11 +1895,11 @@ public class FighterScript : MonoBehaviour {
                         StartCoroutine(FlyingKick());
                         return;
                 }
-                Debug.Log(moveName + " does not exist for leg attack");
+                Debug.Log(legMoveset[sector] + "does not exist for leg attack");
                 return;
         }
     }
-    public float[] GetAttackInfo(string attackID) {
+    public float[] GetAttackInfo(string attackID) { // used by attacks before the animation executes
         float[] output = new float[4]; // output = [damage, knockback multiplier, energy cost, default time taken]
         float damage = -1f;
         float pushMultiplier = -1f;

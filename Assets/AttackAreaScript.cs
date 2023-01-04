@@ -163,7 +163,7 @@ public class AttackAreaScript : MonoBehaviour {
             LaunchAwayThingHitBcItDied();
             checkedFighterScript.Die();
         }
-        else {
+        else { // if the attack does not kill, knockback the guy hit
             PushAwayGuy(guyHitScript);
         }
         Destroy(this.gameObject);

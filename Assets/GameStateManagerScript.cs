@@ -33,6 +33,7 @@ public class GameStateManagerScript : MonoBehaviour {
     public int currentScore;
     public int highScore;
     public int enemiesKilledCurrent;
+    public int enemiesKilledLifetime;
     public float damageDealtCurrent;
     public float damageTakenCurrent;
     public float checkpointHealingCurrent;
@@ -83,7 +84,6 @@ public class GameStateManagerScript : MonoBehaviour {
 
     public List<Move> allMoves = new List<Move>();
     public List<SpecialAbility> allSpecialAiblities = new List<SpecialAbility>();
-
     void Awake() {
         Debug.Log("screen width/height = " + Screen.width + ", " + Screen.height);
         ALL_UI_LIST.Add(MAIN_MENU_UI);
@@ -297,7 +297,26 @@ public class GameStateManagerScript : MonoBehaviour {
 
         inGame = false;
         Destroy(currentPlayer);
+        SaveGame();
         DisplayUI("main menu");
+    }
+    public void SaveGame() {
+        UpdateHighScore();
+        PlayerPrefs.SetInt("SavedHighScore", highScore);
+        Debug.Log("Game data saved");
+    }
+    void LoadGame() {
+        if (PlayerPrefs.HasKey("SavedHighScore")) {
+            highScore = PlayerPrefs.GetInt("SavedHighScore");
+            Debug.Log("Game data loaded!");
+        }
+        else
+            Debug.LogError("There is no save data!");
+    }
+    void ResetData() {
+        PlayerPrefs.DeleteAll();
+        highScore = 0;
+        Debug.Log("Data reset complete");
     }
     public void StartNextLevel() { // referenced by button objects
         ShowBackground(true);
@@ -554,6 +573,7 @@ public class GameStateManagerScript : MonoBehaviour {
     public void AddScore(int toAdd) // referenced by FighterScript.Die()
     {
         currentScore += toAdd;
+        UpdateHighScore();
         inGameUIScript.UpdateScore();
     }
 
