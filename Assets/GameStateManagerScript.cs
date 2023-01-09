@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GameStateManagerScript : MonoBehaviour {
+
     public int skillPoints = 0;
     public GameObject checkpointUpgradeButtons;
     public int currentFramesToCheckpoint = 0;
@@ -66,11 +67,13 @@ public class GameStateManagerScript : MonoBehaviour {
     public CheckpointScript checkpointScript;
     public GameObject UPDATELOG_UI;
     public GameObject SELECTSTYLE_UI;
+    public SelectStyleUIScript selectStyleUIScript;
+    public GameObject SELECTCHARACTER_UI;
+    public CharacterSelectUIScript characterSelectUIScript;
     public List<GameObject> ALL_UI_LIST = new List<GameObject>();
 
     // choosing character stuff
     public string chosenCharacterType;
-    public Text chosenCharacterText;
     public Text selectedMovesetText;
 
     public string selectedControls;
@@ -95,6 +98,7 @@ public class GameStateManagerScript : MonoBehaviour {
         ALL_UI_LIST.Add(CHECKPOINT_UI);
         ALL_UI_LIST.Add(UPDATELOG_UI);
         ALL_UI_LIST.Add(SELECTSTYLE_UI);
+        ALL_UI_LIST.Add(SELECTCHARACTER_UI);
 
         transform.position = new Vector3(0f, 0f, 0f);
 
@@ -206,7 +210,7 @@ public class GameStateManagerScript : MonoBehaviour {
         allMoves.Add(new Move("elbow", "arms", elbowSectors));
     }
 
-    // 1. check which moves are available for both selected sector and selected moveset
+    // 1. check which moves are available for both selected sector and selected moveset so I can put the outlines in the right place
     public struct Move {
         public string moveName;
         public string type;
@@ -409,7 +413,6 @@ public class GameStateManagerScript : MonoBehaviour {
 
     public void SetChosenCharacter(string typeArg) {
         chosenCharacterType = typeArg;
-        chosenCharacterText.text = "Chosen: " + chosenCharacterType;
     }
 
     public void CheckpointUpgrade(string upgradeArg) {
@@ -537,6 +540,9 @@ public class GameStateManagerScript : MonoBehaviour {
                 selectedMoveToAdd = "none";
                 PurgeOldHighlights();
                 UpdateCurrentSectorMovesText();
+                break;
+            case "select character":
+                SELECTCHARACTER_UI.SetActive(true);
                 break;
         }
     }
